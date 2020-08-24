@@ -83,16 +83,6 @@ public:
 			function(group);
 		}
 	}
-
-	template <typename C>
-	static auto external_edges(const C &faces) {
-		std::unordered_set<Edge, Edge::Hash, Edge::Opposite> edges;
-		for (const auto &face: faces)
-			for (const auto edge: face.edges())
-				if (!edges.erase(edge))
-					edges.insert(edge);
-		return edges;
-	}
 };
 
 #endif

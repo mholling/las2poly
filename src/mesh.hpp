@@ -73,11 +73,17 @@ public:
 	}
 
 	auto polygons(double area) const {
-		auto edges = Face::external_edges(faces);
+		std::unordered_set<Edge, Edge::Hash, Edge::Opposite> edges;
+		for (const auto &face: faces)
+			for (const auto edge: face.edges())
+				if (!edges.erase(edge))
+					edges.insert(edge);
+
 		auto rings = Ring::from_edges(edges);
 		rings.erase(std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
 			return ring < area && ring > -area;
 		}), rings.end());
+
 		return Polygon::from_rings(rings);
 	}
 };
