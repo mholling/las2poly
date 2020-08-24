@@ -8,17 +8,18 @@ template <typename T>
 class RTree {
 	template<int axis>
 	class Node {
-		using I = typename std::vector<T>::iterator;
-		using child_type = Node<1-axis>;
-		friend child_type;
+		using Iterator = typename std::vector<T>::iterator;
+		using Child = Node<1-axis>;
+		friend Child;
 
-		std::vector<child_type> children;
-		const I first, last;
+		std::vector<Child> children;
+		Iterator first, last;
 		Bounds bounds;
 
 	public:
-		Node(const I first, const I last) : first(first), last(last) {
-			std::sort(first, last, [](const auto &t1, const auto &t2) {
+		Node(Iterator first, Iterator last) : first(first), last(last) {
+			const auto middle = first + (last - first) / 2;
+			std::nth_element(first, last, middle, [](const auto &t1, const auto &t2) {
 				return t1.bounds()[axis][0] < t2.bounds()[axis][0];
 			});
 			switch (last - first) {
@@ -27,9 +28,8 @@ class RTree {
 				case 0:
 					break;
 				default:
-					const auto middle = first + (last - first) / 2;
-					children.push_back(child_type(first, middle));
-					children.push_back(child_type(middle, last));
+					children.push_back(Child(first, middle));
+					children.push_back(Child(middle, last));
 					bounds = children[0].bounds + children[1].bounds;
 			}
 		}
