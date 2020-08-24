@@ -19,7 +19,7 @@ public:
 	Estimator(double noise_threshold, unsigned int min_consensus, unsigned int iterations) : noise_threshold(noise_threshold), min_consensus(min_consensus), iterations(iterations) { }
 
 	template <typename Data>
-	bool operator()(const Data &data, Model &model) {
+	bool operator()(const Data &data, Model &model) const {
 		if (data.size() < min_consensus)
 			return false;
 
