@@ -19,6 +19,43 @@
 class Mesh {
 	std::vector<Point> points;
 	std::unordered_set<Face, Face::Hash> faces;
+	std::unordered_set<Edge, Edge::Hash, Edge::Opposite> edges;
+
+	void insert(const Face &face) {
+		faces.insert(face);
+		for (const auto edge: face.edges())
+			if (!edges.erase(edge))
+				edges.insert(edge);
+	}
+
+	void erase(const Face &face) {
+		faces.erase(face);
+		for (const auto edge: face.edges())
+			if (!edges.erase(edge.opposite()))
+				edges.insert(edge.opposite());
+	}
+
+	template <typename C>
+	auto on_border(const C& group) {
+		for (const auto &face: group)
+			for (const auto edge: face.edges())
+				if (edges.count(edge.opposite()))
+					return true;
+		return false;
+	}
+
+	template <typename C>
+	static auto is_water(const C& group, double noise, double slope, unsigned int consensus, unsigned int iterations) {
+		std::unordered_set<Point, Point::Hash> ground_points;
+		for (const auto &face: group)
+			for (const auto &vertex: face)
+				if (vertex.is_ground())
+					ground_points.insert(vertex);
+
+		Estimator<Plane, Point, 3> estimate(noise, consensus, iterations);
+		Plane plane;
+		return estimate(ground_points, plane) && plane.slope() < slope;
+	}
 
 public:
 	Mesh(const std::string &ply_path) {
@@ -46,7 +83,7 @@ public:
 
 		faces.reserve(face_count);
 		for (std::size_t index = 0; index < face_count; ++index)
-			faces.insert(Face(points, ply, index));
+			insert(Face(points, ply, index));
 	}
 
 	void remove_voids(double noise, double length, double slope, unsigned int consensus, unsigned int iterations) {
@@ -55,30 +92,14 @@ public:
 			return face > length;
 		});
 
-		Estimator<Plane, Point, 3> estimate(noise, consensus, iterations);
 		Face::each_group(gaps, [&](const auto &group) {
-			std::unordered_set<Point, Point::Hash> ground_points;
-			Plane plane;
-
-			for (const auto &face: group)
-				for (const auto &vertex: face)
-					if (vertex.is_ground())
-						ground_points.insert(vertex);
-
-			if (estimate(ground_points, plane))
-				if (plane.slope() < slope)
-					for (const auto &face: group)
-						faces.erase(face);
+			if (on_border(group) || is_water(group, noise, slope, consensus, iterations))
+				for (const auto &face: group)
+					erase(face);
 		});
 	}
 
 	auto polygons(double area) const {
-		std::unordered_set<Edge, Edge::Hash, Edge::Opposite> edges;
-		for (const auto &face: faces)
-			for (const auto edge: face.edges())
-				if (!edges.erase(edge))
-					edges.insert(edge);
-
 		auto rings = Ring::from_edges(edges);
 		rings.erase(std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
 			return ring < area && ring > -area;

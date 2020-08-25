@@ -30,6 +30,10 @@ struct Edge {
 		bool operator()(const Edge &edge1, const Edge &edge2) const { return edge1 || edge2; }
 	};
 
+	auto opposite() const {
+		return Edge(p1, p0);
+	}
+
 	auto operator&(const Point &p) const {
 		return p0 == p || p1 == p;
 	}
