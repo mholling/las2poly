@@ -19,19 +19,19 @@
 class Mesh {
 	std::vector<Point> points;
 	std::unordered_set<Face, Face::Hash> faces;
-	std::unordered_set<Edge, Edge::Hash, Edge::Opposite> edges;
+	std::unordered_set<Edge, Edge::Hash> edges;
 
 	void insert(const Face &face) {
 		faces.insert(face);
 		for (const auto edge: face.edges())
-			if (!edges.erase(edge))
+			if (!edges.erase(edge.opposite()))
 				edges.insert(edge);
 	}
 
 	void erase(const Face &face) {
 		faces.erase(face);
 		for (const auto edge: face.edges())
-			if (!edges.erase(edge.opposite()))
+			if (!edges.erase(edge))
 				edges.insert(edge.opposite());
 	}
 
@@ -39,7 +39,7 @@ class Mesh {
 	auto on_border(const C& group) {
 		for (const auto &face: group)
 			for (const auto edge: face.edges())
-				if (edges.count(edge.opposite()))
+				if (edges.count(edge))
 					return true;
 		return false;
 	}
