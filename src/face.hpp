@@ -2,17 +2,11 @@
 #define FACE_HPP
 
 #include "point.hpp"
-#include "edge.hpp"
 #include "vertices.hpp"
-#include "rtree.hpp"
 #include <array>
-#include <stdexcept>
 #include <cstddef>
-#include <unordered_set>
+#include <stdexcept>
 #include <fstream>
-#include <algorithm>
-#include <iterator>
-#include <queue>
 
 class Face : public Vertices<std::array<const Point *, 3>> {
 	std::size_t index;
@@ -61,27 +55,6 @@ public:
 			if (edge > length)
 				return true;
 		return false;
-	}
-
-	template <typename C, typename F>
-	static void each_group(C &faces, F function) {
-		RTree<Face> rtree(faces);
-		while (!faces.empty()) {
-			std::unordered_set<Face, Hash> group;
-			std::queue<Face> pending;
-			for (pending.push(*faces.begin()); !pending.empty(); pending.pop()) {
-				const auto &face = pending.front();
-				faces.erase(face);
-				group.insert(face);
-				rtree.search(face, [&](const auto &other) {
-					if (group.count(other))
-						return;
-					if (face || other)
-						pending.push(other);
-				});
-			}
-			function(group);
-		}
 	}
 };
 

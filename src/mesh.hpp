@@ -4,8 +4,7 @@
 #include "point.hpp"
 #include "edge.hpp"
 #include "face.hpp"
-#include "plane.hpp"
-#include "estimator.hpp"
+#include "group.hpp"
 #include "ring.hpp"
 #include "polygon.hpp"
 #include <vector>
@@ -33,28 +32,6 @@ class Mesh {
 		for (const auto edge: face.edges())
 			if (!edges.erase(edge))
 				edges.insert(edge.opposite());
-	}
-
-	template <typename C>
-	auto on_border(const C& group) {
-		for (const auto &face: group)
-			for (const auto edge: face.edges())
-				if (edges.count(edge))
-					return true;
-		return false;
-	}
-
-	template <typename C>
-	static auto is_water(const C& group, double noise, double slope, unsigned int consensus, unsigned int iterations) {
-		std::unordered_set<Point, Point::Hash> ground_points;
-		for (const auto &face: group)
-			for (const auto &vertex: face)
-				if (vertex.is_ground())
-					ground_points.insert(vertex);
-
-		Estimator<Plane, Point, 3> estimate(noise, consensus, iterations);
-		Plane plane;
-		return estimate(ground_points, plane) && plane.slope() < slope;
 	}
 
 public:
@@ -92,8 +69,8 @@ public:
 			return face > length;
 		});
 
-		Face::each_group(gaps, [&](const auto &group) {
-			if (on_border(group) || is_water(group, noise, slope, consensus, iterations))
+		Group::each(gaps, [&](const auto &group) {
+			if (group.adjoins(edges) || group.is_water(noise, slope, consensus, iterations))
 				for (const auto &face: group)
 					erase(face);
 		});
