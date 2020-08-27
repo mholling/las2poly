@@ -39,6 +39,13 @@ public:
 			function(Group(faces, rtree));
 	}
 
+	auto operator>(double length) const {
+		for (const auto &face: *this)
+			if (face > length)
+				return true;
+		return false;
+	}
+
 	template <typename C>
 	auto adjoins(const C &edges) const {
 		for (const auto &face: *this)

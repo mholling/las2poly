@@ -63,14 +63,14 @@ public:
 			insert(Face(points, ply, index));
 	}
 
-	void remove_voids(double noise, double length, double slope, unsigned int consensus, unsigned int iterations) {
+	void remove_voids(double noise, double length, double width, double slope, unsigned int consensus, unsigned int iterations) {
 		std::unordered_set<Face, Face::Hash> gaps;
 		std::copy_if(faces.begin(), faces.end(), std::inserter(gaps, gaps.begin()), [=](const auto &face) {
 			return face > length;
 		});
 
 		Group::each(gaps, [&](const auto &group) {
-			if (group.adjoins(edges) || group.is_water(noise, slope, consensus, iterations))
+			if (group.adjoins(edges) || ((width <= length || group > width) && group.is_water(noise, slope, consensus, iterations)))
 				for (const auto &face: group)
 					erase(face);
 		});

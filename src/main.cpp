@@ -9,22 +9,24 @@
 
 int main(int argc, char *argv[]) {
 	try {
-		double noise = 1.0;
-		double length = 10.0;
-		double slope = 0.5;
-		double area = 100.0;
+		double noise = 5.0;
+		double voids = 10.0;
+		double width = 10.0;
+		double slope = 5.0;
+		double area = 400.0;
 		int consensus = 10;
 		int iterations = 100;
 		std::string ply_path;
 		std::string json_path;
 
 		Args args(argc, argv, "extract land areas from triangulated lidar tiles");
-		args.option("-n", "--noise",      "<metres>",  "RANSAC noise threshold",              noise);
-		args.option("-l", "--length",     "<metres>",  "minimum triangle length for voids",   length);
-		args.option("-s", "--slope",      "<degrees>", "maximum slope angle for water voids", slope);
-		args.option("-a", "--area",       "<m²>",      " minimum area for islands and ponds", area);
-		args.option("-c", "--consensus",  "<count>",   "number of consensus points required", consensus);
-		args.option("-i", "--iterations", "<count>",   "number of RANSAC iterations",         iterations);
+		args.option("-n", "--noise",      "<metres>",  "maximum deviation from plane",         noise);
+		args.option("-v", "--voids",      "<metres>",  "minimum length for void triangles",    voids);
+		args.option("-w", "--width",      "<metres>",  "minimum span width of water features", width);
+		args.option("-s", "--slope",      "<degrees>", "maximum slope for water features",     slope);
+		args.option("-a", "--area",       "<metres²>", " minimum area for islands and ponds",  area);
+		args.option("-c", "--consensus",  "<count>",   "number of consensus points required",  consensus);
+		args.option("-i", "--iterations", "<count>",   "number of RANSAC iterations",          iterations);
 		args.position("<tin.ply>",    "input PLY path",      ply_path);
 		args.position("<polys.json>", "output GeoJSON path", json_path);
 
@@ -33,8 +35,10 @@ int main(int argc, char *argv[]) {
 
 		if (noise < 0)
 			throw std::runtime_error("noise threshold can't be negative");
-		if (length < 0)
-			throw std::runtime_error("length can't be negative");
+		if (voids < 0)
+			throw std::runtime_error("void length can't be negative");
+		if (width < 0)
+			throw std::runtime_error("span width can't be negative");
 		if (slope < 0)
 			throw std::runtime_error("slope can't be negative");
 		if (area < 0)
@@ -45,7 +49,7 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("iterations must be positive");
 
 		Mesh mesh(ply_path);
-		mesh.remove_voids(noise, length, slope, consensus, iterations);
+		mesh.remove_voids(noise, voids, width, slope, consensus, iterations);
 		auto polygons = mesh.polygons(area);
 
 		std::ofstream json;
