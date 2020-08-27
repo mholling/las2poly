@@ -5,6 +5,7 @@
 #include <vector>
 #include <ostream>
 #include <algorithm>
+#include <iterator>
 #include <functional>
 
 class Polygon {

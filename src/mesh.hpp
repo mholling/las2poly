@@ -14,6 +14,7 @@
 #include <cstddef>
 #include <sstream>
 #include <algorithm>
+#include <iterator>
 
 class Mesh {
 	std::vector<Point> points;
