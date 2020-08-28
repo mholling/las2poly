@@ -20,7 +20,7 @@ struct Edge {
 		return edge1.p0 == edge2.p1 && edge1.p1 == edge2.p0;
 	}
 
-	auto operator&(const Point &p) const {
+	auto operator&&(const Point &p) const {
 		return p0 == p || p1 == p;
 	}
 

@@ -19,7 +19,7 @@ class Ring : public Vertices<std::vector<const Point *>> {
 	auto winding_number(const Point &point) const {
 		int winding = 0;
 		for (const auto edge: edges())
-			if (edge & point)
+			if (edge && point)
 				throw PointOnRing();
 			else if (edge << point)
 				++winding;
