@@ -3,7 +3,6 @@
 
 #include "point.hpp"
 #include "vertices.hpp"
-#include "edge.hpp"
 #include <stdexcept>
 #include <numeric>
 #include <vector>
@@ -29,33 +28,16 @@ class Ring : public Vertices<std::vector<const Point *>> {
 		return winding;
 	}
 
-	Ring(std::unordered_map<Edge, Edge, Edge::Hash> &connections) {
-		Edge::follow(connections, [&](const auto &edge) {
-			vertices.push_back(&edge.p0);
-		});
-
-		double sum = 0.0;
-		const auto &origin = *begin();
-		for (const auto edge: edges())
-			sum += edge ^ origin;
-		signed_area = sum * 0.5;
-	}
-
 public:
 	template <typename C>
-	static auto from_edges(const C &edges) {
-		auto connections = Edge::connections_for<true>(edges);
-		std::vector<Ring> rings;
-		while (!connections.empty()) {
-			std::unordered_set<Edge, Edge::Hash> edges;
-			Edge::follow(connections, [&](const auto &edge) {
-				edges.insert(edge);
-			});
-			auto connections = Edge::connections_for<false>(edges);
-			while (!connections.empty())
-				rings.push_back(Ring(connections));
+	Ring(const C &edges) {
+		const auto &origin = edges.begin()->p0;
+		double sum = 0.0;
+		for (const auto &edge: edges) {
+			vertices.push_back(&edge.p0);
+			sum += edge ^ origin;
 		}
-		return rings;
+		signed_area = sum * 0.5;
 	}
 
 	auto contains(const Ring &ring) const {

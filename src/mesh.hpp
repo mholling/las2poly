@@ -6,6 +6,7 @@
 #include "face.hpp"
 #include "group.hpp"
 #include "ring.hpp"
+#include "connections.hpp"
 #include "polygon.hpp"
 #include <vector>
 #include <unordered_set>
@@ -78,7 +79,7 @@ public:
 	}
 
 	auto polygons(double area) const {
-		auto rings = Ring::from_edges(edges);
+		auto rings = Connections(edges).rings();
 		rings.erase(std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
 			return ring < area && ring > -area;
 		}), rings.end());
