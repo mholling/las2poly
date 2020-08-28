@@ -2,25 +2,58 @@
 #define MESH_HPP
 
 #include "point.hpp"
-#include "edge.hpp"
 #include "face.hpp"
-#include "group.hpp"
-#include "ring.hpp"
+#include "edge.hpp"
+#include "rtree.hpp"
 #include "connections.hpp"
-#include "polygon.hpp"
-#include <vector>
+#include "plane.hpp"
+#include "estimator.hpp"
 #include <unordered_set>
-#include <string>
+#include <queue>
 #include <fstream>
 #include <cstddef>
-#include <sstream>
-#include <algorithm>
-#include <iterator>
+#include <vector>
 
 class Mesh {
-	std::vector<Point> points;
 	std::unordered_set<Face, Face::Hash> faces;
 	std::unordered_set<Edge, Edge::Hash> edges;
+
+	template <typename M>
+	Mesh(M &mesh, const RTree<Face> &rtree) {
+		std::queue<Face> pending;
+		for (pending.push(*mesh.begin()); !pending.empty(); pending.pop()) {
+			const auto &face = pending.front();
+			mesh.erase(face);
+			insert(face);
+			rtree.search(face, [&](const auto &other) {
+				if (faces.count(other))
+					return;
+				if (face || other)
+					pending.push(other);
+			});
+		}
+	}
+
+public:
+	auto begin() const { return faces.begin(); }
+	auto   end() const { return faces.end(); }
+
+	Mesh() { }
+
+	template <typename C>
+	Mesh(const C &points, std::ifstream &input, std::size_t count) {
+		faces.reserve(count);
+		for (std::size_t index = 0; index < count; ++index)
+			insert(Face(points, input, index));
+	}
+
+	auto separate() {
+		std::vector<Mesh> results;
+		RTree<Face> rtree(faces);
+		while (!faces.empty())
+			results.push_back(Mesh(*this, rtree));
+		return results;
+	}
 
 	void insert(const Face &face) {
 		faces.insert(face);
@@ -36,55 +69,27 @@ class Mesh {
 				edges.insert(-edge);
 	}
 
-public:
-	Mesh(const std::string &ply_path) {
-		std::ifstream ply;
-		ply.exceptions(ply.exceptions() | std::ifstream::failbit);
-		ply.open(ply_path, std::ios::binary);
-		std::size_t vertex_count, face_count;
-
-		for (;;) {
-			std::string line, command, type;
-			std::getline(ply, line);
-			std::istringstream words(line);
-			words >> command;
-			if ("end_header" == command)
-				break;
-			if ("element" != command)
-				continue;
-			words >> type;
-			words >> (type == "vertex" ? vertex_count : face_count);
-		}
-
-		points.reserve(vertex_count);
-		for (std::size_t index = 0; index < vertex_count; ++index)
-			points.push_back(Point(ply, index));
-
-		faces.reserve(face_count);
-		for (std::size_t index = 0; index < face_count; ++index)
-			insert(Face(points, ply, index));
+	auto operator>(double length) const {
+		for (const auto &face: *this)
+			if (face > length)
+				return true;
+		return false;
 	}
 
-	void remove_voids(double noise, double length, double width, double slope, unsigned int consensus, unsigned int iterations) {
-		std::unordered_set<Face, Face::Hash> gaps;
-		std::copy_if(faces.begin(), faces.end(), std::inserter(gaps, gaps.begin()), [=](const auto &face) {
-			return face > length;
-		});
-
-		Group::each(gaps, [&](const auto &group) {
-			if (group.adjoins(edges) || ((width <= length || group > width) && group.is_water(noise, slope, consensus, iterations)))
-				for (const auto &face: group)
-					erase(face);
-		});
+	auto rings() const {
+		return Connections(edges).rings();
 	}
 
-	auto polygons(double area) const {
-		auto rings = Connections(edges).rings();
-		rings.erase(std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
-			return ring < area && ring > -area;
-		}), rings.end());
+	auto is_water(double noise, double slope, unsigned int consensus, unsigned int iterations) const {
+		std::unordered_set<Point, Point::Hash> ground_points;
+		for (const auto &face: *this)
+			for (const auto &vertex: face)
+				if (vertex.is_ground())
+					ground_points.insert(vertex);
 
-		return Polygon::from_rings(rings);
+		Estimator<Plane, Point, 3> estimate(noise, consensus, iterations);
+		Plane plane;
+		return estimate(ground_points, plane) && plane.slope() < slope;
 	}
 };
 

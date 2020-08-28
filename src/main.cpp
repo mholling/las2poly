@@ -1,5 +1,5 @@
 #include "args.hpp"
-#include "mesh.hpp"
+#include "ply.hpp"
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -48,9 +48,9 @@ int main(int argc, char *argv[]) {
 		if (iterations <= 0)
 			throw std::runtime_error("iterations must be positive");
 
-		Mesh mesh(ply_path);
-		mesh.remove_voids(noise, voids, width, slope, consensus, iterations);
-		auto polygons = mesh.polygons(area);
+		PLY ply(ply_path);
+		ply.remove_voids(noise, voids, width, slope, consensus, iterations);
+		auto polygons = ply.polygons(area);
 
 		std::ofstream json;
 		json.exceptions(json.exceptions() | std::ofstream::failbit);
