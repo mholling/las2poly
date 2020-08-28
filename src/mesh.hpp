@@ -24,7 +24,7 @@ class Mesh {
 	void insert(const Face &face) {
 		faces.insert(face);
 		for (const auto edge: face.edges())
-			if (!edges.erase(edge.opposite()))
+			if (!edges.erase(-edge))
 				edges.insert(edge);
 	}
 
@@ -32,7 +32,7 @@ class Mesh {
 		faces.erase(face);
 		for (const auto edge: face.edges())
 			if (!edges.erase(edge))
-				edges.insert(edge.opposite());
+				edges.insert(-edge);
 	}
 
 public:

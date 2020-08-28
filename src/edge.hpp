@@ -46,7 +46,7 @@ struct Edge {
 		return (p0 >> p1) > length;
 	}
 
-	auto opposite() const {
+	auto operator-() const {
 		return Edge(p1, p0);
 	}
 
