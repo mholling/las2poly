@@ -1,11 +1,10 @@
 #include "args.hpp"
-#include "ply.hpp"
+#include "polygon.hpp"
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-#include <cstdlib>
 
 int main(int argc, char *argv[]) {
 	try {
@@ -48,8 +47,7 @@ int main(int argc, char *argv[]) {
 		if (iterations <= 0)
 			throw std::runtime_error("iterations must be positive");
 
-		PLY ply(ply_path, length, width, noise, slope, consensus, iterations);
-		auto polygons = ply.polygons(area);
+		auto polygons = Polygon::from_ply(ply_path, area, length, width, noise, slope, consensus, iterations);
 
 		std::ofstream json;
 		json.exceptions(json.exceptions() | std::ofstream::failbit);
