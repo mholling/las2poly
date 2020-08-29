@@ -65,27 +65,25 @@ public:
 					edges.erase(face);
 
 		auto rings = edges.rings();
-		rings.erase(std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
+		auto rings_end = std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
 			return ring < area && ring > -area;
-		}), rings.end());
-
-		std::vector<Ring> exteriors, holes;
-		std::partition_copy(rings.begin(), rings.end(), std::back_inserter(exteriors), std::back_inserter(holes), [](const Ring &ring) {
+		});
+		auto holes_begin = std::partition(rings.begin(), rings_end, [](const Ring &ring) {
 			return ring > 0;
 		});
-		std::sort(exteriors.begin(), exteriors.end());
+		std::sort(rings.begin(), holes_begin);
 
 		std::vector<Polygon> polygons;
-		auto remaining = holes.begin();
-		for (const auto &exterior: exteriors) {
+		auto remaining = holes_begin;
+		std::for_each(rings.begin(), holes_begin, [&](const auto &exterior) {
 			std::vector<Ring> rings = {exterior};
 			auto old_remaining = remaining;
-			remaining = std::partition(remaining, holes.end(), [&](const auto &hole) {
+			remaining = std::partition(remaining, rings_end, [&](const auto &hole) {
 				return exterior.contains(hole);
 			});
 			std::copy(old_remaining, remaining, std::back_inserter(rings));
 			polygons.push_back(Polygon(rings));
-		}
+		});
 
 		return polygons;
 	}
