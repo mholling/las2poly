@@ -4,7 +4,7 @@
 #include "point.hpp"
 
 struct Edge {
-	const Point &p0, &p1;
+	Point p0, p1;
 
 	struct Hash {
 		auto operator()(const Edge &edge) const { return Point::Hash()(edge.p0) ^ Point::Hash()(edge.p1); }

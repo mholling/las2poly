@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include <ostream>
 
-class Ring : public Vertices<std::vector<const Point *>> {
+class Ring : public Vertices<std::vector<Point>> {
 	double signed_area;
 
 	struct PointOnRing : std::runtime_error {
@@ -34,7 +34,7 @@ public:
 		const auto &origin = edges.begin()->p0;
 		double sum = 0.0;
 		for (const auto &edge: edges) {
-			vertices.push_back(&edge.p0);
+			vertices.push_back(edge.p0);
 			sum += edge ^ origin;
 		}
 		signed_area = sum * 0.5;

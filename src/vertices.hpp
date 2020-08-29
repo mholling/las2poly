@@ -9,25 +9,6 @@ template <typename C>
 class Vertices {
 	using I = typename C::const_iterator;
 
-	struct Iterator {
-		I here;
-
-		Iterator(I here) : here(here) { }
-		auto &operator++() { ++here; return *this;}
-		auto operator++(int) { auto old = *this; ++here; return old;}
-		auto operator==(Iterator other) const { return here == other.here; }
-		auto operator!=(Iterator other) const { return here != other.here; }
-		const auto &operator*() const { return **here; }
-		const auto operator->() const { return *here; }
-
-		using difference_type = int;
-		using value_type = Point;
-		using pointer = Point*;
-		using reference = Point&;
-		using iterator_category = std::forward_iterator_tag;
-	};
-
-
 	class Edges {
 		const I start, stop;
 
@@ -40,7 +21,7 @@ class Vertices {
 			auto operator++(int) { auto old = *this; ++here; return old;}
 			auto operator==(Iterator other) const { return here == other.here; }
 			auto operator!=(Iterator other) const { return here != other.here; }
-			auto operator*() { return Edge(**here, **(here + 1 == stop ? start : here + 1)); }
+			auto operator*() { return Edge(*here, *(here + 1 == stop ? start : here + 1)); }
 
 			using difference_type = int;
 			using value_type = Edge;
@@ -59,8 +40,8 @@ protected:
 	C vertices;
 
 public:
-	auto begin() const { return Iterator(vertices.begin()); }
-	auto   end() const { return Iterator(vertices.end()); }
+	auto begin() const { return vertices.begin(); }
+	auto   end() const { return vertices.end(); }
 	auto edges() const { return Edges(vertices.begin(), vertices.end()); }
 };
 

@@ -17,6 +17,8 @@ public:
 		auto operator()(const Point &point) const { return point.index; }
 	};
 
+	Point() { }
+
 	Point(std::ifstream &input, std::size_t index) : index(index) {
 		for (auto &value: *this)
 			input.read(reinterpret_cast<char *>(&value), sizeof(value));

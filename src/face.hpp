@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <fstream>
 
-class Face : public Vertices<std::array<const Point *, 3>> {
+class Face : public Vertices<std::array<Point, 3>> {
 	std::size_t index;
 
 	struct InvalidTIN : std::runtime_error {
@@ -30,12 +30,12 @@ public:
 			input.read(reinterpret_cast<char *>(&point_index), sizeof(point_index));
 			if (point_index >= points.size())
 				throw InvalidTIN();
-			vertices[index] = &points.at(point_index);
+			vertices[index] = points.at(point_index);
 		}
 	}
 
 	auto bounds() const {
-		return vertices[0]->bounds() + vertices[1]->bounds() + vertices[2]->bounds();
+		return vertices[0].bounds() + vertices[1].bounds() + vertices[2].bounds();
 	}
 
 	friend auto operator==(const Face &face1, const Face &face2) {
