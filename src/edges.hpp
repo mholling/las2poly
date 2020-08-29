@@ -25,6 +25,10 @@ public:
 	auto rings() const {
 		return Connections(edges).rings();
 	}
+
+	auto operator&&(const Edge &edge) const {
+		return edges.count(edge) > 0;
+	}
 };
 
 #endif

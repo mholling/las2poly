@@ -60,7 +60,7 @@ public:
 		}
 
 		for (const auto &gap: gaps.separate())
-			if ((width <= length || gap > width) && gap.is_water(noise, slope, consensus, iterations))
+			if ((gap && edges) || ((width <= length || gap > width) && gap.is_water(noise, slope, consensus, iterations)))
 				for (const auto &face: gap)
 					edges.erase(face);
 

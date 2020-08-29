@@ -4,6 +4,7 @@
 #include "point.hpp"
 #include "face.hpp"
 #include "rtree.hpp"
+#include "edges.hpp"
 #include "plane.hpp"
 #include "estimator.hpp"
 #include <unordered_set>
@@ -55,6 +56,14 @@ public:
 		for (const auto &face: faces)
 			if (face > length)
 				return true;
+		return false;
+	}
+
+	auto operator&&(const Edges &edges) const {
+		for (const auto &face: faces)
+			for (const auto &edge: face.edges())
+				if (edges && edge)
+					return true;
 		return false;
 	}
 
