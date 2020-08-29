@@ -2,7 +2,8 @@
 #define PLY_HPP
 
 #include "point.hpp"
-#include "mesh.hpp"
+#include "edges.hpp"
+#include "faces.hpp"
 #include "polygon.hpp"
 #include <vector>
 #include <string>
@@ -13,10 +14,10 @@
 
 class PLY {
 	std::vector<Point> points;
-	Mesh mesh;
+	Edges edges;
 
 public:
-	PLY(const std::string &ply_path) {
+	PLY(const std::string &ply_path, double length, double width, double noise, double slope, unsigned int consensus, unsigned int iterations) {
 		std::ifstream ply;
 		ply.exceptions(ply.exceptions() | std::ifstream::failbit);
 		ply.open(ply_path, std::ios::binary);
@@ -39,23 +40,22 @@ public:
 		for (std::size_t index = 0; index < vertex_count; ++index)
 			points.push_back(Point(ply, index));
 
-		mesh = Mesh(points, ply, face_count);
-	}
-
-	void remove_voids(double noise, double length, double width, double slope, unsigned int consensus, unsigned int iterations) {
-		Mesh gaps;
-		for (const auto &face: mesh)
+		Faces gaps;
+		for (std::size_t index = 0; index < face_count; ++index) {
+			auto face = Face(points, ply, index);
+			edges.insert(face);
 			if (face > length)
 				gaps.insert(face);
+		}
 
 		for (const auto &gap: gaps.separate())
 			if ((width <= length || gap > width) && gap.is_water(noise, slope, consensus, iterations))
 				for (const auto &face: gap)
-					mesh.erase(face);
+					edges.erase(face);
 	}
 
 	auto polygons(double area) const {
-		auto rings = mesh.rings();
+		auto rings = edges.rings();
 		rings.erase(std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
 			return ring < area && ring > -area;
 		}), rings.end());

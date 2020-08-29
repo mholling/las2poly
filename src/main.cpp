@@ -10,7 +10,7 @@
 int main(int argc, char *argv[]) {
 	try {
 		double noise = 5.0;
-		double voids = 10.0;
+		double length = 10.0;
 		double width = 10.0;
 		double slope = 5.0;
 		double area = 400.0;
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 
 		Args args(argc, argv, "extract land areas from triangulated lidar tiles");
 		args.option("-n", "--noise",      "<metres>",  "maximum deviation from plane",         noise);
-		args.option("-v", "--voids",      "<metres>",  "minimum length for void triangles",    voids);
+		args.option("-l", "--length",     "<metres>",  "minimum length for void triangles",    length);
 		args.option("-w", "--width",      "<metres>",  "minimum span width of water features", width);
 		args.option("-s", "--slope",      "<degrees>", "maximum slope for water features",     slope);
 		args.option("-a", "--area",       "<metres²>", " minimum area for islands and ponds",  area);
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 
 		if (noise < 0)
 			throw std::runtime_error("noise threshold can't be negative");
-		if (voids < 0)
+		if (length < 0)
 			throw std::runtime_error("void length can't be negative");
 		if (width < 0)
 			throw std::runtime_error("span width can't be negative");
@@ -48,8 +48,7 @@ int main(int argc, char *argv[]) {
 		if (iterations <= 0)
 			throw std::runtime_error("iterations must be positive");
 
-		PLY ply(ply_path);
-		ply.remove_voids(noise, voids, width, slope, consensus, iterations);
+		PLY ply(ply_path, length, width, noise, slope, consensus, iterations);
 		auto polygons = ply.polygons(area);
 
 		std::ofstream json;
