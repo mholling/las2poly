@@ -2,6 +2,7 @@
 #define EDGE_HPP
 
 #include "point.hpp"
+#include "vector.hpp"
 
 struct Edge {
 	Point p0, p1;

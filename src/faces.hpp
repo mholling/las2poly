@@ -5,6 +5,7 @@
 #include "face.hpp"
 #include "rtree.hpp"
 #include "edges.hpp"
+#include "vector.hpp"
 #include <unordered_set>
 #include <queue>
 #include <vector>
