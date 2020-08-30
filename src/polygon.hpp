@@ -27,7 +27,7 @@ public:
 		return json << ']';
 	}
 
-	static auto from_ply(const std::string &ply_path, double length, double width, double height, double slope, double area, unsigned char classification) {
+	static auto from_ply(const std::string &ply_path, double length, double width, double height, double slope, double area, unsigned char klass, bool strict) {
 		std::ifstream ply;
 		ply.exceptions(ply.exceptions() | std::ifstream::failbit);
 		ply.open(ply_path, std::ios::binary);
@@ -60,7 +60,7 @@ public:
 		}
 
 		for (const auto &gap: gaps.separate())
-			if ((gap && edges) || ((width <= length || gap > width) && gap.is_water(height, slope, classification)))
+			if ((gap && edges) || ((width <= length || gap > width) && gap.is_water(height, slope, klass, strict)))
 				for (const auto &face: gap)
 					edges.erase(face);
 
