@@ -65,8 +65,8 @@ struct Vector {
 		return std::inner_product(v1.begin(), v1.end(), v2.begin(), 0.0);
 	}
 
-	auto norm() const { return std::sqrt(*this * *this);}
-
+	auto sqnorm() const { return *this * *this;}
+	auto norm() const { return std::sqrt(sqnorm());}
 	auto normalise() { return (*this) /= norm(); }
 
 	template <typename C>

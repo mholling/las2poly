@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <fstream>
+#include <algorithm>
 
 class Face : public Vertices<std::array<Point, 3>> {
 	std::size_t index;

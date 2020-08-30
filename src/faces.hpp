@@ -5,11 +5,12 @@
 #include "face.hpp"
 #include "rtree.hpp"
 #include "edges.hpp"
-#include "plane.hpp"
-#include "estimator.hpp"
 #include <unordered_set>
 #include <queue>
 #include <vector>
+#include <array>
+#include <algorithm>
+#include <cmath>
 
 class Faces {
 	std::unordered_set<Face, Face::Hash> faces;
@@ -67,16 +68,26 @@ public:
 		return false;
 	}
 
-	auto is_water(double noise, double slope, unsigned int consensus, unsigned int iterations) const {
-		std::unordered_set<Point, Point::Hash> ground_points;
-		for (const auto &face: faces)
-			for (const auto &vertex: face)
-				if (vertex.is_ground())
-					ground_points.insert(vertex);
+	auto is_water(double height, double slope) const {
+		Vector<3> perp;
+		double square_sum = 0.0;
+		unsigned int count = 0;
 
-		Estimator<Plane, Point, 3> estimate(noise, consensus, iterations);
-		Plane plane;
-		return estimate(ground_points, plane) && plane.slope() < slope;
+		for (const auto &face: faces) {
+			auto edge = face.edges().begin();
+			std::array<Edge, 3> edges = {*edge++, *edge++, *edge++};
+			perp += edges[0].delta3d() ^ edges[1].delta3d();
+			std::sort(edges.begin(), edges.end());
+			for (const auto &edge: {edges[1], edges[2]})
+				if (edge.spans_ground()) {
+					auto delta_z = edge.p1[2] - edge.p0[2];
+					square_sum += delta_z * delta_z;
+					++count;
+				}
+		}
+
+		auto angle = std::acos(std::abs(perp.normalise()[2])) * 180.0 / M_PI;
+		return angle > slope ? false : count < 3 ? false : square_sum / count < height * height;
 	}
 };
 

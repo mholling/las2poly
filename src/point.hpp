@@ -45,10 +45,6 @@ public:
 		return {point1[0] - point2[0], point1[1] - point2[1]};
 	}
 
-	friend auto operator>>(const Point &point1, const Point &point2) {
-		return (point1 - point2).norm();
-	}
-
 	friend std::ostream &operator<<(std::ostream &json, const Point &point) {
 		return json << '[' << point[0] << ',' << point[1] << ']';
 	}
