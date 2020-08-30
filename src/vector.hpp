@@ -68,11 +68,6 @@ struct Vector {
 	auto sqnorm() const { return *this * *this;}
 	auto norm() const { return std::sqrt(sqnorm());}
 	auto normalise() { return (*this) /= norm(); }
-
-	template <typename C>
-	static auto mean(const C &vectors) {
-		return std::accumulate(vectors.begin(), vectors.end(), Vector()) /= vectors.size();
-	}
 };
 
 Vector<3> operator^(const Vector<3> &v1, const Vector<3> &v2) {
