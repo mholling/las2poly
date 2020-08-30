@@ -69,7 +69,7 @@ public:
 		return false;
 	}
 
-	auto is_water(double height, double slope) const {
+	auto is_water(double height, double slope, unsigned char classification) const {
 		Vector<3> perp;
 		double square_sum = 0.0;
 		unsigned int count = 0;
@@ -80,7 +80,7 @@ public:
 			perp += edges[0].delta3d() ^ edges[1].delta3d();
 			std::sort(edges.begin(), edges.end());
 			for (const auto &edge: {edges[1], edges[2]})
-				if (edge.spans_ground()) {
+				if (edge.vegetation(classification)) {
 					auto delta_z = edge.p1[2] - edge.p0[2];
 					square_sum += delta_z * delta_z;
 					++count;

@@ -21,8 +21,8 @@ struct Edge {
 		return dynamic_cast<const Vector<3> &>(p1) - p0;
 	}
 
-	auto spans_ground() const {
-		return p0.is_ground() && p1.is_ground();
+	auto vegetation(unsigned char max) const {
+		return p0.vegetation(max) && p1.vegetation(max);
 	}
 
 	friend auto operator==(const Edge &edge1, const Edge &edge2) {

@@ -13,15 +13,17 @@ int main(int argc, char *argv[]) {
 		double height = 5.0;
 		double slope = 10.0;
 		double area = 400.0;
+		int classification = 3;
 		std::string ply_path;
 		std::string json_path;
 
 		Args args(argc, argv, "extract land areas from triangulated lidar tiles");
-		args.option("-l", "--length",     "<metres>",  "minimum length for void triangles",    length);
-		args.option("-w", "--width",      "<metres>",  "minimum span width of water features", width);
-		args.option("-z", "--height",     "<metres>",  "maximum RMS height difference",        height);
-		args.option("-s", "--slope",      "<degrees>", "maximum slope for water features",     slope);
-		args.option("-a", "--area",       "<metres²>", " minimum area for islands and ponds",  area);
+		args.option("-l", "--length", "<metres>",  "minimum length for void triangles",    length);
+		args.option("-w", "--width",  "<metres>",  "minimum span width of water features", width);
+		args.option("-z", "--height", "<metres>",  "maximum RMS height difference",        height);
+		args.option("-s", "--slope",  "<degrees>", "maximum slope for water features",     slope);
+		args.option("-a", "--area",   "<metres²>", " minimum area for islands and ponds",  area);
+		args.option("-c", "--class",  "<2|3|4|5>", "maximum vegetation class to consider", classification);
 		args.position("<tin.ply>",    "input PLY path",      ply_path);
 		args.position("<polys.json>", "output GeoJSON path", json_path);
 
@@ -38,8 +40,10 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("slope can't be negative");
 		if (area < 0)
 			throw std::runtime_error("minimum area can't be negative");
+		if (classification < 2 || classification > 5)
+			throw std::runtime_error("vegetation class must be between 2 and 5");
 
-		auto polygons = Polygon::from_ply(ply_path, length, width, height, slope, area);
+		auto polygons = Polygon::from_ply(ply_path, length, width, height, slope, area, classification);
 
 		std::ofstream json;
 		json.exceptions(json.exceptions() | std::ofstream::failbit);

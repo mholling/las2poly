@@ -29,8 +29,8 @@ public:
 		return Bounds({(*this)[0], (*this)[0], (*this)[1], (*this)[1]});
 	}
 
-	auto is_ground() const {
-		return 2 == c || 8 == c;
+	auto vegetation(unsigned char max) const {
+		return (2 <= c && c <= max) || 8 == c;
 	}
 
 	friend auto operator==(const Point &point1, const Point &point2) {
