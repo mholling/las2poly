@@ -30,7 +30,7 @@ public:
 	}
 
 	auto vegetation(unsigned char max) const {
-		return (2 <= c && c <= max) || 8 == c;
+		return 2 <= c && c <= max;
 	}
 
 	friend auto operator==(const Point &point1, const Point &point2) {
