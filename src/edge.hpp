@@ -3,12 +3,15 @@
 
 #include "point.hpp"
 #include "vector.hpp"
+#include <cstdint>
+#include <cstddef>
 
 struct Edge {
 	Point p0, p1;
 
 	struct Hash {
-		auto operator()(const Edge &edge) const { return Point::Hash()(edge.p0) ^ Point::Hash()(edge.p1); }
+		static constexpr auto spare_bits = (sizeof(std::size_t) - sizeof(std::uint32_t)) * 8;
+		std::size_t operator()(const Edge &edge) const { return Point::Hash()(edge.p0) ^ Point::Hash()(edge.p1) << spare_bits; }
 	};
 
 	Edge(const Point &p0, const Point &p1) : p0(p0), p1(p1) { }

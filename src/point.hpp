@@ -14,7 +14,7 @@ class Point : public Vector<3> {
 
 public:
 	struct Hash {
-		auto operator()(const Point &point) const { return point.index; }
+		std::size_t operator()(const Point &point) const { return point.index; }
 	};
 
 	Point() { }

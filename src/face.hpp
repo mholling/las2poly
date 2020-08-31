@@ -14,7 +14,7 @@ class Face : public Vertices<std::array<Point, 3>> {
 
 public:
 	struct Hash {
-		auto operator()(const Face &face) const { return face.index; }
+		std::size_t operator()(const Face &face) const { return face.index; }
 	};
 
 	template <typename C>
