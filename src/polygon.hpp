@@ -1,16 +1,13 @@
 #ifndef POLYGON_HPP
 #define POLYGON_HPP
 
-#include "point.hpp"
+#include "ply.hpp"
 #include "ring.hpp"
 #include "edges.hpp"
 #include "faces.hpp"
 #include <vector>
 #include <ostream>
 #include <string>
-#include <fstream>
-#include <cstddef>
-#include <sstream>
 #include <algorithm>
 #include <iterator>
 
@@ -28,36 +25,13 @@ public:
 	}
 
 	static auto from_ply(const std::string &ply_path, double length, double width, double height, double slope, double area, unsigned char klass, bool strict) {
-		std::ifstream ply;
-		ply.exceptions(ply.exceptions() | std::ifstream::failbit);
-		ply.open(ply_path, std::ios::binary);
-		std::size_t vertex_count, face_count;
-
-		for (;;) {
-			std::string line, command, type;
-			std::getline(ply, line);
-			std::istringstream words(line);
-			words >> command;
-			if ("end_header" == command)
-				break;
-			if ("element" != command)
-				continue;
-			words >> type;
-			words >> (type == "vertex" ? vertex_count : face_count);
-		}
-
-		std::vector<Point> points(vertex_count);
-		for (std::size_t index = 0; index < vertex_count; ++index)
-			points[index] = Point(ply, index);
-
 		Edges edges;
 		Faces gaps;
-		for (std::size_t index = 0; index < face_count; ++index) {
-			auto face = Face(points, ply, index);
+		PLY(ply_path).each_face([&](const auto face) {
 			edges.insert(face);
 			if (face > length)
 				gaps.insert(face);
-		}
+		});
 
 		for (const auto &gap: gaps.separate())
 			if ((gap && edges) || ((width <= length || gap > width) && gap.is_water(height, slope, klass, strict)))
