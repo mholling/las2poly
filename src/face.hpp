@@ -5,16 +5,12 @@
 #include "vertices.hpp"
 #include <array>
 #include <cstddef>
-#include <stdexcept>
 #include <fstream>
+#include <stdexcept>
 #include <algorithm>
 
 class Face : public Vertices<std::array<Point, 3>> {
 	std::size_t index;
-
-	struct InvalidTIN : std::runtime_error {
-		InvalidTIN() : runtime_error("not a valid TIN") { }
-	};
 
 public:
 	struct Hash {
@@ -26,11 +22,11 @@ public:
 		unsigned char vertex_count;
 		input.read(reinterpret_cast<char *>(&vertex_count), sizeof(vertex_count));
 		if (vertex_count != 3)
-			throw InvalidTIN();
+			throw std::runtime_error("not a valid TIN");
 		for (unsigned int point_index, index = 0; index < 3; ++index) {
 			input.read(reinterpret_cast<char *>(&point_index), sizeof(point_index));
 			if (point_index >= points.size())
-				throw InvalidTIN();
+				throw std::runtime_error("not a valid TIN");
 			vertices[index] = points.at(point_index);
 		}
 	}
