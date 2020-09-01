@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <utility>
 
 int main(int argc, char *argv[]) {
 	try {
@@ -53,10 +54,10 @@ int main(int argc, char *argv[]) {
 		json.precision(10);
 
 		json << "{\"type\":\"FeatureCollection\",\"features\":";
-		unsigned int count = 0;
+		bool first = true;
 		for (const auto &polygon: polygons)
-			json << (count++ ? ',' : '[') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
-		json << (count ? "]}" : "[]}");
+			json << (std::exchange(first, false) ? '[' : ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
+		json << (first ? "[]}" : "]}");
 		return EXIT_SUCCESS;
 	} catch (std::ios_base::failure &) {
 		std::cerr << "error: problem reading or writing file" << std::endl;

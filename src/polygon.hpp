@@ -7,6 +7,7 @@
 #include "faces.hpp"
 #include <vector>
 #include <ostream>
+#include <utility>
 #include <string>
 #include <algorithm>
 #include <iterator>
@@ -18,9 +19,9 @@ public:
 	Polygon(const std::vector<Ring> &rings) : rings(rings) { }
 
 	friend std::ostream &operator<<(std::ostream &json, const Polygon &polygon) {
-		unsigned int count = 0;
+		bool first = true;
 		for (const auto &ring: polygon.rings)
-			json << (count++ ? ',' : '[') << ring;
+			json << (std::exchange(first, false) ? '[' : ',') << ring;
 		return json << ']';
 	}
 
