@@ -5,6 +5,7 @@
 #include "vertices.hpp"
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <stdexcept>
 #include <algorithm>
@@ -23,7 +24,7 @@ public:
 		input.read(reinterpret_cast<char *>(&vertex_count), sizeof(vertex_count));
 		if (vertex_count != 3)
 			throw std::runtime_error("not a valid TIN");
-		for (unsigned int point_index, index = 0; index < 3; ++index) {
+		for (std::uint32_t point_index, index = 0; index < 3; ++index) {
 			input.read(reinterpret_cast<char *>(&point_index), sizeof(point_index));
 			if (point_index >= points.size())
 				throw std::runtime_error("not a valid TIN");

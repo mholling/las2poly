@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <queue>
 #include <vector>
+#include <cstddef>
 #include <array>
 #include <algorithm>
 #include <cmath>
@@ -72,7 +73,7 @@ public:
 	auto is_water(double height, double slope, unsigned char klass, bool strict) const {
 		Vector<3> perp;
 		double square_sum = 0.0;
-		unsigned int count = 0;
+		std::size_t count = 0;
 
 		for (const auto &face: faces) {
 			auto edge = face.edges().begin();
