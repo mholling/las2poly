@@ -1,6 +1,7 @@
 #include "args.hpp"
 #include "polygon.hpp"
 #include <string>
+#include <cstdlib>
 #include <sstream>
 #include <iostream>
 #include <fstream>
