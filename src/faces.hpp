@@ -64,7 +64,7 @@ public:
 
 	auto operator&&(const Edges &edges) const {
 		for (const auto &face: faces)
-			for (const auto &edge: face.edges())
+			for (const auto edge: face.edges())
 				if (edges && edge)
 					return true;
 		return false;

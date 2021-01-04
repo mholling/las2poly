@@ -26,7 +26,7 @@ public:
 	}
 
 	auto bounds() const {
-		return Bounds({(*this)[0], (*this)[0], (*this)[1], (*this)[1]});
+		return Bounds({{(*this)[0], (*this)[0]}, {(*this)[1], (*this)[1]}});
 	}
 
 	auto vegetation(unsigned char max) const {

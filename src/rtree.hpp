@@ -20,7 +20,7 @@ class RTree {
 		Node(Iterator first, Iterator last) : first(first), last(last) {
 			const auto middle = first + (last - first) / 2;
 			std::nth_element(first, last, middle, [](const auto &t1, const auto &t2) {
-				return t1.bounds()[axis][0] < t2.bounds()[axis][0];
+				return axis == 0 ? t1.bounds().x.min < t2.bounds().x.min : t1.bounds().y.min < t2.bounds().y.min;
 			});
 			switch (last - first) {
 				case 1:

@@ -14,7 +14,7 @@ class PLY {
 	std::vector<Point> points;
 	std::size_t vertex_count, face_count;
 
-	constexpr auto format_string() {
+	auto format_string() const {
 		union {
 			long value;
 			char bytes[sizeof(long)];
