@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <utility>
 
+#define VERSION "0.1"
+
 int main(int argc, char *argv[]) {
 	try {
 		double length = 10.0;
@@ -28,6 +30,7 @@ int main(int argc, char *argv[]) {
 		args.option("-a", "--area",   "<metres²>", " minimum area for islands and ponds",    area);
 		args.option("-c", "--class",  "<2|3|4|5>", "maximum class to treat as ground point", klass);
 		args.option("-t", "--strict",              "disqualify voids with no ground points", strict);
+		args.version(VERSION);
 		args.position("<tin.ply>",    "input PLY path",      ply_path);
 		args.position("<polys.json>", "output GeoJSON path", json_path);
 

@@ -96,6 +96,13 @@ public:
 		}}));
 	}
 
+	void version(std::string version_string) {
+		options.push_back(Option({"-v", "--version", "", "show program version", [&](auto) {
+			std::cout << version_string << std::endl;
+		}}));
+
+	}
+
 	bool parse() {
 		options.push_back(Option({"-h", "--help", "", "show this help summary", [&](auto) {
 			std::cout << help();
@@ -112,7 +119,7 @@ public:
 				(position++)->callback(*arg);
 			} else if (option->format.empty()) {
 				option->callback("1");
-				if (option->name == "--help")
+				if (option->name == "--help" || option->name == "--version")
 					return false;
 			} else if (arg + 1 == args.end()) {
 				throw InvalidArgument("missing argument for option:", *arg);
