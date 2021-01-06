@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.19)
+project(lidar2land LANGUAGES CXX VERSION 0.1)
+add_executable(lidar2land src/main.cpp)
+target_compile_definitions(lidar2land PRIVATE VERSION="${lidar2land_VERSION}")
+set_target_properties(lidar2land PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS OFF)
+install(TARGETS lidar2land RUNTIME DESTINATION bin)
