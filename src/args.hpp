@@ -100,7 +100,6 @@ public:
 		options.push_back(Option({"-v", "--version", "", "show program version", [&](auto) {
 			std::cout << version_string << std::endl;
 		}}));
-
 	}
 
 	bool parse() {
