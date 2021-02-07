@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
 		double height = 5.0;
 		double slope = 10.0;
 		double area = 400.0;
-		int klass = 3;
+		int klass = 2;
 		bool strict = false;
 		std::string ply_path;
 		std::string json_path;
