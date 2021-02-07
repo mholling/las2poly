@@ -25,11 +25,9 @@ class Faces {
 			const auto &face = *pending.begin();
 			source.erase(face);
 			insert(face);
-			for (const auto edge: face.edges()) {
-				const auto neighbour = source.neighbours.find(edge);
-				if (neighbour != source.neighbours.end())
-					pending.insert(neighbour->second);
-			}
+			source.each_neighbour(face, [&](const auto &neighbour) {
+				pending.insert(neighbour);
+			});
 			pending.erase(face);
 		}
 	}
@@ -39,12 +37,6 @@ public:
 	auto   end() const { return faces.end(); }
 
 	Faces() { }
-
-	template <typename F>
-	auto explode(F function) {
-		while (!faces.empty())
-			function(Faces(*this));
-	}
 
 	void insert(const Face &face) {
 		faces.insert(face);
@@ -56,6 +48,21 @@ public:
 		faces.erase(face);
 		for (const auto edge: face.edges())
 			neighbours.erase(-edge);
+	}
+
+	template <typename F>
+	auto explode(F function) {
+		while (!faces.empty())
+			function(Faces(*this));
+	}
+
+	template <typename F>
+	void each_neighbour(const Face &face, F function) {
+		for (const auto edge: face.edges()) {
+			const auto pair = neighbours.find(edge);
+			if (pair != neighbours.end())
+				function(pair->second);
+		}
 	}
 
 	auto operator>(double length) const {
