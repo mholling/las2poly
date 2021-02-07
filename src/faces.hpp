@@ -3,11 +3,11 @@
 
 #include "point.hpp"
 #include "face.hpp"
-#include "rtree.hpp"
+#include "edge.hpp"
 #include "edges.hpp"
 #include "vector.hpp"
 #include <unordered_set>
-#include <queue>
+#include <unordered_map>
 #include <vector>
 #include <cstddef>
 #include <array>
@@ -16,20 +16,21 @@
 
 class Faces {
 	std::unordered_set<Face, Face::Hash> faces;
+	std::unordered_map<Edge, Face, Edge::Hash> neighbours;
 
 	template <typename F>
-	Faces(F &source, const RTree<Face> &rtree) {
-		std::queue<Face> pending;
-		for (pending.push(*source.begin()); !pending.empty(); pending.pop()) {
-			const auto &face = pending.front();
+	Faces(F &source) {
+		std::unordered_set<Face, Face::Hash> pending;
+		for (pending.insert(*source.begin()); !pending.empty(); ) {
+			const auto &face = *pending.begin();
 			source.erase(face);
-			faces.insert(face);
-			rtree.search(face, [&](const auto &other) {
-				if (faces.count(other))
-					return;
-				if (face || other)
-					pending.push(other);
-			});
+			insert(face);
+			for (const auto edge: face.edges()) {
+				const auto neighbour = source.neighbours.find(edge);
+				if (neighbour != source.neighbours.end())
+					pending.insert(neighbour->second);
+			}
+			pending.erase(face);
 		}
 	}
 
@@ -41,18 +42,21 @@ public:
 
 	auto separate() {
 		std::vector<Faces> results;
-		RTree<Face> rtree(faces);
 		while (!faces.empty())
-			results.push_back(Faces(*this, rtree));
+			results.push_back(Faces(*this));
 		return results;
 	}
 
 	void insert(const Face &face) {
 		faces.insert(face);
+		for (const auto edge: face.edges())
+			neighbours.insert(std::make_pair(-edge, face));
 	}
 
 	void erase(const Face &face) {
 		faces.erase(face);
+		for (const auto edge: face.edges())
+			neighbours.erase(-edge);
 	}
 
 	auto operator>(double length) const {
