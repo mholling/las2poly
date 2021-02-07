@@ -28,16 +28,18 @@ public:
 	static auto from_ply(const std::string &ply_path, double length, double width, double height, double slope, double area, unsigned char klass, bool strict) {
 		Edges edges;
 		Faces gaps;
+
 		PLY(ply_path).each_face([&](const auto face) {
 			edges.insert(face);
 			if (face > length)
 				gaps.insert(face);
 		});
 
-		for (const auto &gap: gaps.separate())
+		gaps.explode([&](const auto &gap) {
 			if ((gap && edges) || ((width <= length || gap > width) && gap.is_water(height, slope, klass, strict)))
 				for (const auto &face: gap)
 					edges.erase(face);
+		});
 
 		auto rings = edges.rings();
 		auto rings_end = std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {

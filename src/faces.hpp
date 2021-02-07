@@ -40,11 +40,10 @@ public:
 
 	Faces() { }
 
-	auto separate() {
-		std::vector<Faces> results;
+	template <typename F>
+	auto explode(F function) {
 		while (!faces.empty())
-			results.push_back(Faces(*this));
-		return results;
+			function(Faces(*this));
 	}
 
 	void insert(const Face &face) {
