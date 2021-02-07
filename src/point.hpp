@@ -29,7 +29,7 @@ public:
 		return Bounds({{(*this)[0], (*this)[0]}, {(*this)[1], (*this)[1]}});
 	}
 
-	auto vegetation(unsigned char max) const {
+	auto is_ground(unsigned char max) const {
 		return 2 <= c && c <= max;
 	}
 

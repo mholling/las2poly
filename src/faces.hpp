@@ -92,7 +92,7 @@ public:
 			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end()), edges.end());
 			perp += edges[1].delta3d() ^ edges[2].delta3d();
 			for (const auto &edge: {edges[1], edges[2]})
-				if (edge.vegetation(klass)) {
+				if (edge.is_ground(klass)) {
 					auto delta_z = edge.p1[2] - edge.p0[2];
 					square_sum += delta_z * delta_z;
 					++count;
