@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 		Args args(argc, argv, "extract land areas from triangulated lidar tiles");
 		args.option("-l", "--length", "<metres>",  "minimum length for void triangles",      length);
 		args.option("-w", "--width",  "<metres>",  "minimum span width of water features",   width);
-		args.option("-z", "--height", "<metres>",  "maximum RMS height difference",          height);
+		args.option("-z", "--height", "<metres>",  "maximum average height difference",      height);
 		args.option("-s", "--slope",  "<degrees>", "maximum slope for water features",       slope);
 		args.option("-a", "--area",   "<metres²>", " minimum area for islands and ponds",    area);
 		args.option("-c", "--class",  "<2|3|4|5>", "maximum class to treat as ground point", klass);
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 		if (width < 0)
 			throw std::runtime_error("span width can't be negative");
 		if (height < 0)
-			throw std::runtime_error("RMS height can't be negative");
+			throw std::runtime_error("average height difference can't be negative");
 		if (slope < 0)
 			throw std::runtime_error("slope can't be negative");
 		if (area < 0)

@@ -83,7 +83,7 @@ public:
 
 	auto is_water(double height, double slope, unsigned char klass, bool strict) const {
 		Vector<3> perp;
-		double square_sum = 0.0;
+		double sum_abs = 0.0;
 		std::size_t count = 0;
 
 		for (const auto &face: faces) {
@@ -93,14 +93,13 @@ public:
 			perp += edges[1].delta3d() ^ edges[2].delta3d();
 			for (const auto &edge: {edges[1], edges[2]})
 				if (edge.is_ground(klass)) {
-					auto delta_z = edge.p1[2] - edge.p0[2];
-					square_sum += delta_z * delta_z;
+					sum_abs += std::abs(edge.p1[2] - edge.p0[2]);
 					++count;
 				}
 		}
 
 		auto angle = std::acos(std::abs(perp.normalise()[2])) * 180.0 / M_PI;
-		return angle > slope ? false : count < 3 ? !strict : square_sum / count < height * height;
+		return angle > slope ? false : count < 3 ? !strict : sum_abs / count < height;
 	}
 };
 
