@@ -16,14 +16,14 @@ class TIN {
 		Iterator first, last;
 		Faces faces;
 
-		static auto compare(const Point &p1, const Point &p2) {
+		static auto less_than(const Point &p1, const Point &p2) {
 			return p1[axis] < p2[axis] ? true : p1[axis] > p2[axis] ? false : p1[1-axis] < p2[1-axis];
 		}
 
 	public:
 		Node(Iterator first, Iterator last) : first(first), last(last) {
 			const auto middle = first + (last - first) / 2;
-			std::nth_element(first, middle, last, compare);
+			std::nth_element(first, middle, last, less_than);
 			if (last - first > 3) {
 				children.push_back(Child(first, middle));
 				children.push_back(Child(middle, last));
@@ -56,7 +56,7 @@ class TIN {
 
 public:
 	template <typename Tile>
-	auto &concat(Tile tile) {
+	auto &operator+=(Tile tile) {
 		for (const auto &point: tile)
 			points.insert(point, better_than);
 		return *this;

@@ -55,9 +55,9 @@ class PLY {
 	};
 
 public:
-	PLY(const std::string &ply_path, double cell_size) : cell_size(cell_size) {
+	PLY(const std::string &path, double cell_size) : cell_size(cell_size) {
 		input.exceptions(input.exceptions() | std::ifstream::failbit);
-		input.open(ply_path, std::ios::binary);
+		input.open(path, std::ios::binary);
 
 		expect("ply");
 		expect(format_string());
