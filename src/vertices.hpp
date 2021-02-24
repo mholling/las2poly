@@ -39,10 +39,15 @@ class Vertices {
 protected:
 	C vertices;
 
+	Vertices() { }
+	Vertices(C vertices) : vertices(vertices) { }
+
 public:
+	auto begin() { return vertices.begin(); }
+	auto   end() { return vertices.end(); }
 	auto begin() const { return vertices.begin(); }
 	auto   end() const { return vertices.end(); }
-	auto edges() const { return Edges(vertices.begin(), vertices.end()); }
+	auto edges() const { return Edges(begin(), end()); }
 
 	auto &operator[](std::size_t n) const { return vertices[n]; }
 };

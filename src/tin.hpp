@@ -1,10 +1,12 @@
 #ifndef TIN_HPP
 #define TIN_HPP
 
-#include "faces.hpp"
+#include "face.hpp"
+#include "edge.hpp"
 #include "point.hpp"
 #include "thinned.hpp"
 #include <vector>
+#include <optional>
 #include <algorithm>
 #include <stdexcept>
 
@@ -12,36 +14,36 @@ class TIN {
 	template <typename Iterator, int axis = 0>
 	class Node {
 		using Child = Node<Iterator, 1-axis>;
-		std::vector<Child> children;
-		Iterator first, last;
-		Faces faces;
+		const Iterator first, middle, last;
+		std::vector<Face> faces;
+		std::optional<Edge> edge;
 
 		static auto less_than(const Point &p1, const Point &p2) {
 			return p1[axis] < p2[axis] ? true : p1[axis] > p2[axis] ? false : p1[1-axis] < p2[1-axis];
 		}
 
 	public:
-		Node(Iterator first, Iterator last) : first(first), last(last) {
-			const auto middle = first + (last - first) / 2;
+		Node(Iterator first, Iterator last) : first(first), last(last), middle(first + (last - first) / 2) {
 			std::nth_element(first, middle, last, less_than);
-			if (last - first > 3) {
-				children.push_back(Child(first, middle));
-				children.push_back(Child(middle, last));
-			}
 		}
 
 		template <typename Insert, typename Erase>
 		void each_face(Insert insert, Erase erase) {
-			for (auto &node: children)
-				node.each_face(insert, erase);
-			if (last - first == 3) {
-				Face face(first, last);
-				faces.insert(face);
-				insert(face);
-			} else if (last - first > 3) {
-				// TODO: merge children; inserting and erasing faces as appropriate
-				children.clear();
-				children.shrink_to_fit();
+			switch (last - first) {
+			case 0:
+			case 1:
+				throw std::runtime_error("not enough points");
+			case 2:
+				edge.emplace(first);
+				break;
+			case 3:
+				insert(faces.emplace_back(first));
+				break;
+			default:
+				Child left(first, middle), right(middle, last);
+				left.each_face(insert, erase);
+				right.each_face(insert, erase);
+				// TODO: merge left and right, calling insert and erase as necessary
 			}
 		}
 	};
@@ -65,8 +67,6 @@ public:
 	template <typename Insert, typename Erase>
 	void each_face(Insert insert, Erase erase) {
 		auto thinned = points.to_vector();
-		if (thinned.size() < 3)
-			throw std::runtime_error("not enough points");
 		Node(thinned.begin(), thinned.end()).each_face(insert, erase);
 	}
 };

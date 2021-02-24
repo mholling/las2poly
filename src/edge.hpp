@@ -16,6 +16,9 @@ struct Edge {
 
 	Edge(const Point &p0, const Point &p1) : p0(p0), p1(p1) { }
 
+	template <typename Iterator>
+	Edge(Iterator i) : p0(*i++), p1(*i++) { }
+
 	auto delta() const {
 		return p1 - p0;
 	}

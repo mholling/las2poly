@@ -16,12 +16,10 @@ public:
 		std::size_t operator()(const Face &face) const { return Edge::Hash()(*face.edges().begin()); }
 	};
 
-	template <typename I>
-	Face(I first, I last) {
-		while (first < last)
-			vertices[--last - first] = *last;
-		std::rotate(vertices.begin(), std::min_element(vertices.begin(), vertices.end()), vertices.end());
-		auto p = vertices.begin();
+	template <typename Iterator>
+	Face(Iterator i) : Vertices({*i++, *i++, *i++}) {
+		auto p = begin();
+		std::iter_swap(p, std::min_element(begin(), end()));
 		if (((*(p+1) - *p) ^ (*(p+2) - *p)) < 0)
 			std::iter_swap(p+1, p+2);
 	}
