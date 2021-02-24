@@ -18,10 +18,10 @@ int main(int argc, char *argv[]) {
 		double area = 400.0;
 		double cell = 0.0;
 		bool strict = false;
-		std::string ply_path;
+		std::vector<std::string> ply_paths;
 		std::string json_path;
 
-		Args args(argc, argv, "extract land areas from triangulated lidar tiles");
+		Args args(argc, argv, "extract land areas from lidar tiles");
 		args.option("-l", "--length", "<metres>",  "minimum length for void triangles",      length);
 		args.option("-w", "--width",  "<metres>",  "minimum span width of water features",   width);
 		args.option("-z", "--height", "<metres>",  "maximum average height difference",      height);
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 #ifdef VERSION
 		args.version(VERSION);
 #endif
-		args.position("<tin.ply>",    "input PLY path",      ply_path);
+		args.position("<tile.ply>",   "input PLY path",      ply_paths);
 		args.position("<polys.json>", "output GeoJSON path", json_path);
 
 		if (!args.parse())
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 		if (cell == 0)
 			cell = length / std::sqrt(8.0);
 
-		auto polygons = Polygon::from_ply(ply_path, length, width, height, slope, area, cell, strict);
+		auto polygons = Polygon::from_ply(ply_paths, length, width, height, slope, area, cell, strict);
 
 		std::ofstream json;
 		json.exceptions(json.exceptions() | std::ofstream::failbit);

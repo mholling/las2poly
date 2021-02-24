@@ -27,11 +27,10 @@ public:
 		return json << ']';
 	}
 
-	static auto from_ply(const std::string &ply_path, double length, double width, double height, double slope, double area, double cell_size, bool strict) {
+	static auto from_ply(const std::vector<std::string> &ply_paths, double length, double width, double height, double slope, double area, double cell_size, bool strict) {
 		Edges edges;
 		Faces gaps;
 
-		std::vector<std::string> ply_paths = { ply_path }; // will be multiple PLY tiles provided in argv
 		std::accumulate(ply_paths.begin(), ply_paths.end(), TIN(), [&](TIN &tin, const std::string &ply_path) {
 			return tin.concat(PLY(ply_path, cell_size));
 		}).each_face([&](const auto &face) {
