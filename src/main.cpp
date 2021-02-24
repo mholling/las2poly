@@ -2,6 +2,7 @@
 #include "polygon.hpp"
 #include <string>
 #include <cstdlib>
+#include <cmath>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -15,7 +16,7 @@ int main(int argc, char *argv[]) {
 		double height = 5.0;
 		double slope = 10.0;
 		double area = 400.0;
-		int klass = 2;
+		double cell = 0.0;
 		bool strict = false;
 		std::string ply_path;
 		std::string json_path;
@@ -26,7 +27,7 @@ int main(int argc, char *argv[]) {
 		args.option("-z", "--height", "<metres>",  "maximum average height difference",      height);
 		args.option("-s", "--slope",  "<degrees>", "maximum slope for water features",       slope);
 		args.option("-a", "--area",   "<metres²>", " minimum area for islands and ponds",    area);
-		args.option("-c", "--class",  "<2|3|4|5>", "maximum class to treat as ground point", klass);
+		args.option("-c", "--cell",   "<metres>",  "cell size for thinning, 0 for auto",     cell);
 		args.option("-t", "--strict",              "disqualify voids with no ground points", strict);
 #ifdef VERSION
 		args.version(VERSION);
@@ -47,10 +48,12 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("slope can't be negative");
 		if (area < 0)
 			throw std::runtime_error("minimum area can't be negative");
-		if (klass < 2 || klass > 5)
-			throw std::runtime_error("maximum class must be between 2 and 5");
+		if (cell < 0)
+			throw std::runtime_error("cell size can't be negative");
+		if (cell == 0)
+			cell = length / std::sqrt(8.0);
 
-		auto polygons = Polygon::from_ply(ply_path, length, width, height, slope, area, klass, strict);
+		auto polygons = Polygon::from_ply(ply_path, length, width, height, slope, area, cell, strict);
 
 		std::ofstream json;
 		json.exceptions(json.exceptions() | std::ofstream::failbit);

@@ -5,31 +5,25 @@
 #include "vertices.hpp"
 #include <array>
 #include <cstddef>
-#include <cstdint>
+#include <algorithm>
 #include <fstream>
 #include <stdexcept>
 #include <algorithm>
 
 class Face : public Vertices<std::array<Point, 3>> {
-	std::size_t index;
-
 public:
 	struct Hash {
-		std::size_t operator()(const Face &face) const { return face.index; }
+		std::size_t operator()(const Face &face) const { return Edge::Hash()(*face.edges().begin()); }
 	};
 
-	template <typename C>
-	Face(const C &points, std::ifstream &input, std::size_t index) : index(index) {
-		unsigned char vertex_count;
-		input.read(reinterpret_cast<char *>(&vertex_count), sizeof(vertex_count));
-		if (vertex_count != 3)
-			throw std::runtime_error("not a valid TIN");
-		for (std::uint32_t point_index, index = 0; index < 3; ++index) {
-			input.read(reinterpret_cast<char *>(&point_index), sizeof(point_index));
-			if (point_index >= points.size())
-				throw std::runtime_error("not a valid TIN");
-			vertices[index] = points.at(point_index);
-		}
+	template <typename I>
+	Face(I first, I last) {
+		while (first < last)
+			vertices[--last - first] = *last;
+		std::rotate(vertices.begin(), std::min_element(vertices.begin(), vertices.end()), vertices.end());
+		auto p = vertices.begin();
+		if (((*(p+1) - *p) ^ (*(p+2) - *p)) < 0)
+			std::iter_swap(p+1, p+2);
 	}
 
 	auto bounds() const {
@@ -37,7 +31,7 @@ public:
 	}
 
 	friend auto operator==(const Face &face1, const Face &face2) {
-		return face1.index == face2.index;
+		return face1.vertices == face2.vertices;
 	}
 
 	friend auto operator||(const Face &face1, const Face &face2) {

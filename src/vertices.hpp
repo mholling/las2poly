@@ -43,6 +43,8 @@ public:
 	auto begin() const { return vertices.begin(); }
 	auto   end() const { return vertices.end(); }
 	auto edges() const { return Edges(vertices.begin(), vertices.end()); }
+
+	auto &operator[](std::size_t n) const { return vertices[n]; }
 };
 
 #endif

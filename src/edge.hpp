@@ -24,8 +24,8 @@ struct Edge {
 		return dynamic_cast<const Vector<3> &>(p1) - p0;
 	}
 
-	auto is_ground(unsigned char max) const {
-		return p0.is_ground(max) && p1.is_ground(max);
+	auto is_ground() const {
+		return p0.is_ground() && p1.is_ground();
 	}
 
 	friend auto operator==(const Edge &edge1, const Edge &edge2) {

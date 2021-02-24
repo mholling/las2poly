@@ -81,7 +81,7 @@ public:
 		return false;
 	}
 
-	auto is_water(double height, double slope, unsigned char klass, bool strict) const {
+	auto is_water(double height, double slope, bool strict) const {
 		Vector<3> perp;
 		double sum_abs = 0.0;
 		std::size_t count = 0;
@@ -92,7 +92,7 @@ public:
 			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end()), edges.end());
 			perp += edges[1].delta3d() ^ edges[2].delta3d();
 			for (const auto &edge: {edges[1], edges[2]})
-				if (edge.is_ground(klass)) {
+				if (edge.is_ground()) {
 					sum_abs += std::abs(edge.p1[2] - edge.p0[2]);
 					++count;
 				}

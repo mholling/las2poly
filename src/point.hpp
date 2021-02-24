@@ -3,6 +3,8 @@
 
 #include "vector.hpp"
 #include "bounds.hpp"
+#include <array>
+#include <cstdint>
 #include <cstddef>
 #include <fstream>
 #include <cmath>
@@ -10,31 +12,37 @@
 
 class Point : public Vector<3> {
 	unsigned char c;
-	std::size_t index;
+	std::array<std::uint32_t, 2> indices;
 
 public:
 	struct Hash {
-		std::size_t operator()(const Point &point) const { return point.index; }
+		std::size_t operator()(const Point &point) const {
+			return static_cast<std::size_t>(point.indices[0]) | static_cast<std::size_t>(point.indices[1]) << 32;
+		}
 	};
 
 	Point() { }
 
-	Point(std::ifstream &input, std::size_t index) : index(index) {
-		for (auto &value: *this)
+	Point(std::ifstream &input, double cell_size) {
+		for (auto &value: values)
 			input.read(reinterpret_cast<char *>(&value), sizeof(value));
 		input.read(reinterpret_cast<char *>(&c), sizeof(c));
+		indices = {
+			static_cast<std::uint32_t>(std::floor(values[0] / cell_size)),
+			static_cast<std::uint32_t>(std::floor(values[1] / cell_size))
+		};
 	}
 
 	auto bounds() const {
-		return Bounds({{(*this)[0], (*this)[0]}, {(*this)[1], (*this)[1]}});
+		return Bounds({{values[0], values[0]}, {values[1], values[1]}});
 	}
 
-	auto is_ground(unsigned char max) const {
-		return 2 <= c && c <= max;
+	auto is_ground() const {
+		return 2 == c || 3 == c;
 	}
 
 	friend auto operator==(const Point &point1, const Point &point2) {
-		return point1.index == point2.index;
+		return point1.indices == point2.indices;
 	}
 
 	friend auto operator<(const Point &point1, const Point &point2) {

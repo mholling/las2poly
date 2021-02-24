@@ -1,6 +1,7 @@
 #ifndef POLYGON_HPP
 #define POLYGON_HPP
 
+#include "tin.hpp"
 #include "ply.hpp"
 #include "ring.hpp"
 #include "edges.hpp"
@@ -9,6 +10,7 @@
 #include <ostream>
 #include <utility>
 #include <string>
+#include <numeric>
 #include <algorithm>
 #include <iterator>
 
@@ -25,18 +27,25 @@ public:
 		return json << ']';
 	}
 
-	static auto from_ply(const std::string &ply_path, double length, double width, double height, double slope, double area, unsigned char klass, bool strict) {
+	static auto from_ply(const std::string &ply_path, double length, double width, double height, double slope, double area, double cell_size, bool strict) {
 		Edges edges;
 		Faces gaps;
 
-		PLY(ply_path).each_face([&](const auto face) {
+		std::vector<std::string> ply_paths = { ply_path }; // will be multiple PLY tiles provided in argv
+		std::accumulate(ply_paths.begin(), ply_paths.end(), TIN(), [&](TIN &tin, const std::string &ply_path) {
+			return tin.concat(PLY(ply_path, cell_size));
+		}).each_face([&](const auto &face) {
 			edges.insert(face);
 			if (face > length)
 				gaps.insert(face);
+		}, [&](const auto &face) {
+			edges.erase(face);
+			if (face > length)
+				gaps.erase(face);
 		});
 
 		gaps.explode([&](const auto &gap) {
-			if ((gap && edges) || ((width <= length || gap > width) && gap.is_water(height, slope, klass, strict)))
+			if ((gap && edges) || ((width <= length || gap > width) && gap.is_water(height, slope, strict)))
 				for (const auto &face: gap)
 					edges.erase(face);
 		});

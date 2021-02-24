@@ -2,17 +2,16 @@
 #define PLY_HPP
 
 #include "point.hpp"
-#include "face.hpp"
 #include <fstream>
-#include <vector>
 #include <cstddef>
 #include <string>
+#include <iterator>
 #include <stdexcept>
 
 class PLY {
-	std::ifstream ply;
-	std::vector<Point> points;
-	std::size_t vertex_count, face_count;
+	std::ifstream input;
+	double cell_size;
+	std::size_t vertex_count;
 
 	auto format_string() const {
 		union {
@@ -25,8 +24,8 @@ class PLY {
 	auto line() {
 		std::string string;
 		string.reserve(1000);
-		for (std::getline(ply, string); string.rfind("comment", 0) == 0;)
-			std::getline(ply, string);
+		for (std::getline(input, string); string.rfind("comment", 0) == 0;)
+			std::getline(input, string);
 		return string;
 	}
 
@@ -43,10 +42,22 @@ class PLY {
 		std::istringstream(string.erase(0, words.size())) >> t;
 	}
 
+	struct Iterator : public std::iterator<std::input_iterator_tag, Point> {
+		PLY &ply;
+		std::size_t index;
+		Point point;
+
+		Iterator(PLY &ply, std::size_t index) : ply(ply), index(index) { }
+		auto &operator++() { point = Point(ply.input, ply.cell_size); ++index; return *this;}
+		auto operator==(Iterator other) const { return index == other.index; }
+		auto operator!=(Iterator other) const { return index != other.index; }
+		auto &operator*() { return point; }
+	};
+
 public:
-	PLY(const std::string &ply_path) {
-		ply.exceptions(ply.exceptions() | std::ifstream::failbit);
-		ply.open(ply_path, std::ios::binary);
+	PLY(const std::string &ply_path, double cell_size) : cell_size(cell_size) {
+		input.exceptions(input.exceptions() | std::ifstream::failbit);
+		input.open(ply_path, std::ios::binary);
 
 		expect("ply");
 		expect(format_string());
@@ -55,20 +66,11 @@ public:
 		expect("property float64 y");
 		expect("property float64 z");
 		expect("property uint8 classification");
-		expect("element face", face_count);
-		expect("property list uint8 uint32 vertex_indices");
 		expect("end_header");
-
-		points.reserve(vertex_count);
-		for (std::size_t index = 0; index < vertex_count; ++index)
-			points.push_back(Point(ply, index));
 	}
 
-	template <typename F>
-	void each_face(F function) {
-		for (std::size_t index = 0; index < face_count; ++index)
-			function(Face(points, ply, index));
-	}
+	auto begin() { return Iterator(*this, 0); }
+	auto   end() { return Iterator(*this, vertex_count); }
 };
 
 #endif
