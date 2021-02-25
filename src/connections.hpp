@@ -11,9 +11,9 @@
 #include <utility>
 #include <cmath>
 
+template <typename Edges, bool outside = true>
 class Connections {
 	std::unordered_map<Edge, Edge, Edge::Hash> connections;
-	bool outside;
 
 	auto empty() const {
 		return connections.empty();
@@ -30,8 +30,8 @@ class Connections {
 		return edges;
 	}
 
-	template <typename C>
-	Connections(const C &edges, bool outside) : outside(outside) {
+public:
+	Connections(const Edges &edges) {
 		std::unordered_multimap<Point, Edge, Point::Hash> points_edges;
 		std::transform(edges.begin(), edges.end(), std::inserter(points_edges, points_edges.begin()), [](const auto &edge) {
 			return std::make_pair(edge.p0, edge);
@@ -53,24 +53,21 @@ class Connections {
 				const auto angle = std::atan2(cross, dot);
 				return std::make_pair(outgoing, angle);
 			});
-			const auto &[outgoing, angle] = outside ?
-				*std::max_element(edges_angles.begin(), edges_angles.end(), ordering) :
-				*std::min_element(edges_angles.begin(), edges_angles.end(), ordering);
+			const auto &[outgoing, angle] = outside
+				? *std::max_element(edges_angles.begin(), edges_angles.end(), ordering)
+				: *std::min_element(edges_angles.begin(), edges_angles.end(), ordering);
 			connections.insert(std::make_pair(incoming, outgoing));
 		}
 	}
 
-public:
-	template <typename C>
-	Connections(const C &edges) : Connections(edges, true) { }
-
-	auto rings() {
+	std::vector<Ring> rings() {
 		std::vector<Ring> results;
-		while (!empty()) {
-			Connections inside(unwind(), !outside);
-			while (!inside.empty())
-				results.push_back(Ring(inside.unwind()));
-		}
+		while (!empty())
+			if (outside)
+				for (auto &ring: Connections<std::vector<Edge>, false>(unwind()).rings())
+					results.push_back(ring);
+			else
+				results.push_back(Ring(unwind()));
 		return results;
 	}
 };

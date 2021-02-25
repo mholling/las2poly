@@ -29,8 +29,8 @@ class Ring : public Vertices<std::vector<Point>> {
 	}
 
 public:
-	template <typename C>
-	Ring(const C &edges) {
+	template <typename Edges>
+	Ring(const Edges &edges) {
 		const auto &origin = edges.begin()->p0;
 		double sum = 0.0;
 		for (const auto &edge: edges) {
