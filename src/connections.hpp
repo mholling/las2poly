@@ -6,29 +6,42 @@
 #include "ring.hpp"
 #include <unordered_map>
 #include <vector>
-#include <algorithm>
 #include <iterator>
 #include <utility>
+#include <algorithm>
 #include <cmath>
 
-template <typename Edges, bool outside = true>
+template <typename Edges, bool outside = true, bool anticlockwise = true>
 class Connections {
 	std::unordered_map<Edge, Edge, Edge::Hash> connections;
+	using Connection = decltype(connections)::iterator;
 
 	auto empty() const {
 		return connections.empty();
 	}
 
+	auto follow(Connection connection) {
+		return connections.find(connection->second);
+	}
+
 	auto unwind() {
 		std::vector<Edge> edges;
-		for (auto connection = connections.begin(); connection != connections.end();) {
-			const auto [incoming, outgoing] = *connection;
-			edges.push_back(incoming);
+		for (auto connection = connections.begin(); connection != connections.end(); connection = follow(connection)) {
+			edges.push_back(connection->first);
 			connections.erase(connection);
-			connection = connections.find(outgoing);
 		}
 		return edges;
 	}
+
+	struct Iterator {
+		Connections &connections;
+		Connection connection;
+
+		Iterator(Connections &connections, const Connection &connection) : connections(connections), connection(connection) { }
+		auto &operator++() { connection = connections.follow(connection); return *this;}
+		auto &operator*() { return *connection; }
+		auto operator->() { return connection; }
+	};
 
 public:
 	Connections(const Edges &edges) {
@@ -56,15 +69,25 @@ public:
 			const auto &[outgoing, angle] = outside
 				? *std::max_element(edges_angles.begin(), edges_angles.end(), ordering)
 				: *std::min_element(edges_angles.begin(), edges_angles.end(), ordering);
-			connections.insert(std::make_pair(incoming, outgoing));
+			connections.insert(anticlockwise ? std::make_pair(incoming, outgoing) : std::make_pair(-outgoing, -incoming));
 		}
+	}
+
+	template <typename LessThan>
+	auto begin(LessThan less_than) {
+		const auto &connection = std::min_element(connections.begin(), connections.end(), [&](const auto &connection0, const auto &connection1) {
+			const auto &[edge00, edge01] = connection0;
+			const auto &[edge10, edge11] = connection1;
+			return less_than(edge00.p1, edge10.p1);
+		});
+		return Iterator(*this, connection);
 	}
 
 	std::vector<Ring> rings() {
 		std::vector<Ring> results;
 		while (!empty())
 			if (outside)
-				for (auto &ring: Connections<std::vector<Edge>, false>(unwind()).rings())
+				for (auto &ring: Connections<decltype(unwind()), false, anticlockwise>(unwind()).rings())
 					results.push_back(ring);
 			else
 				results.push_back(Ring(unwind()));

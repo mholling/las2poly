@@ -40,11 +40,25 @@ class TIN {
 				mesh += Face(first);
 				break;
 			default:
-				auto left = Child(first, middle).triangulate();
-				auto right = Child(middle, last).triangulate();
-				mesh += left;
-				mesh += right;
-				// TODO: bridge across the gap in the mesh by inserting and removing faces
+				auto left_mesh = Child(first, middle).triangulate();
+				auto right_mesh = Child(middle, last).triangulate();
+				mesh += left_mesh;
+				mesh += right_mesh;
+				auto left_pair = left_mesh.clockwise_connections().begin(less_than);
+				auto right_pair = right_mesh.anticlockwise_connections().begin(less_than);
+				auto check_right = [&]() {
+					return (right_pair->second ^ left_pair->first.p1) > 0;
+				};
+				auto check_left = [&]() {
+					return (left_pair->second ^ right_pair->first.p1) < 0;
+				};
+				while (!check_right() && !check_left()) {
+					while (!check_right())
+						++right_pair;
+					while (!check_left())
+						++left_pair;
+				}
+				auto edge = Edge(left_pair->first.p1, right_pair->first.p1);
 			}
 			return mesh;
 		}

@@ -112,6 +112,14 @@ public:
 		return false;
 	}
 
+	auto anticlockwise_connections() {
+		return Connections<decltype(edges), true>(edges);
+	}
+
+	auto clockwise_connections() {
+		return Connections<decltype(edges), false>(edges);
+	}
+
 	auto is_water(double height, double slope, bool strict) const {
 		Vector<3> perp;
 		double sum_abs = 0.0;
