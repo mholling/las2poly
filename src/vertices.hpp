@@ -3,7 +3,7 @@
 
 #include "point.hpp"
 #include "edge.hpp"
-#include <iterator>
+#include <cstddef>
 
 template <typename C>
 class Vertices {
@@ -22,12 +22,6 @@ class Vertices {
 			auto operator==(Iterator other) const { return here == other.here; }
 			auto operator!=(Iterator other) const { return here != other.here; }
 			auto operator*() { return Edge(*here, *(here + 1 == stop ? start : here + 1)); }
-
-			using difference_type = int;
-			using value_type = Edge;
-			using pointer = Edge*;
-			using reference = Edge&;
-			using iterator_category = std::forward_iterator_tag;
 		};
 
 	public:

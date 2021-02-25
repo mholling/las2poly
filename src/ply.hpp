@@ -5,7 +5,6 @@
 #include <fstream>
 #include <cstddef>
 #include <string>
-#include <iterator>
 #include <stdexcept>
 
 class PLY {
@@ -42,7 +41,7 @@ class PLY {
 		std::istringstream(string.erase(0, words.size())) >> t;
 	}
 
-	struct Iterator : public std::iterator<std::input_iterator_tag, Point> {
+	struct Iterator {
 		PLY &ply;
 		std::size_t index;
 		Point point;
