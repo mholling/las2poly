@@ -120,7 +120,7 @@ public:
 		for (const auto &face: faces) {
 			auto edge = face.edges().begin();
 			std::array<Edge, 3> edges = {*edge++, *edge++, *edge++};
-			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end()), edges.end());
+			std::iter_swap(edges.begin(), std::min_element(edges.begin(), edges.end()));
 			perp += edges[1].delta3d() ^ edges[2].delta3d();
 			for (const auto &edge: {edges[1], edges[2]})
 				if (edge.is_ground()) {
