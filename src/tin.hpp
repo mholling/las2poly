@@ -4,6 +4,7 @@
 #include "face.hpp"
 #include "edge.hpp"
 #include "point.hpp"
+#include "mesh.hpp"
 #include "thinned.hpp"
 #include <vector>
 #include <optional>
@@ -15,7 +16,6 @@ class TIN {
 	class Node {
 		using Child = Node<Iterator, 1-axis>;
 		const Iterator first, middle, last;
-		std::vector<Face> faces;
 		std::optional<Edge> edge;
 
 		static auto less_than(const Point &p1, const Point &p2) {
@@ -27,8 +27,8 @@ class TIN {
 			std::nth_element(first, middle, last, less_than);
 		}
 
-		template <typename Insert, typename Erase>
-		void each_face(Insert insert, Erase erase) {
+		Mesh triangulate() {
+			Mesh mesh;
 			switch (last - first) {
 			case 0:
 			case 1:
@@ -37,14 +37,16 @@ class TIN {
 				edge.emplace(first);
 				break;
 			case 3:
-				insert(faces.emplace_back(first));
+				mesh += Face(first);
 				break;
 			default:
-				Child left(first, middle), right(middle, last);
-				left.each_face(insert, erase);
-				right.each_face(insert, erase);
-				// TODO: merge left and right, calling insert and erase as necessary
+				auto left = Child(first, middle).triangulate();
+				auto right = Child(middle, last).triangulate();
+				mesh += left;
+				mesh += right;
+				// TODO: bridge across the gap in the mesh by inserting and removing faces
 			}
+			return mesh;
 		}
 	};
 
@@ -64,10 +66,9 @@ public:
 		return *this;
 	}
 
-	template <typename Insert, typename Erase>
-	void each_face(Insert insert, Erase erase) {
+	auto triangulate() {
 		auto thinned = points.to_vector();
-		Node(thinned.begin(), thinned.end()).each_face(insert, erase);
+		return Node(thinned.begin(), thinned.end()).triangulate();
 	}
 };
 

@@ -3,9 +3,6 @@
 
 #include "tin.hpp"
 #include "ply.hpp"
-#include "ring.hpp"
-#include "edges.hpp"
-#include "faces.hpp"
 #include <vector>
 #include <ostream>
 #include <utility>
@@ -28,28 +25,20 @@ public:
 	}
 
 	static auto from_tiles(const std::vector<std::string> &tile_paths, double length, double width, double height, double slope, double area, double cell_size, bool strict) {
-		Edges edges;
-		Faces gaps;
-
-		std::accumulate(tile_paths.begin(), tile_paths.end(), TIN(), [&](TIN &tin, const std::string &tile_path) {
+		auto mesh = std::accumulate(tile_paths.begin(), tile_paths.end(), TIN(), [&](TIN &tin, const std::string &tile_path) {
 			return tin += PLY(tile_path, cell_size);
-		}).each_face([&](const auto &face) {
-			edges.insert(face);
-			if (face > length)
-				gaps.insert(face);
-		}, [&](const auto &face) {
-			edges.erase(face);
-			if (face > length)
-				gaps.erase(face);
+		}).triangulate();
+
+		auto gaps = mesh.select([=](const auto &face) {
+			return face > length;
 		});
 
 		gaps.explode([&](const auto &gap) {
-			if ((gap && edges) || ((width <= length || gap > width) && gap.is_water(height, slope, strict)))
-				for (const auto &face: gap)
-					edges.erase(face);
+			if ((gap || mesh) || ((width <= length || gap > width) && gap.is_water(height, slope, strict)))
+				mesh -= gap;
 		});
 
-		auto rings = edges.rings();
+		auto rings = mesh.rings();
 		auto rings_end = std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
 			return ring < area && ring > -area;
 		});
