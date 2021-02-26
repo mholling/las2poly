@@ -44,8 +44,8 @@ class TIN {
 				auto right_mesh = Child(middle, last).triangulate();
 				mesh += left_mesh;
 				mesh += right_mesh;
-				auto left_pair = left_mesh.clockwise_connections().begin(less_than);
-				auto right_pair = right_mesh.anticlockwise_connections().begin(less_than);
+				auto left_pair = left_mesh.clockwise_edges().begin(less_than);
+				auto right_pair = right_mesh.anticlockwise_edges().begin(less_than);
 				auto check_right = [&]() {
 					return (right_pair->second ^ left_pair->first.p1) > 0;
 				};

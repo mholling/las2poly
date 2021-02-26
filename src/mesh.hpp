@@ -3,7 +3,8 @@
 
 #include "face.hpp"
 #include "edge.hpp"
-#include "connections.hpp"
+#include "rings.hpp"
+#include "exterior.hpp"
 #include "vector.hpp"
 #include <unordered_set>
 #include <unordered_map>
@@ -71,7 +72,7 @@ public:
 	}
 
 	auto rings() const {
-		return Connections(edges).rings();
+		return Rings(edges)();
 	}
 
 	template <typename F>
@@ -112,12 +113,12 @@ public:
 		return false;
 	}
 
-	auto anticlockwise_connections() {
-		return Connections<decltype(edges), true>(edges);
+	auto anticlockwise_edges() {
+		return Exterior<decltype(edges), true>(edges);
 	}
 
-	auto clockwise_connections() {
-		return Connections<decltype(edges), false>(edges);
+	auto clockwise_edges() {
+		return Exterior<decltype(edges), false>(edges);
 	}
 
 	auto is_water(double height, double slope, bool strict) const {

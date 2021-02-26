@@ -1,5 +1,5 @@
-#ifndef CONNECTIONS_HPP
-#define CONNECTIONS_HPP
+#ifndef RINGS_HPP
+#define RINGS_HPP
 
 #include "point.hpp"
 #include "edge.hpp"
@@ -11,40 +11,26 @@
 #include <algorithm>
 #include <cmath>
 
-template <typename Edges, bool outside = true, bool anticlockwise = true>
-class Connections {
+template <typename Edges, bool outside = true>
+class Rings {
 	std::unordered_map<Edge, Edge, Edge::Hash> connections;
-	using Connection = decltype(connections)::iterator;
 
 	auto empty() const {
 		return connections.empty();
 	}
 
-	auto follow(Connection connection) {
-		return connections.find(connection->second);
-	}
-
 	auto unwind() {
 		std::vector<Edge> edges;
-		for (auto connection = connections.begin(); connection != connections.end(); connection = follow(connection)) {
+		for (auto connection = connections.begin(); connection != connections.end(); ) {
 			edges.push_back(connection->first);
 			connections.erase(connection);
+			connection = connections.find(connection->second);
 		}
 		return edges;
 	}
 
-	struct Iterator {
-		Connections &connections;
-		Connection connection;
-
-		Iterator(Connections &connections, const Connection &connection) : connections(connections), connection(connection) { }
-		auto &operator++() { connection = connections.follow(connection); return *this;}
-		auto &operator*() { return *connection; }
-		auto operator->() { return connection; }
-	};
-
 public:
-	Connections(const Edges &edges) {
+	Rings(const Edges &edges) {
 		std::unordered_multimap<Point, Edge, Point::Hash> points_edges;
 		std::transform(edges.begin(), edges.end(), std::inserter(points_edges, points_edges.begin()), [](const auto &edge) {
 			return std::make_pair(edge.p0, edge);
@@ -69,25 +55,15 @@ public:
 			const auto &[outgoing, angle] = outside
 				? *std::max_element(edges_angles.begin(), edges_angles.end(), ordering)
 				: *std::min_element(edges_angles.begin(), edges_angles.end(), ordering);
-			connections.insert(anticlockwise ? std::make_pair(incoming, outgoing) : std::make_pair(-outgoing, -incoming));
+			connections.insert(std::make_pair(incoming, outgoing));
 		}
 	}
 
-	template <typename LessThan>
-	auto begin(LessThan less_than) {
-		const auto &connection = std::min_element(connections.begin(), connections.end(), [&](const auto &connection0, const auto &connection1) {
-			const auto &[edge00, edge01] = connection0;
-			const auto &[edge10, edge11] = connection1;
-			return less_than(edge00.p1, edge10.p1);
-		});
-		return Iterator(*this, connection);
-	}
-
-	std::vector<Ring> rings() {
+	std::vector<Ring> operator()() {
 		std::vector<Ring> results;
 		while (!empty())
-			if (outside)
-				for (auto &ring: Connections<decltype(unwind()), false, anticlockwise>(unwind()).rings())
+			if constexpr (outside)
+				for (auto &ring: Rings<decltype(unwind()), false>(unwind())())
 					results.push_back(ring);
 			else
 				results.push_back(Ring(unwind()));
