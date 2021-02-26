@@ -40,23 +40,24 @@ class TIN {
 			default:
 				auto left_mesh = Child(first, middle).triangulate();
 				auto right_mesh = Child(middle, last).triangulate();
-				mesh += left_mesh;
-				mesh += right_mesh;
-				auto left_edge = left_mesh.clockwise_edges().begin(less_than);
-				auto right_edge = right_mesh.anticlockwise_edges().begin(less_than);
+				auto left_edge = left_mesh.exterior().rightmost(less_than);
+				auto right_edge = right_mesh.exterior().leftmost(less_than);
 				auto check_right = [&]() {
-					return (*right_edge ^ left_edge->p0) > 0;
+					return (*right_edge ^ left_edge->p1) > 0;
 				};
 				auto check_left = [&]() {
-					return (*left_edge ^ right_edge->p0) < 0;
+					return (*left_edge ^ right_edge->p0) > 0;
 				};
 				while (!check_right() && !check_left()) {
 					if (!check_right())
 						++right_edge;
 					if (!check_left())
-						++left_edge;
+						--left_edge;
 				}
-				auto edge = Edge(left_edge->p0, right_edge->p0);
+				auto edge = Edge(left_edge->p1, right_edge->p0);
+				// ...
+				mesh += left_mesh;
+				mesh += right_mesh;
 			}
 			return mesh;
 		}

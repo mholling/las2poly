@@ -119,12 +119,8 @@ public:
 		return false;
 	}
 
-	auto anticlockwise_edges() {
-		return Exterior<decltype(edges), true>(edges);
-	}
-
-	auto clockwise_edges() {
-		return Exterior<decltype(edges), false>(edges);
+	auto exterior() {
+		return Exterior(edges);
 	}
 
 	auto is_water(double height, double slope, bool strict) const {

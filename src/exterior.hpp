@@ -9,23 +9,27 @@
 #include <utility>
 #include <algorithm>
 
-template <typename Edges, bool anticlockwise = true>
+template <typename Edges>
 class Exterior {
-	std::unordered_map<Edge, Edge, Edge::Hash> connections;
-	using Connection = decltype(connections)::const_iterator;
+	std::unordered_map<Edge, Edge, Edge::Hash> after, before;
 
-	auto follow(Connection connection) const {
-		return connections.find(connection->second);
+	auto next(const Edge &edge) const {
+		return after.find(edge)->second;
+	}
+
+	auto prev(const Edge &edge) const {
+		return before.find(edge)->second;
 	}
 
 	struct Iterator {
 		const Exterior &exterior;
-		Connection connection;
+		Edge edge;
 
-		Iterator(const Exterior &exterior, const Connection &connection) : exterior(exterior), connection(connection) { }
-		auto &operator++() { connection = exterior.follow(connection); return *this;}
-		auto &operator*() { return connection->second; }
-		auto operator->() { return &connection->second; }
+		Iterator(const Exterior &exterior, const Edge &edge) : exterior(exterior), edge(edge) { }
+		auto &operator++() { edge = exterior.next(edge); return *this;}
+		auto &operator--() { edge = exterior.prev(edge); return *this;}
+		auto &operator*() { return edge; }
+		auto operator->() { return &edge; }
 	};
 
 public:
@@ -37,19 +41,25 @@ public:
 
 		for (const auto &incoming: edges) {
 			const auto &[point, outgoing] = *points_edges.find(incoming.p1);
-			if constexpr (anticlockwise)
-				connections.insert(std::make_pair(incoming, outgoing));
-			else
-				connections.insert(std::make_pair(-outgoing, -incoming));
+			after.insert(std::make_pair(incoming, outgoing));
+			before.insert(std::make_pair(outgoing, incoming));
 		}
 	}
 
 	template <typename LessThan>
-	auto begin(LessThan less_than) {
-		auto connection = std::min_element(connections.begin(), connections.end(), [&](const auto &connection0, const auto &connection1) {
-			return less_than(connection0.first.p1, connection1.first.p1) == anticlockwise;
-		});
-		return Iterator(*this, connection);
+	auto leftmost(LessThan less_than) {
+		auto &edge = std::min_element(after.begin(), after.end(), [&](const auto &connection0, const auto &connection1) {
+			return less_than(connection0.first.p1, connection1.first.p1);
+		})->second;
+		return Iterator(*this, edge);
+	}
+
+	template <typename LessThan>
+	auto rightmost(LessThan less_than) {
+		auto &edge = std::max_element(after.begin(), after.end(), [&](const auto &connection0, const auto &connection1) {
+			return less_than(connection0.first.p1, connection1.first.p1);
+		})->first;
+		return Iterator(*this, edge);
 	}
 };
 
