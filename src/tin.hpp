@@ -42,21 +42,21 @@ class TIN {
 				auto right_mesh = Child(middle, last).triangulate();
 				mesh += left_mesh;
 				mesh += right_mesh;
-				auto left_pair = left_mesh.clockwise_edges().begin(less_than);
-				auto right_pair = right_mesh.anticlockwise_edges().begin(less_than);
+				auto left_edge = left_mesh.clockwise_edges().begin(less_than);
+				auto right_edge = right_mesh.anticlockwise_edges().begin(less_than);
 				auto check_right = [&]() {
-					return (right_pair->second ^ left_pair->first.p1) > 0;
+					return (*right_edge ^ left_edge->p0) > 0;
 				};
 				auto check_left = [&]() {
-					return (left_pair->second ^ right_pair->first.p1) < 0;
+					return (*left_edge ^ right_edge->p0) < 0;
 				};
 				while (!check_right() && !check_left()) {
 					if (!check_right())
-						++right_pair;
+						++right_edge;
 					if (!check_left())
-						++left_pair;
+						++left_edge;
 				}
-				auto edge = Edge(left_pair->first.p1, right_pair->first.p1);
+				auto edge = Edge(left_edge->p0, right_edge->p0);
 			}
 			return mesh;
 		}

@@ -24,8 +24,8 @@ class Exterior {
 
 		Iterator(const Exterior &exterior, const Connection &connection) : exterior(exterior), connection(connection) { }
 		auto &operator++() { connection = exterior.follow(connection); return *this;}
-		auto &operator*() { return *connection; }
-		auto operator->() { return connection; }
+		auto &operator*() { return connection->second; }
+		auto operator->() { return &connection->second; }
 	};
 
 public:
