@@ -39,12 +39,6 @@ public:
 	auto begin() const { return faces.begin(); }
 	auto   end() const { return faces.end(); }
 
-	Mesh &operator+=(const Edge &edge) {
-		edges.insert(edge);
-		edges.insert(-edge);
-		return *this;
-	}
-
 	Mesh &operator+=(const Face &face) {
 		faces.insert(face);
 		for (const auto edge: face.edges()) {
@@ -65,14 +59,24 @@ public:
 		return *this;
 	}
 
-	Mesh &operator+=(const Mesh &other) {
-		for (const auto &face: other)
+	auto &operator+=(const Edge &edge) {
+		edges.insert(edge);
+		edges.insert(-edge);
+		return *this;
+	}
+
+	auto &operator-=(const Edge &edge) {
+		return *this -= neighbours.find(-edge)->second;
+	}
+
+	auto &operator+=(const Mesh &mesh) {
+		for (const auto &face: mesh)
 			*this += face;
 		return *this;
 	}
 
-	Mesh &operator-=(const Mesh &other) {
-		for (const auto &face: other)
+	auto &operator-=(const Mesh &mesh) {
+		for (const auto &face: mesh)
 			*this -= face;
 		return *this;
 	}
