@@ -39,6 +39,12 @@ public:
 	auto begin() const { return faces.begin(); }
 	auto   end() const { return faces.end(); }
 
+	Mesh &operator+=(const Edge &edge) {
+		edges.insert(edge);
+		edges.insert(-edge);
+		return *this;
+	}
+
 	Mesh &operator+=(const Face &face) {
 		faces.insert(face);
 		for (const auto edge: face.edges()) {

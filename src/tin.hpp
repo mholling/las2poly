@@ -7,7 +7,6 @@
 #include "mesh.hpp"
 #include "thinned.hpp"
 #include <vector>
-#include <optional>
 #include <algorithm>
 #include <stdexcept>
 
@@ -16,7 +15,6 @@ class TIN {
 	class Node {
 		using Child = Node<Iterator, 1-axis>;
 		const Iterator first, middle, last;
-		std::optional<Edge> edge;
 
 		static auto less_than(const Point &p1, const Point &p2) {
 			return p1[axis] < p2[axis] ? true : p1[axis] > p2[axis] ? false : p1[1-axis] < p2[1-axis];
@@ -34,7 +32,7 @@ class TIN {
 			case 1:
 				throw std::runtime_error("not enough points");
 			case 2:
-				edge.emplace(first);
+				mesh += Edge(first);
 				break;
 			case 3:
 				mesh += Face(first);
