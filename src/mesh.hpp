@@ -120,7 +120,7 @@ public:
 	}
 
 	auto exterior() {
-		return Exterior(edges);
+		return Exterior(edges, neighbours);
 	}
 
 	auto is_water(double height, double slope, bool strict) const {

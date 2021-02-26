@@ -3,14 +3,14 @@
 
 #include "point.hpp"
 #include "edge.hpp"
-#include "ring.hpp"
 #include <unordered_map>
 #include <iterator>
 #include <utility>
 #include <algorithm>
 
-template <typename Edges>
+template <typename Edges, typename Neighbours>
 class Exterior {
+	const Neighbours &neighbours;
 	std::unordered_map<Edge, Edge, Edge::Hash> after, before;
 
 	auto next(const Edge &edge) const {
@@ -26,14 +26,34 @@ class Exterior {
 		Edge edge;
 
 		Iterator(const Exterior &exterior, const Edge &edge) : exterior(exterior), edge(edge) { }
-		auto &operator++() { edge = exterior.next(edge); return *this;}
-		auto &operator--() { edge = exterior.prev(edge); return *this;}
+		auto &operator++() { edge = exterior.next(edge); return *this; }
+		auto &operator--() { edge = exterior.prev(edge); return *this; }
+		auto &operator++(int) { auto old = *this; ++(*this); return old; }
+		auto &operator--(int) { auto old = *this; --(*this); return old; }
 		auto &operator*() { return edge; }
 		auto operator->() { return &edge; }
 	};
 
+	auto &operator-=(const Edge &edge) {
+		auto prev = before.find(edge)->second;
+		auto next = after.find(edge)->second;
+		after.erase(edge);
+		before.erase(edge);
+		auto p = neighbours.find(edge)->second.vertices;
+		p.rotate(p.begin(), std::find(p.begin(), p.end(), edge.p1), p.end());
+		auto edge1 = Edge(p[2], p[1]);
+		auto edge2 = Edge(p[1], p[0]);
+		after.insert(std::make_pair(prev, edge1));
+		after.insert(std::make_pair(edge1, edge2));
+		after.insert(std::make_pair(edge2, next));
+		before.insert(std::make_pair(next, edge2));
+		before.insert(std::make_pair(edge2, edge1));
+		before.insert(std::make_pair(edge1, prev));
+		return *this;
+	}
+
 public:
-	Exterior(const Edges &edges) {
+	Exterior(const Edges &edges, const Neighbours &neighbours) : neighbours(neighbours) {
 		std::unordered_map<Point, Edge, Point::Hash> points_edges;
 		std::transform(edges.begin(), edges.end(), std::inserter(points_edges, points_edges.begin()), [](const auto &edge) {
 			return std::make_pair(edge.p0, edge);
