@@ -51,9 +51,9 @@ class TIN {
 					return (left_pair->second ^ right_pair->first.p1) < 0;
 				};
 				while (!check_right() && !check_left()) {
-					while (!check_right())
+					if (!check_right())
 						++right_pair;
-					while (!check_left())
+					if (!check_left())
 						++left_pair;
 				}
 				auto edge = Edge(left_pair->first.p1, right_pair->first.p1);
