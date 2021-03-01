@@ -2,6 +2,7 @@
 #define EDGE_HPP
 
 #include "point.hpp"
+#include <utility>
 #include <functional>
 #include <cstddef>
 

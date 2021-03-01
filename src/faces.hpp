@@ -6,6 +6,7 @@
 #include "vector.hpp"
 #include <unordered_set>
 #include <unordered_map>
+#include <algorithm>
 
 class Faces {
 	std::unordered_set<Face> faces;
@@ -53,10 +54,9 @@ public:
 	}
 
 	auto operator>(double length) const {
-		for (const auto &face: faces)
-			if (face > length)
-				return true;
-		return false;
+		return std::any_of(faces.begin(), faces.end(), [=](const auto &face) {
+			return face > length;
+		});
 	}
 
 	auto is_water(double height, double slope, bool strict) const {

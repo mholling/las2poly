@@ -6,6 +6,7 @@
 #include "faces.hpp"
 #include "rings.hpp"
 #include <unordered_set>
+#include <algorithm>
 
 class Edges {
 	std::unordered_set<Edge> edges;
@@ -36,11 +37,11 @@ public:
 	}
 
 	auto operator||(const Faces &faces) const {
-		for (const auto &face: faces)
-			for (const auto edge: face)
-				if (edges.count(edge) > 0)
-					return true;
-		return false;
+		return std::any_of(faces.begin(), faces.end(), [&](const auto &face) {
+			return std::any_of(face.begin(), face.end(), [&](const auto &edge) {
+				return edges.count(edge) > 0;
+			});
+		});
 	}
 
 	auto rings() const {

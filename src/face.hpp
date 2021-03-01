@@ -3,15 +3,15 @@
 
 #include "edge.hpp"
 #include <array>
+#include <algorithm>
 #include <cstddef>
 
 using Face = std::array<Edge, 3>;
 
 auto operator>(const Face &face, double length) {
-	for (const auto edge: face)
-		if (edge > length)
-			return true;
-	return false;
+	return std::any_of(face.begin(), face.end(), [=](const auto &edge) {
+		return edge > length;
+	});
 };
 
 template <> struct std::hash<Face> {
