@@ -18,7 +18,6 @@ class Face {
 		EdgeIterator(Iterator start, Iterator here) : start(start), here(here) { }
 		auto &operator++() { ++here; return *this;}
 		auto operator++(int) { auto old = *this; ++here; return old;}
-		// auto operator==(EdgeIterator other) const { return here == other.here; }
 		auto operator!=(EdgeIterator other) const { return here != other.here; }
 		auto operator*() { return Edge(*here, *(here - start == 2 ? start : here + 1)); }
 	};

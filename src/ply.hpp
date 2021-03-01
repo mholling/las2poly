@@ -57,7 +57,6 @@ class PLY {
 
 		Iterator(PLY &ply, std::size_t index) : ply(ply), index(index) { }
 		auto &operator++() { point = ply.point(index++); return *this;}
-		// auto operator==(Iterator other) const { return index == other.index; }
 		auto operator!=(Iterator other) const { return index != other.index; }
 		auto &operator*() { return point; }
 	};

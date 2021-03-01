@@ -14,8 +14,8 @@
 #include <utility>
 #include <string>
 #include <numeric>
-// #include <algorithm>
-// #include <iterator>
+#include <algorithm>
+#include <iterator>
 
 class Polygon {
 	std::vector<Ring> rings;

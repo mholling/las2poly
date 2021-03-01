@@ -25,8 +25,6 @@ class Ring {
 
 		EdgeIterator(Iterator start, Iterator stop, Iterator here) : start(start), stop(stop), here(here) { }
 		auto &operator++() { ++here; return *this;}
-		// auto operator++(int) { auto old = *this; ++here; return old;}
-		// auto operator==(EdgeIterator other) const { return here == other.here; }
 		auto operator!=(EdgeIterator other) const { return here != other.here; }
 		auto operator*() { return Edge(*here, *(here + 1 == stop ? start : here + 1)); }
 	};
