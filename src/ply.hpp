@@ -9,7 +9,6 @@
 
 class PLY {
 	std::ifstream input;
-	double cell_size;
 	std::size_t vertex_count;
 
 	auto format_string() const {
@@ -41,20 +40,30 @@ class PLY {
 		std::istringstream(string.erase(0, words.size())) >> t;
 	}
 
+	auto point(std::size_t index) {
+		double x, y, z;
+		unsigned char c;
+		input.read(reinterpret_cast<char *>(&x), sizeof(x));
+		input.read(reinterpret_cast<char *>(&y), sizeof(y));
+		input.read(reinterpret_cast<char *>(&z), sizeof(z));
+		input.read(reinterpret_cast<char *>(&c), sizeof(c));
+		return Point(x, y, z, c, index);
+	}
+
 	struct Iterator {
 		PLY &ply;
 		std::size_t index;
 		Point point;
 
 		Iterator(PLY &ply, std::size_t index) : ply(ply), index(index) { }
-		auto &operator++() { point = Point(ply.input, ply.cell_size); ++index; return *this;}
+		auto &operator++() { point = ply.point(index++); return *this;}
 		// auto operator==(Iterator other) const { return index == other.index; }
 		auto operator!=(Iterator other) const { return index != other.index; }
 		auto &operator*() { return point; }
 	};
 
 public:
-	PLY(const std::string &path, double cell_size) : cell_size(cell_size) {
+	PLY(const std::string &path) {
 		input.exceptions(input.exceptions() | std::ifstream::failbit);
 		input.open(path, std::ios::binary);
 

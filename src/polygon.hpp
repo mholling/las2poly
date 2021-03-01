@@ -34,8 +34,8 @@ public:
 		Edges edges;
 		Faces faces;
 
-		std::accumulate(tile_paths.begin(), tile_paths.end(), TIN(), [&](auto &tin, const auto &tile_path) {
-			return tin += PLY(tile_path, cell_size);
+		std::accumulate(tile_paths.begin(), tile_paths.end(), TIN(cell_size), [&](auto &tin, const auto &tile_path) {
+			return tin += PLY(tile_path);
 		}).triangulate().each_face([&](const auto &face) {
 			edges += face;
 			if (face > length)

@@ -4,11 +4,8 @@
 #include "point.hpp"
 #include "edge.hpp"
 #include <array>
+#include <functional>
 #include <cstddef>
-#include <algorithm>
-#include <fstream>
-#include <stdexcept>
-#include <algorithm>
 
 class Face {
 	std::array<Point, 3> points;

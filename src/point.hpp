@@ -2,11 +2,8 @@
 #define POINT_HPP
 
 #include "vector.hpp"
-#include <array>
-#include <cstdint>
 #include <cstddef>
-#include <fstream>
-#include <cmath>
+#include <functional>
 #include <ostream>
 
 class Point : public Vector<3> {
@@ -16,16 +13,7 @@ class Point : public Vector<3> {
 
 public:
 	Point() { }
-
-	Point(std::ifstream &input, double cell_size) {
-		for (auto &value: values)
-			input.read(reinterpret_cast<char *>(&value), sizeof(value));
-		input.read(reinterpret_cast<char *>(&c), sizeof(c));
-		std::uint32_t index_x = std::floor(values[0] / cell_size);
-		std::uint32_t index_y = std::floor(values[1] / cell_size);
-		index = static_cast<std::size_t>(index_x) | static_cast<std::size_t>(index_y) << 32;
-	}
-
+	Point(double x, double y, double z, unsigned char c, std::size_t index) : Vector<3>({x, y, z}), c(c), index(index) { }
 	Point(Point &&point, std::size_t index) : Vector<3>(point), c(point.c), index(index) { }
 
 	friend auto operator==(const Point &point1, const Point &point2) {

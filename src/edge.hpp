@@ -2,6 +2,8 @@
 #define EDGE_HPP
 
 #include "point.hpp"
+#include <functional>
+#include <cstddef>
 
 using Edge = std::pair<Point, Point>;
 

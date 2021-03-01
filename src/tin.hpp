@@ -115,6 +115,8 @@ class TIN {
 	}
 
 public:
+	TIN(double cell_size) : points(cell_size) { }
+
 	template <typename Tile>
 	auto &operator+=(Tile tile) {
 		for (const auto &point: tile)
