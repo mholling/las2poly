@@ -4,6 +4,7 @@
 #include "point.hpp"
 #include "thinned.hpp"
 #include "mesh.hpp"
+#include <optional>
 #include <utility>
 #include <algorithm>
 #include <stdexcept>

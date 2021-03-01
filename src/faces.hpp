@@ -12,20 +12,6 @@ class Faces {
 	std::unordered_set<Face> faces;
 	std::unordered_map<Edge, Face> neighbours;
 
-	Faces &operator+=(const Face &face) {
-		faces.insert(face);
-		for (const auto edge: face)
-			neighbours.insert(std::pair(-edge, face));
-		return *this;
-	}
-
-	Faces &operator-=(const Face &face) {
-		faces.erase(face);
-		for (const auto edge: face)
-			neighbours.erase(-edge);
-		return *this;
-	}
-
 	Faces(Faces *source) {
 		std::unordered_set<Face> pending;
 		for (pending.insert(*source->faces.begin()); !pending.empty(); ) {
@@ -46,6 +32,20 @@ public:
 
 	auto begin() const { return faces.begin(); }
 	auto   end() const { return faces.end(); }
+
+	Faces &operator+=(const Face &face) {
+		faces.insert(face);
+		for (const auto edge: face)
+			neighbours.insert(std::pair(-edge, face));
+		return *this;
+	}
+
+	Faces &operator-=(const Face &face) {
+		faces.erase(face);
+		for (const auto edge: face)
+			neighbours.erase(-edge);
+		return *this;
+	}
 
 	template <typename Function>
 	auto explode(Function function) {

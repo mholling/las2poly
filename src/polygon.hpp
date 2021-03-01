@@ -3,11 +3,11 @@
 
 #include "point.hpp"
 #include "edge.hpp"
+#include "face.hpp"
 #include "edges.hpp"
 #include "ring.hpp"
 #include "tin.hpp"
 #include "ply.hpp"
-#include "edges.hpp"
 #include "faces.hpp"
 #include <vector>
 #include <ostream>
@@ -31,24 +31,25 @@ public:
 	}
 
 	static auto from_tiles(const std::vector<std::string> &tile_paths, double length, double width, double height, double slope, double area, double cell_size, bool strict) {
-		Edges edges;
-		Faces faces;
+		Faces large_faces;
+		Edges outside_edges;
 
 		std::accumulate(tile_paths.begin(), tile_paths.end(), TIN(cell_size), [&](auto &tin, const auto &tile_path) {
 			return tin += PLY(tile_path);
-		}).triangulate().each_face([&](const auto &face) {
-			edges += face;
+		}).triangulate().deconstruct([&](const Face &face) {
 			if (face > length)
-				faces += face;
+				large_faces += face;
+		}, [&](const Edge &edge) {
+			outside_edges += edge;
 		});
 
-		faces.explode([&](const auto &group) {
-			if ((edges || group) || ((width <= length || group > width) && group.is_water(height, slope, strict)))
-				for (const auto &face: group)
-					edges -= face;
+		large_faces.explode([&](const auto &faces) {
+			if ((outside_edges || faces) || ((width <= length || faces > width) && faces.is_water(height, slope, strict)))
+				for (const auto &face: faces)
+					outside_edges -= face;
 		});
 
-		auto rings = edges.rings();
+		auto rings = outside_edges.rings();
 		auto rings_end = std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
 			return ring < area && ring > -area;
 		});
