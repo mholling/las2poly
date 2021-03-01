@@ -26,15 +26,6 @@ public:
 	auto begin() const { return EdgeIterator(points.begin(), points.begin()); }
 	auto   end() const { return EdgeIterator(points.begin(), points.end()); }
 
-	// // TODO
-	// template <typename Iterator>
-	// Face(Iterator i) : points({*i++, *i++, *i++}) {
-	// 	auto p = points.begin();
-	// 	std::iter_swap(p, std::min_element(begin(), end()));
-	// 	if (((*(p+1) - *p) ^ (*(p+2) - *p)) < 0)
-	// 		std::iter_swap(p+1, p+2);
-	// }
-
 	friend auto operator==(const Face &face1, const Face &face2) {
 		return face1.points == face2.points;
 	}

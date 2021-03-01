@@ -11,17 +11,27 @@ class Edges {
 	std::unordered_set<Edge> edges;
 
 public:
+	auto &operator+=(const Edge &edge) {
+		if (!edges.erase(-edge))
+			edges.insert(edge);
+		return *this;
+	}
+
+	auto operator-=(const Edge &edge) {
+		if (!edges.erase(edge))
+			edges.insert(-edge);
+		return *this;
+	}
+
 	auto &operator+=(const Face &face) {
 		for (const auto &edge: face)
-			if (!edges.erase(-edge))
-				edges.insert(edge);
+			*this += edge;
 		return *this;
 	}
 
 	auto &operator-=(const Face &face) {
 		for (const auto &edge: face)
-			if (!edges.erase(edge))
-				edges.insert(-edge);
+			*this -= edge;
 		return *this;
 	}
 
