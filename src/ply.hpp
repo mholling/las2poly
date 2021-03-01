@@ -53,12 +53,11 @@ class PLY {
 	struct Iterator {
 		PLY &ply;
 		std::size_t index;
-		Point point;
 
 		Iterator(PLY &ply, std::size_t index) : ply(ply), index(index) { }
-		auto &operator++() { point = ply.point(index++); return *this;}
+		auto &operator++() { ++index; return *this;}
 		auto operator!=(Iterator other) const { return index != other.index; }
-		auto &operator*() { return point; }
+		auto operator*() { return ply.point(index); }
 	};
 
 public:

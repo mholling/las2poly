@@ -44,7 +44,7 @@ public:
 
 	template <typename Tile>
 	auto &operator+=(Tile tile) {
-		for (const auto &point: tile)
+		for (const auto point: tile)
 			insert(point);
 		return *this;
 	}

@@ -12,7 +12,6 @@ class Point : public Vector<3> {
 	friend std::hash<Point>;
 
 public:
-	Point() { }
 	Point(double x, double y, double z, unsigned char c, std::size_t index) : Vector<3>({x, y, z}), c(c), index(index) { }
 	Point(Point &&point, std::size_t index) : Vector<3>(point), c(point.c), index(index) { }
 
