@@ -11,25 +11,25 @@
 class TIN {
 	Thinned points;
 
-	template <typename Iterator, int axis = 0>
+	template <typename ContainerIterator, int axis = 0>
 	class Node {
-		using Child = Node<Iterator, 1-axis>;
-		const Iterator first, middle, last;
+		using Child = Node<ContainerIterator, 1-axis>;
+		const ContainerIterator first, middle, last;
 
 		static auto less_than(const Point &p1, const Point &p2) {
 			return p1[axis] < p2[axis] ? true : p1[axis] > p2[axis] ? false : p1[1-axis] < p2[1-axis];
 		}
 
-		template <typename EdgeIterator>
-		static auto find_candidate(Mesh &mesh, const EdgeIterator &edge, const Point &opposite, bool right_side) {
-			const auto &point = edge->first;
+		template <typename MeshIterator>
+		static auto find_candidate(Mesh &mesh, const MeshIterator &edge, const Point &opposite, bool right_side) {
+			const auto &point = edge->second;
 			while (true) {
-				auto candidate = edge.previous()->first;
+				auto candidate = edge.peek()->second;
 				auto cross_product = (point - opposite) ^ (candidate - opposite);
 				if (cross_product < 0 == right_side)
 					return std::optional<Point>();
 				mesh.disconnect(point, candidate);
-				auto next_candidate = edge.previous()->first;
+				auto next_candidate = edge.peek()->second;
 				if (next_candidate.in_circle(right_side ? candidate : point, opposite, right_side ? point : candidate))
 					continue;
 				mesh.connect(point, candidate);
@@ -38,7 +38,7 @@ class TIN {
 		}
 
 	public:
-		Node(Iterator first, Iterator last) : first(first), last(last), middle(first + (last - first) / 2) {
+		Node(ContainerIterator first, ContainerIterator last) : first(first), last(last), middle(first + (last - first) / 2) {
 			std::nth_element(first, middle, last, less_than);
 		}
 
@@ -57,10 +57,8 @@ class TIN {
 			default:
 				auto left_mesh = Child(first, middle).triangulate();
 				auto right_mesh = Child(middle, last).triangulate();
-				const auto left_exterior = left_mesh.exterior();
-				const auto right_exterior = right_mesh.exterior();
-				auto left_edge = left_exterior.rightmost(less_than);
-				auto right_edge = right_exterior.leftmost(less_than);
+				auto left_edge = left_mesh.rightmost(less_than);
+				auto right_edge = right_mesh.leftmost(less_than);
 
 				auto check_right = [&]() {
 					return (*right_edge ^ left_edge->first) > 0;
@@ -76,9 +74,12 @@ class TIN {
 						++left_edge;
 				}
 
+				left_edge.reverse();
+				right_edge.reverse();
+
 				while (true) {
-					const auto &left_point = left_edge->first;
-					const auto &right_point = right_edge->first;
+					const auto &left_point = left_edge->second;
+					const auto &right_point = right_edge->second;
 					mesh.connect(left_point, right_point);
 
 					auto left_candidate = find_candidate(left_mesh, left_edge, right_point, false);
@@ -93,10 +94,10 @@ class TIN {
 
 					if (left_candidate) {
 						left_mesh.connect(left_point, left_candidate.value());
-						--left_edge;
+						++left_edge;
 					} else if (right_candidate) {
 						right_mesh.connect(right_point, right_candidate.value());
-						--right_edge;
+						++right_edge;
 					} else
 						break;
 				}
