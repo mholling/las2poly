@@ -2,15 +2,15 @@
 #define TIN_HPP
 
 #include "point.hpp"
-#include "thinned.hpp"
 #include "mesh.hpp"
+#include <vector>
 #include <optional>
 #include <utility>
 #include <algorithm>
 #include <stdexcept>
 
 class TIN {
-	Thinned points;
+	std::vector<Point> &points;
 
 	template <typename ContainerIterator, int axis = 0>
 	class Node {
@@ -110,25 +110,11 @@ class TIN {
 		}
 	};
 
-	static auto better_than(const Point &point1, const Point &point2) {
-		return point1.is_ground()
-			? point2.is_ground() ? point1[2] < point2[2] : true
-			: point2.is_ground() ? false : point1[2] < point2[2];
-	}
-
 public:
-	TIN(double cell_size) : points(cell_size) { }
-
-	template <typename Tile>
-	auto &operator+=(Tile tile) {
-		for (const auto &point: tile)
-			points.insert(point, better_than);
-		return *this;
-	}
+	TIN(std::vector<Point> &points) : points(points) { }
 
 	auto triangulate() {
-		auto thinned = points.to_vector();
-		return Node(thinned.begin(), thinned.end()).triangulate();
+		return Node(points.begin(), points.end()).triangulate();
 	}
 };
 

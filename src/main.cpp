@@ -1,13 +1,16 @@
 #include "args.hpp"
+#include "thinned.hpp"
+#include "ply.hpp"
+#include "tin.hpp"
 #include "polygon.hpp"
+#include <vector>
 #include <string>
-#include <cstdlib>
-#include <cmath>
-#include <sstream>
-#include <iostream>
-#include <fstream>
 #include <stdexcept>
+#include <cmath>
+#include <numeric>
+#include <fstream>
 #include <utility>
+#include <iostream>
 
 int main(int argc, char *argv[]) {
 	try {
@@ -53,7 +56,11 @@ int main(int argc, char *argv[]) {
 		if (cell == 0)
 			cell = length / std::sqrt(8.0);
 
-		auto polygons = Polygon::from_tiles(tile_paths, length, width, height, slope, area, cell, strict);
+		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(cell), [&](auto &thinned, const auto &tile_path) {
+			return thinned += PLY(tile_path);
+		}).to_vector();
+		auto mesh = TIN(points).triangulate();
+		auto polygons = Polygon::from_mesh(mesh, length, width, height, slope, area, cell, strict);
 
 		std::ofstream json;
 		json.exceptions(json.exceptions() | std::ofstream::failbit);

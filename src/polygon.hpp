@@ -1,19 +1,16 @@
 #ifndef POLYGON_HPP
 #define POLYGON_HPP
 
-#include "point.hpp"
+#include "mesh.hpp"
 #include "edge.hpp"
 #include "face.hpp"
+#include "faces.hpp"
 #include "edges.hpp"
 #include "ring.hpp"
-#include "tin.hpp"
-#include "ply.hpp"
 #include "faces.hpp"
 #include <vector>
 #include <ostream>
 #include <utility>
-#include <string>
-#include <numeric>
 #include <algorithm>
 #include <iterator>
 
@@ -30,13 +27,11 @@ public:
 		return json << ']';
 	}
 
-	static auto from_tiles(const std::vector<std::string> &tile_paths, double length, double width, double height, double slope, double area, double cell_size, bool strict) {
+	static auto from_mesh(Mesh &mesh, double length, double width, double height, double slope, double area, double cell_size, bool strict) {
 		Faces large_faces;
 		Edges outside_edges;
 
-		std::accumulate(tile_paths.begin(), tile_paths.end(), TIN(cell_size), [&](auto &tin, const auto &tile_path) {
-			return tin += PLY(tile_path);
-		}).triangulate().deconstruct([&](const Face &face) {
+		mesh.deconstruct([&](const Face &face) {
 			if (face > length)
 				large_faces += face;
 		}, [&](const Edge &edge) {

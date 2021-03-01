@@ -1,12 +1,12 @@
 #ifndef THINNED_HPP
 #define THINNED_HPP
 
-#include "thinned.hpp"
+#include "point.hpp"
+#include <utility>
 #include <cstdint>
 #include <cmath>
 #include <cstddef>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 class Thinned {
@@ -23,11 +23,16 @@ class Thinned {
 	std::unordered_map<Cell, Point, CellHash> thinned;
 	double cell_size;
 
+	static auto better_than(const Point &point1, const Point &point2) {
+		return point1.is_ground()
+			? point2.is_ground() ? point1[2] < point2[2] : true
+			: point2.is_ground() ? false : point1[2] < point2[2];
+	}
+
 public:
 	Thinned(double cell_size) : cell_size(cell_size) { }
 
-	template <typename Function>
-	auto &insert(const Point &point, Function better_than) {
+	auto &insert(const Point &point) {
 		auto pair = std::pair(Cell(point, cell_size), point);
 		auto [existing, inserted] = thinned.insert(pair);
 		if (!inserted && better_than(point, existing->second)) {
@@ -37,7 +42,14 @@ public:
 		return *this;
 	}
 
-	std::vector<Point> to_vector() {
+	template <typename Tile>
+	auto &operator+=(Tile tile) {
+		for (const auto &point: tile)
+			insert(point);
+		return *this;
+	}
+
+	auto to_vector() {
 		std::vector<Point> result;
 		result.reserve(thinned.size());
 		std::size_t index = 0;
