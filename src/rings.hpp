@@ -13,7 +13,7 @@
 
 template <typename Edges, bool outside = true>
 class Rings {
-	std::unordered_map<Edge, Edge, Edge::Hash> connections;
+	std::unordered_map<Edge, Edge> connections;
 
 	auto empty() const {
 		return connections.empty();
@@ -31,9 +31,9 @@ class Rings {
 
 public:
 	Rings(const Edges &edges) {
-		std::unordered_multimap<Point, Edge, Point::Hash> points_edges;
+		std::unordered_multimap<Point, Edge> points_edges;
 		std::transform(edges.begin(), edges.end(), std::inserter(points_edges, points_edges.begin()), [](const auto &edge) {
-			return std::make_pair(edge.p0, edge);
+			return std::pair(edge.first, edge);
 		});
 
 		auto ordering = [](const auto &pair1, const auto &pair2) {
@@ -44,18 +44,18 @@ public:
 
 		for (const auto &incoming: edges) {
 			std::vector<std::pair<Edge, double>> edges_angles;
-			const auto &[start, stop] = points_edges.equal_range(incoming.p1);
+			const auto &[start, stop] = points_edges.equal_range(incoming.first);
 			std::transform(start, stop, std::back_inserter(edges_angles), [&](const auto &point_edge) {
 				const auto &[point, outgoing] = point_edge;
-				const auto cross = incoming.delta() ^ outgoing.delta();
-				const auto   dot = incoming.delta() * outgoing.delta();
+				const auto cross = incoming ^ outgoing;
+				const auto   dot = incoming * outgoing;
 				const auto angle = std::atan2(cross, dot);
-				return std::make_pair(outgoing, angle);
+				return std::pair(outgoing, angle);
 			});
 			const auto &[outgoing, angle] = outside
 				? *std::max_element(edges_angles.begin(), edges_angles.end(), ordering)
 				: *std::min_element(edges_angles.begin(), edges_angles.end(), ordering);
-			connections.insert(std::make_pair(incoming, outgoing));
+			connections.insert(std::pair(incoming, outgoing));
 		}
 	}
 

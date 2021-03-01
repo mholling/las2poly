@@ -1,30 +1,31 @@
 #ifndef THINNED_HPP
 #define THINNED_HPP
 
+#include "thinned.hpp"
 #include <unordered_set>
 #include <vector>
 #include <utility>
 
-template <typename T>
 class Thinned {
-	std::unordered_set<T, typename T::Hash> thinned;
+	std::unordered_set<Point> thinned;
 
 public:
-	template <typename F>
-	auto &insert(const T &element, F better_than) {
-		auto [existing, inserted] = thinned.insert(element);
-		if (!inserted && better_than(element, *existing)) {
+	template <typename Function>
+	auto &insert(const Point &point, Function better_than) {
+		auto [existing, inserted] = thinned.insert(point);
+		if (!inserted && better_than(point, *existing)) {
 			thinned.erase(*existing);
-			thinned.insert(element);
+			thinned.insert(point);
 		}
 		return *this;
 	}
 
-	std::vector<T> to_vector() {
-		std::vector<T> result;
+	std::vector<Point> to_vector() {
+		std::vector<Point> result;
 		result.reserve(thinned.size());
-		for (auto element = thinned.begin(); element != thinned.end(); )
-			result.push_back(std::move(thinned.extract(element++).value()));
+		std::size_t index = 0;
+		for (auto point = thinned.begin(); point != thinned.end(); ) 
+			result.push_back(Point(std::move(thinned.extract(point++).value()), index++));
 		return result;
 	}
 };

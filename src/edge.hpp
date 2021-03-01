@@ -2,69 +2,60 @@
 #define EDGE_HPP
 
 #include "point.hpp"
-#include "vector.hpp"
-#include <cstdint>
-#include <cstddef>
 
-struct Edge {
-	Point p0, p1;
+using Edge = std::pair<Point, Point>;
 
-	struct Hash {
-		static constexpr auto spare_bits = (sizeof(std::size_t) - sizeof(std::uint32_t)) * 8;
-		std::size_t operator()(const Edge &edge) const { return Point::Hash()(edge.p0) ^ Point::Hash()(edge.p1) << spare_bits; }
-	};
+auto operator==(const Edge &edge1, const Edge &edge2) {
+	return edge1.first == edge2.first && edge1.second == edge2.second;
+}
 
-	Edge(const Point &p0, const Point &p1) : p0(p0), p1(p1) { }
+auto operator||(const Edge &edge1, const Edge &edge2) {
+	return edge1.first == edge2.second && edge1.second == edge2.first;
+}
 
-	template <typename Iterator>
-	Edge(Iterator i) : p0(*i++), p1(*i++) { }
+auto operator<(const Edge &edge1, const Edge &edge2) {
+	return (edge1.second - edge1.first).sqnorm() < (edge2.second - edge2.first).sqnorm();
+}
 
-	auto delta() const {
-		return p1 - p0;
-	}
+auto operator^(const Edge &edge1, const Edge &edge2) {
+	return (edge1.second - edge1.first) ^ (edge2.second - edge2.first);
+}
 
-	auto delta3d() const {
-		return dynamic_cast<const Vector<3> &>(p1) - p0;
-	}
+auto operator*(const Edge &edge1, const Edge &edge2) {
+	return (edge1.second - edge1.first) * (edge2.second - edge2.first);
+}
 
-	auto is_ground() const {
-		return p0.is_ground() && p1.is_ground();
-	}
+auto operator%(const Edge &edge1, const Edge &edge2) { // 3d cross product
+	return (+edge1.first - +edge1.second) ^ (+edge1.first - +edge1.second);
+}
 
-	friend auto operator==(const Edge &edge1, const Edge &edge2) {
-		return edge1.p0 == edge2.p0 && edge1.p1 == edge2.p1;
-	}
+auto operator&&(const Edge &edge, const Point &p) {
+	return edge.first == p || edge.second == p;
+}
 
-	friend auto operator||(const Edge &edge1, const Edge &edge2) {
-		return edge1.p0 == edge2.p1 && edge1.p1 == edge2.p0;
-	}
+auto operator<<(const Edge &edge, const Point &p) {
+	return (edge.first < p) && !(edge.second < p) && ((edge.first - p) ^ (edge.second - p)) > 0;
+}
 
-	friend auto operator<(const Edge &edge1, const Edge &edge2) {
-		return edge1.delta().sqnorm() < edge2.delta().sqnorm();
-	}
+auto operator>>(const Edge &edge, const Point &p) {
+	return (edge.second < p) && !(edge.first < p) && ((edge.second - p) ^ (edge.first - p)) > 0;
+}
 
-	auto operator&&(const Point &p) const {
-		return p0 == p || p1 == p;
-	}
+auto operator^(const Edge &edge, const Point &p) {
+	return (edge.first - p) ^ (edge.second - p);
+}
 
-	auto operator<<(const Point &p) const {
-		return (p0 < p) && !(p1 < p) && ((p0 - p) ^ (p1 - p)) > 0;
-	}
+auto operator>(const Edge &edge, double length) {
+	return (edge.second - edge.first).sqnorm() > length * length;
+}
 
-	auto operator>>(const Point &p) const {
-		return (p1 < p) && !(p0 < p) && ((p1 - p) ^ (p0 - p)) > 0;
-	}
+auto operator-(const Edge &edge) {
+	return Edge(edge.second, edge.first);
+}
 
-	auto operator^(const Point &p) const {
-		return (p0 - p) ^ (p1 - p);
-	}
-
-	auto operator>(double length) const {
-		return delta().sqnorm() > length * length;
-	}
-
-	auto operator-() const {
-		return Edge(p1, p0);
+template <> struct std::hash<Edge> {
+	std::size_t operator()(const Edge &edge) const {
+		return hash<Point>()(edge.first) << 32 | hash<Point>()(edge.second) & 0xFFFFFFFF;
 	}
 };
 

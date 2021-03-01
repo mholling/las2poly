@@ -2,7 +2,7 @@
 #define FACE_HPP
 
 #include "point.hpp"
-#include "vertices.hpp"
+#include "edge.hpp"
 #include <array>
 #include <cstddef>
 #include <algorithm>
@@ -10,42 +10,49 @@
 #include <stdexcept>
 #include <algorithm>
 
-class Face : public Vertices<std::array<Point, 3>> {
-public:
-	struct Hash {
-		std::size_t operator()(const Face &face) const { return Edge::Hash()(*face.edges().begin()); }
-	};
+class Face {
+	std::array<Point, 3> points;
 
 	template <typename Iterator>
-	Face(Iterator i) : Vertices({*i++, *i++, *i++}) {
-		auto p = begin();
-		std::iter_swap(p, std::min_element(begin(), end()));
-		if (((*(p+1) - *p) ^ (*(p+2) - *p)) < 0)
-			std::iter_swap(p+1, p+2);
-	}
+	struct EdgeIterator {
+		const Iterator start;
+		Iterator here;
 
-	auto bounds() const {
-		return vertices[0].bounds() + vertices[1].bounds() + vertices[2].bounds();
-	}
+		EdgeIterator(Iterator start, Iterator here) : start(start), here(here) { }
+		auto &operator++() { ++here; return *this;}
+		auto operator++(int) { auto old = *this; ++here; return old;}
+		// auto operator==(EdgeIterator other) const { return here == other.here; }
+		auto operator!=(EdgeIterator other) const { return here != other.here; }
+		auto operator*() { return Edge(*here, *(here - start == 2 ? start : here + 1)); }
+	};
+
+public:
+	auto begin() const { return EdgeIterator(points.begin(), points.begin()); }
+	auto   end() const { return EdgeIterator(points.begin(), points.end()); }
+
+	// // TODO
+	// template <typename Iterator>
+	// Face(Iterator i) : points({*i++, *i++, *i++}) {
+	// 	auto p = points.begin();
+	// 	std::iter_swap(p, std::min_element(begin(), end()));
+	// 	if (((*(p+1) - *p) ^ (*(p+2) - *p)) < 0)
+	// 		std::iter_swap(p+1, p+2);
+	// }
 
 	friend auto operator==(const Face &face1, const Face &face2) {
-		return face1.vertices == face2.vertices;
-	}
-
-	friend auto operator||(const Face &face1, const Face &face2) {
-		for (const auto edge1: face1.edges())
-			for (const auto edge2: face2.edges())
-				if (edge1 || edge2)
-					return true;
-		return false;
+		return face1.points == face2.points;
 	}
 
 	auto operator>(double length) const {
-		for (const auto edge: edges())
+		for (const auto edge: *this)
 			if (edge > length)
 				return true;
 		return false;
 	}
+};
+
+template <> struct std::hash<Face> {
+	std::size_t operator()(const Face &face) const { return hash<Edge>()(*face.begin()); }
 };
 
 #endif

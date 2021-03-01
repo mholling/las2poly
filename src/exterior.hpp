@@ -3,83 +3,80 @@
 
 #include "point.hpp"
 #include "edge.hpp"
-#include <unordered_map>
-#include <iterator>
-#include <utility>
+#include <cmath>
 #include <algorithm>
 
-template <typename Edges, typename Neighbours>
+template <typename Graph>
 class Exterior {
-	const Neighbours &neighbours;
-	std::unordered_map<Edge, Edge, Edge::Hash> after, before;
+	const Graph &graph;
 
-	auto next(const Edge &edge) const {
-		return after.find(edge)->second;
+	static auto atan2(const Edge &edge1, const Edge &edge2) {
+		return std::atan2(edge1 ^ edge2, edge1 * edge2);
 	}
 
-	auto prev(const Edge &edge) const {
-		return before.find(edge)->second;
+	const auto &next(const Edge &edge) const {
+		const auto [start, stop] = graph.equal_range(edge.second);
+		return *std::min_element(start, stop, [&](const auto &edge1, const auto &edge2) {
+			return edge1 || edge ? false : edge2 || edge ? true : atan2(edge, edge1) < atan2(edge, edge2);
+		});
 	}
 
-	struct Iterator {
+	const auto &prev(const Edge &edge) const {
+		const auto [start, stop] = graph.equal_range(edge.second);
+		return *std::max_element(start, stop, [&](const auto &edge1, const auto &edge2) {
+			return edge1 || edge ? true : edge2 || edge ? false : atan2(edge, edge1) < atan2(edge, edge2);
+		});
+	}
+
+	struct ForwardIterator {
 		const Exterior &exterior;
 		Edge edge;
 
-		Iterator(const Exterior &exterior, const Edge &edge) : exterior(exterior), edge(edge) { }
+		ForwardIterator(const Exterior &exterior, const Edge &edge) : exterior(exterior), edge(edge) { }
 		auto &operator++() { edge = exterior.next(edge); return *this; }
-		auto &operator--() { edge = exterior.prev(edge); return *this; }
-		auto &operator++(int) { auto old = *this; ++(*this); return old; }
-		auto &operator--(int) { auto old = *this; --(*this); return old; }
-		auto &operator*() { return edge; }
-		auto operator->() { return &edge; }
+		auto &operator--() { edge = -exterior.prev(edge); return *this; }
+		auto previous() const { return ForwardIterator(exterior, -exterior.prev(edge)); }
+		auto operator*() const { return edge; }
+		auto operator->() const { return &edge; }
 	};
 
-	auto &operator-=(const Edge &edge) {
-		auto prev = before.find(edge)->second;
-		auto next = after.find(edge)->second;
-		after.erase(edge);
-		before.erase(edge);
-		auto p = neighbours.find(edge)->second.vertices;
-		p.rotate(p.begin(), std::find(p.begin(), p.end(), edge.p1), p.end());
-		auto edge1 = Edge(p[2], p[1]);
-		auto edge2 = Edge(p[1], p[0]);
-		after.insert(std::make_pair(prev, edge1));
-		after.insert(std::make_pair(edge1, edge2));
-		after.insert(std::make_pair(edge2, next));
-		before.insert(std::make_pair(next, edge2));
-		before.insert(std::make_pair(edge2, edge1));
-		before.insert(std::make_pair(edge1, prev));
-		return *this;
-	}
+	struct ReverseIterator {
+		const Exterior &exterior;
+		Edge edge;
+
+		ReverseIterator(const Exterior &exterior, const Edge &edge) : exterior(exterior), edge(edge) { }
+		auto &operator++() { edge = exterior.prev(edge); return *this; }
+		auto &operator--() { edge = -exterior.next(edge); return *this; }
+		auto previous() const { return ReverseIterator(exterior, -exterior.next(edge)); }
+		auto operator*() const { return edge; }
+		auto operator->() const { return &edge; }
+	};
 
 public:
-	Exterior(const Edges &edges, const Neighbours &neighbours) : neighbours(neighbours) {
-		std::unordered_map<Point, Edge, Point::Hash> points_edges;
-		std::transform(edges.begin(), edges.end(), std::inserter(points_edges, points_edges.begin()), [](const auto &edge) {
-			return std::make_pair(edge.p0, edge);
+	Exterior(const Graph &graph) : graph(graph) { }
+
+	template <typename LessThan>
+	auto rightmost(LessThan less_than) const {
+		const auto &[p1, p2] = *std::max_element(graph.begin(), graph.end(), [&](const auto &edge1, const auto &edge2) {
+			return less_than(edge1.first, edge2.first);
 		});
-
-		for (const auto &incoming: edges) {
-			const auto &[point, outgoing] = *points_edges.find(incoming.p1);
-			after.insert(std::make_pair(incoming, outgoing));
-			before.insert(std::make_pair(outgoing, incoming));
-		}
+		const auto [start, stop] = graph.equal_range(p1);
+		const auto edge = *std::min_element(start, stop, [](const auto &edge1, const auto &edge2) {
+			return (edge1 ^ edge2) < 0;
+		});
+		return ReverseIterator(*this, edge);
 	}
 
 	template <typename LessThan>
-	auto leftmost(LessThan less_than) {
-		auto &edge = std::min_element(after.begin(), after.end(), [&](const auto &connection0, const auto &connection1) {
-			return less_than(connection0.first.p1, connection1.first.p1);
-		})->second;
-		return Iterator(*this, edge);
-	}
-
-	template <typename LessThan>
-	auto rightmost(LessThan less_than) {
-		auto &edge = std::max_element(after.begin(), after.end(), [&](const auto &connection0, const auto &connection1) {
-			return less_than(connection0.first.p1, connection1.first.p1);
-		})->first;
-		return Iterator(*this, edge);
+	auto leftmost(LessThan less_than) const {
+		const auto &[p1, p2] = *std::min_element(graph.begin(), graph.end(), [&](const auto &edge1, const auto &edge2) {
+			return less_than(edge1.first, edge2.first);
+		});
+		const auto [start, stop] = graph.equal_range(p1);
+		const auto edge = *std::max_element(start, stop, [](const auto &edge1, const auto &edge2) {
+			return (edge1 ^ edge2) < 0;
+		});
+		return ForwardIterator(*this, edge);
 	}
 };
 
