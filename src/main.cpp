@@ -1,7 +1,7 @@
 #include "args.hpp"
 #include "thinned.hpp"
 #include "ply.hpp"
-#include "tin.hpp"
+#include "triangulate.hpp"
 #include "polygon.hpp"
 #include <vector>
 #include <string>
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(cell), [&](auto &thinned, const auto &tile_path) {
 			return thinned += PLY(tile_path);
 		}).to_vector();
-		auto mesh = TIN(points).triangulate();
+		auto mesh = Triangulate(points)();
 		auto polygons = Polygon::from_mesh(mesh, length, width, height, slope, area, cell, strict);
 
 		std::ofstream json;

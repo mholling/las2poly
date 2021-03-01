@@ -1,5 +1,5 @@
-#ifndef TIN_HPP
-#define TIN_HPP
+#ifndef TRIANGULATE_HPP
+#define TRIANGULATE_HPP
 
 #include "point.hpp"
 #include "mesh.hpp"
@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-class TIN {
+class Triangulate {
 	std::vector<Point> &points;
 
 	template <typename ContainerIterator, int axis = 0>
@@ -111,9 +111,9 @@ class TIN {
 	};
 
 public:
-	TIN(std::vector<Point> &points) : points(points) { }
+	Triangulate(std::vector<Point> &points) : points(points) { }
 
-	auto triangulate() {
+	auto operator()() {
 		return Node(points.begin(), points.end()).triangulate();
 	}
 };
