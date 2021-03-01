@@ -70,7 +70,7 @@ public:
 			std::iter_swap(edges.begin(), std::min_element(edges.begin(), edges.end()));
 			perp += edges[1] % edges[2];
 			for (const auto &edge: {edges[1], edges[2]})
-				if (edge.first.is_ground() && edge.second.is_ground()) {
+				if (edge.first.ground && edge.second.ground) {
 					sum_abs += std::abs(edge.second[2] - edge.first[2]);
 					++count;
 				}

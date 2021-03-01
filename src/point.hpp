@@ -6,14 +6,12 @@
 #include <functional>
 #include <ostream>
 
-class Point : public Vector<3> {
-	unsigned char c;
+struct Point : Vector<3> {
+	bool ground;
 	std::size_t index;
-	friend std::hash<Point>;
 
-public:
-	Point(double x, double y, double z, unsigned char c, std::size_t index) : Vector<3>({x, y, z}), c(c), index(index) { }
-	Point(Point &&point, std::size_t index) : Vector<3>(point), c(point.c), index(index) { }
+	Point(double x, double y, double z, bool ground, std::size_t index) : Vector<3>({x, y, z}), ground(ground), index(index) { }
+	Point(Point &&point, std::size_t index) : Vector<3>(point), ground(point.ground), index(index) { }
 
 	friend auto operator==(const Point &point1, const Point &point2) {
 		return point1.index == point2.index;
@@ -29,10 +27,6 @@ public:
 
 	friend std::ostream &operator<<(std::ostream &json, const Point &point) {
 		return json << '[' << point[0] << ',' << point[1] << ']';
-	}
-
-	auto is_ground() const {
-		return 2 == c || 3 == c;
 	}
 
 	auto in_circle(const Point &a, const Point &b, const Point &c) const {

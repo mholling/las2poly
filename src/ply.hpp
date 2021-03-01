@@ -47,7 +47,7 @@ class PLY {
 		input.read(reinterpret_cast<char *>(&y), sizeof(y));
 		input.read(reinterpret_cast<char *>(&z), sizeof(z));
 		input.read(reinterpret_cast<char *>(&c), sizeof(c));
-		return Point(x, y, z, c, index);
+		return Point(x, y, z, 2 == c || 3 == c, index);
 	}
 
 	struct Iterator {

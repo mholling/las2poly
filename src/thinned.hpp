@@ -24,9 +24,9 @@ class Thinned {
 	double cell_size;
 
 	static auto better_than(const Point &point1, const Point &point2) {
-		return point1.is_ground()
-			? point2.is_ground() ? point1[2] < point2[2] : true
-			: point2.is_ground() ? false : point1[2] < point2[2];
+		return point1.ground
+			? point2.ground ? point1[2] < point2[2] : true
+			: point2.ground ? false : point1[2] < point2[2];
 	}
 
 public:
