@@ -29,11 +29,13 @@ class Triangulate {
 				auto cross_product = (point - opposite) ^ (candidate - opposite);
 				if (cross_product < 0 == right_side)
 					return std::optional<Point>();
-				mesh.disconnect(point, candidate);
-				auto next_candidate = edge.peek()->second;
-				if (next_candidate.in_circle(right_side ? candidate : point, opposite, right_side ? point : candidate))
-					continue;
-				mesh.connect(point, candidate);
+				if (mesh.connected(point)) {
+					mesh.disconnect(point, candidate);
+					auto next_candidate = edge.peek()->second;
+					if (next_candidate.in_circle(right_side ? candidate : point, opposite, right_side ? point : candidate))
+						continue;
+					mesh.connect(point, candidate);
+				}
 				return std::optional<Point>(candidate);
 			}
 		}

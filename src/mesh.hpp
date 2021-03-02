@@ -14,8 +14,8 @@ class Mesh {
 	using EdgeIterator = typename Graph::const_iterator;
 	Graph graph;
 
-	struct Dangling : std::runtime_error {
-		Dangling() : runtime_error("dangling") { }
+	struct DanglingEdge : std::runtime_error {
+		DanglingEdge() : runtime_error("dangling edge") { }
 	};
 
 	static auto atan2(const Edge &edge1, const Edge &edge2) {
@@ -23,21 +23,28 @@ class Mesh {
 	}
 
 	auto next_interior(const EdgeIterator &edge) const {
-		if (edge == graph.end())
-			throw Dangling();
 		const auto [start, stop] = graph.equal_range(edge->second);
-		return std::max_element(start, stop, [&](const auto &edge1, const auto &edge2) {
+		auto next = std::max_element(start, stop, [&](const auto &edge1, const auto &edge2) {
 			return edge1 || *edge ? true : edge2 || *edge ? false : atan2(*edge, edge1) < atan2(*edge, edge2);
 		});
+		if (next == stop)
+			throw DanglingEdge();
+		return next;
 	}
 
 	auto next_exterior(const EdgeIterator &edge) const {
-		if (edge == graph.end())
-			throw Dangling();
 		const auto [start, stop] = graph.equal_range(edge->second);
-		return std::min_element(start, stop, [&](const auto &edge1, const auto &edge2) {
+		auto next = std::min_element(start, stop, [&](const auto &edge1, const auto &edge2) {
 			return edge1 || *edge ? false : edge2 || *edge ? true : atan2(*edge, edge1) < atan2(*edge, edge2);
 		});
+		if (next == stop)
+			throw DanglingEdge();
+		return next;
+	}
+
+	auto opposing(const EdgeIterator &edge) const {
+		const auto [start, stop] = graph.equal_range(edge->second);
+		return std::find(start, stop, -*edge);
 	}
 
 	struct Iterator {
@@ -49,7 +56,7 @@ class Mesh {
 		auto peek() const { return interior == forward ? mesh.next_interior(edge) : mesh.next_exterior(edge); }
 		auto &operator++() { edge = peek(); return *this; }
 		auto operator++(int) { auto old = *this; ++(*this); return old; }
-		auto &reverse() { forward = !forward; return ++(*this); }
+		auto &reverse() { forward = !forward; edge = mesh.opposing(edge); return *this; }
 		auto operator==(const Iterator &other) const { return edge == other.edge; }
 		auto operator*() const { return *edge; }
 		auto &operator->() const { return edge; }
@@ -81,16 +88,20 @@ public:
 		return Iterator(*this, edge, false, true);
 	}
 
+	auto connected(const Point &point) const {
+		return graph.count(point) > 1;
+	}
+
 	void connect(const Point &p1, const Point &p2) {
-		graph.insert(std::pair(p1, p2));
-		graph.insert(std::pair(p2, p1));
+		graph.insert(Edge(p1, p2));
+		graph.insert(Edge(p2, p1));
 	}
 
 	void disconnect(const Point &p1, const Point &p2) {
 		auto [start1, stop1] = graph.equal_range(p1);
-		graph.erase(std::find(start1, stop1, std::pair(p1, p2)));
+		graph.erase(std::find(start1, stop1, Edge(p1, p2)));
 		auto [start2, stop2] = graph.equal_range(p2);
-		graph.erase(std::find(start2, stop2, std::pair(p2, p1)));
+		graph.erase(std::find(start2, stop2, Edge(p2, p1)));
 	}
 
 	auto &operator+=(Mesh &mesh) {
@@ -111,7 +122,7 @@ public:
 						yield_edge(*edge);
 				for (const auto &edge: edges)
 					graph.erase(edge);
-			} catch (Dangling &) {
+			} catch (DanglingEdge &) {
 				yield_edge(*graph.begin());
 				graph.erase(graph.begin());
 			}
