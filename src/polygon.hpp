@@ -2,12 +2,10 @@
 #define POLYGON_HPP
 
 #include "mesh.hpp"
-#include "edge.hpp"
-#include "face.hpp"
 #include "faces.hpp"
 #include "edges.hpp"
 #include "ring.hpp"
-#include "faces.hpp"
+#include "rings.hpp"
 #include <vector>
 #include <ostream>
 #include <utility>
@@ -31,10 +29,10 @@ public:
 		Faces large_faces;
 		Edges outside_edges;
 
-		mesh.deconstruct([&](const Face &face) {
+		mesh.deconstruct([&](const auto &face) {
 			if (face > length)
 				large_faces += face;
-		}, [&](const Edge &edge) {
+		}, [&](const auto &edge) {
 			outside_edges += edge;
 		});
 
@@ -44,11 +42,11 @@ public:
 					outside_edges -= face;
 		});
 
-		auto rings = outside_edges.rings();
+		auto rings = Rings(outside_edges)();
 		auto rings_end = std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
 			return ring < area && ring > -area;
 		});
-		auto holes_begin = std::partition(rings.begin(), rings_end, [](const Ring &ring) {
+		auto holes_begin = std::partition(rings.begin(), rings_end, [](const auto &ring) {
 			return ring > 0;
 		});
 		std::sort(rings.begin(), holes_begin);

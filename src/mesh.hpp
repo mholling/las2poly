@@ -3,6 +3,7 @@
 
 #include "point.hpp"
 #include "edge.hpp"
+#include "face.hpp"
 #include <unordered_map>
 #include <cmath>
 #include <algorithm>
@@ -124,7 +125,7 @@ public:
 		while (!graph.empty()) {
 			auto edge = Iterator(*this, graph.begin(), true);
 			std::array edges = {edge++, edge++, edge};
-			yield_face({*edges[0], *edges[1], *edges[2]});
+			yield_face(Face({*edges[0], *edges[1], *edges[2]}));
 			graph.erase(edges[0]);
 			graph.erase(edges[1]);
 			graph.erase(edges[2]);

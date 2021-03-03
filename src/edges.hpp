@@ -4,49 +4,41 @@
 #include "edge.hpp"
 #include "face.hpp"
 #include "faces.hpp"
-#include "rings.hpp"
 #include <unordered_set>
 #include <algorithm>
 
-class Edges {
-	std::unordered_set<Edge> edges;
+using Edges = std::unordered_set<Edge>;
 
-public:
-	auto &operator+=(const Edge &edge) {
-		if (!edges.erase(-edge))
-			edges.insert(edge);
-		return *this;
-	}
+auto &operator+=(Edges &edges, const Edge &edge) {
+	if (!edges.erase(-edge))
+		edges.insert(edge);
+	return edges;
+}
 
-	auto operator-=(const Edge &edge) {
-		if (!edges.erase(edge))
-			edges.insert(-edge);
-		return *this;
-	}
+auto &operator-=(Edges &edges, const Edge &edge) {
+	if (!edges.erase(edge))
+		edges.insert(-edge);
+	return edges;
+}
 
-	auto &operator+=(const Face &face) {
-		for (const auto &edge: face)
-			*this += edge;
-		return *this;
-	}
+auto &operator+=(Edges &edges, const Face &face) {
+	for (const auto &edge: face)
+		edges += edge;
+	return edges;
+}
 
-	auto &operator-=(const Face &face) {
-		for (const auto &edge: face)
-			*this -= edge;
-		return *this;
-	}
+auto &operator-=(Edges &edges, const Face &face) {
+	for (const auto &edge: face)
+		edges -= edge;
+	return edges;
+}
 
-	auto operator||(const Faces &faces) const {
-		return std::any_of(faces.begin(), faces.end(), [&](const auto &face) {
-			return std::any_of(face.begin(), face.end(), [&](const auto &edge) {
-				return edges.count(edge) > 0;
-			});
+auto operator||(const Edges &edges, const Faces &faces) {
+	return std::any_of(faces.begin(), faces.end(), [&](const auto &face) {
+		return std::any_of(face.begin(), face.end(), [&](const auto &edge) {
+			return edges.count(edge) > 0;
 		});
-	}
-
-	auto rings() const {
-		return Rings(edges)();
-	}
-};
+	});
+}
 
 #endif
