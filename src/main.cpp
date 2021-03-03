@@ -3,6 +3,7 @@
 #include "ply.hpp"
 #include "triangulate.hpp"
 #include "polygon.hpp"
+#include <optional>
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -16,28 +17,29 @@
 
 int main(int argc, char *argv[]) {
 	try {
-		double length = 10.0;
-		double width = 0.0;
-		double height = 5.0;
-		double slope = 10.0;
-		double area = 400.0;
-		double cell = 0.0;
-		bool strict = false;
-		bool overwrite = false;
-		std::string epsg;
+		std::optional<double> length = 10.0;
+		std::optional<double> width;
+		std::optional<double> height = 5.0;
+		std::optional<double> slope = 10.0;
+		std::optional<double> area = 400.0;
+		std::optional<double> cell;
+		std::optional<bool> strict;
+		std::optional<bool> overwrite;
+		std::optional<int> epsg;
+
 		std::vector<std::string> tile_paths;
 		std::string json_path;
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
 		args.option("-l", "--length",    "<metres>",  "minimum length for void triangles",      length);
-		args.option("-w", "--width",     "<metres>",  "minimum span width of water features",   width);
+		args.option("-w", "--width",     "<metres>",  "minimum span width for waterbodies",     width);
 		args.option("-z", "--height",    "<metres>",  "maximum average height difference",      height);
 		args.option("-s", "--slope",     "<degrees>", "maximum slope for water features",       slope);
-		args.option("-a", "--area",      "<metres²>", " minimum area for islands and ponds",    area);
-		args.option("-c", "--cell",      "<metres>",  "cell size for thinning, 0 for auto",     cell);
+		args.option("-a", "--area",      "<metres²>", " minimum island and waterbody area",     area);
+		args.option("-c", "--cell",      "<metres>",  "cell size for thinning",                 cell);
 		args.option("-t", "--strict",                 "disqualify voids with no ground points", strict);
+		args.option("-e", "--epsg",      "<code>",    "EPSG code to set in output file",        epsg);
 		args.option("-o", "--overwrite",              "overwrite existing output file",         overwrite);
-		args.option("-e", "--epsg",      "<code>",    "set EPSG code in output file",           epsg);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -47,37 +49,34 @@ int main(int argc, char *argv[]) {
 		if (!args.parse())
 			return EXIT_SUCCESS;
 
-		if (length < 0)
+		if (!cell)
+			cell = length.value() / std::sqrt(8.0);
+		if (!width)
+			width = 0.0;
+		if (length.value() < 0)
 			throw std::runtime_error("void length can't be negative");
-		if (width < 0)
+		if (width.value() < 0)
 			throw std::runtime_error("span width can't be negative");
-		if (height < 0)
+		if (height.value() < 0)
 			throw std::runtime_error("average height difference can't be negative");
-		if (slope < 0)
+		if (slope.value() < 0)
 			throw std::runtime_error("slope can't be negative");
-		if (area < 0)
+		if (area.value() < 0)
 			throw std::runtime_error("minimum area can't be negative");
-		if (cell < 0)
+		if (cell.value() < 0)
 			throw std::runtime_error("cell size can't be negative");
-		if (cell == 0)
-			cell = length / std::sqrt(8.0);
 
 		if (!overwrite && std::filesystem::exists(json_path))
 			throw std::runtime_error("output file already exists");
 
-		if (!epsg.empty()) {
-			auto valid = std::all_of(epsg.begin(), epsg.end(), [](const auto character) {
-				return std::clamp(character, '0', '9') == character;
-			}) && std::clamp(epsg.size(), 4ul, 5ul) == epsg.size();
-			if (!valid)
-				throw std::runtime_error("invalid EPSG code");
-		}
+		if (epsg && std::clamp(epsg.value(), 1024, 32767) != epsg.value())
+			throw std::runtime_error("invalid EPSG code");
 
-		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(cell), [&](auto &thinned, const auto &tile_path) {
+		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(cell.value()), [&](auto &thinned, const auto &tile_path) {
 			return thinned += PLY(tile_path);
 		}).to_vector();
 		auto mesh = Triangulate(points)();
-		auto polygons = Polygon::from_mesh(mesh, length, width, height, slope, area, cell, strict);
+		auto polygons = Polygon::from_mesh(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), cell.value(), (bool)strict);
 
 		std::ofstream json;
 		json.exceptions(json.exceptions() | std::ofstream::failbit);
@@ -85,8 +84,8 @@ int main(int argc, char *argv[]) {
 		json.precision(10);
 
 		json << "{\"type\":\"FeatureCollection\",";
-		if (!epsg.empty())
-			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << epsg << "\"}},";
+		if (epsg)
+			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << epsg.value() << "\"}},";
 		json << "\"features\":";
 		bool first = true;
 		for (const auto &polygon: polygons)

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <filesystem>
+#include <optional>
 #include <ios>
 #include <iostream>
 
@@ -78,19 +79,21 @@ public:
 	}
 
 	template <typename T>
-	void option(std::string letter, std::string name, std::string format, std::string description, T &value) {
+	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<T> &optional) {
 		std::stringstream description_with_default;
-		description_with_default << description << " (default: " << value << ")";
+		if (optional)
+			description_with_default << description << " (default: " << optional.value() << ")";
+		else
+			description_with_default << description;
 		options.push_back(Option({letter, name, format, description_with_default.str(), [&](auto arg) {
+			T value;
 			std::stringstream(arg) >> value;
+			optional = value;
 		}}));
 	}
 
-	template <typename T>
-	void option(std::string letter, std::string name, std::string description, T &value) {
-		options.push_back(Option({letter, name, "", description, [&](auto arg) {
-			std::stringstream(arg) >> value;
-		}}));
+	void option(std::string letter, std::string name, std::string description, std::optional<bool> &optional) {
+		option(letter, name, "", description, optional);
 	}
 
 	template <typename T>
