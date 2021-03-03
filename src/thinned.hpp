@@ -49,7 +49,7 @@ public:
 		return *this;
 	}
 
-	auto to_vector() {
+	auto operator()() {
 		std::vector<Point> result;
 		result.reserve(thinned.size());
 		std::size_t index = 0;

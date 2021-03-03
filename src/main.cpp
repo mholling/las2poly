@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
 
 		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(cell.value()), [&](auto &thinned, const auto &tile_path) {
 			return thinned += PLY(tile_path);
-		}).to_vector();
+		})();
 		auto mesh = Triangulate(points)();
 		auto polygons = Polygon::from_mesh(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), cell.value(), (bool)strict);
 
