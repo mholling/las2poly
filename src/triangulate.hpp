@@ -95,13 +95,11 @@ class Triangulate {
 							left_candidate.reset();
 					}
 
-					if (left_candidate) {
-						left_mesh.connect(left_point, left_candidate.value());
+					if (left_candidate)
 						++left_edge;
-					} else if (right_candidate) {
-						right_mesh.connect(right_point, right_candidate.value());
+					else if (right_candidate)
 						++right_edge;
-					} else
+					else
 						break;
 				}
 
