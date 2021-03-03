@@ -50,13 +50,13 @@ class Mesh {
 	struct Iterator {
 		const Mesh &mesh;
 		EdgeIterator edge;
-		bool interior, forward;
+		bool interior;
 
-		Iterator(const Mesh &mesh, const EdgeIterator &edge, bool interior, bool forward) : mesh(mesh), edge(edge), interior(interior), forward(forward) { }
-		auto peek() const { return interior == forward ? mesh.next_interior(edge) : mesh.next_exterior(edge); }
+		Iterator(const Mesh &mesh, const EdgeIterator &edge, bool interior) : mesh(mesh), edge(edge), interior(interior) { }
+		auto peek() const { return interior ? mesh.next_interior(edge) : mesh.next_exterior(edge); }
 		auto &operator++() { edge = peek(); return *this; }
 		auto operator++(int) { auto old = *this; ++(*this); return old; }
-		auto &reverse() { forward = !forward; edge = mesh.opposing(edge); return *this; }
+		auto &reverse() { interior = !interior; edge = mesh.opposing(edge); return *this; }
 		auto operator==(const Iterator &other) const { return edge == other.edge; }
 		auto operator*() const { return *edge; }
 		auto &operator->() const { return edge; }
@@ -73,7 +73,7 @@ public:
 		const auto edge = std::min_element(start, stop, [](const auto &edge1, const auto &edge2) {
 			return (edge1 ^ edge2) < 0;
 		});
-		return Iterator(*this, edge, false, false);
+		return Iterator(*this, edge, true);
 	}
 
 	template <typename LessThan>
@@ -85,7 +85,7 @@ public:
 		const auto edge = std::max_element(start, stop, [](const auto &edge1, const auto &edge2) {
 			return (edge1 ^ edge2) < 0;
 		});
-		return Iterator(*this, edge, false, true);
+		return Iterator(*this, edge, false);
 	}
 
 	auto connected(const Point &point) const {
