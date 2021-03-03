@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <cmath>
 #include <filesystem>
+#include <algorithm>
 #include <numeric>
 #include <fstream>
 #include <utility>
@@ -23,6 +24,7 @@ int main(int argc, char *argv[]) {
 		double cell = 0.0;
 		bool strict = false;
 		bool overwrite = false;
+		std::string epsg;
 		std::vector<std::string> tile_paths;
 		std::string json_path;
 
@@ -35,6 +37,7 @@ int main(int argc, char *argv[]) {
 		args.option("-c", "--cell",      "<metres>",  "cell size for thinning, 0 for auto",     cell);
 		args.option("-t", "--strict",                 "disqualify voids with no ground points", strict);
 		args.option("-o", "--overwrite",              "overwrite existing output file",         overwrite);
+		args.option("-e", "--epsg",      "<code>",    "set EPSG code in output file",           epsg);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -58,8 +61,17 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("cell size can't be negative");
 		if (cell == 0)
 			cell = length / std::sqrt(8.0);
+
 		if (!overwrite && std::filesystem::exists(json_path))
 			throw std::runtime_error("output file already exists");
+
+		if (!epsg.empty()) {
+			auto valid = std::all_of(epsg.begin(), epsg.end(), [](const auto character) {
+				return std::clamp(character, '0', '9') == character;
+			}) && std::clamp(epsg.size(), 4ul, 5ul) == epsg.size();
+			if (!valid)
+				throw std::runtime_error("invalid EPSG code");
+		}
 
 		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(cell), [&](auto &thinned, const auto &tile_path) {
 			return thinned += PLY(tile_path);
@@ -72,7 +84,10 @@ int main(int argc, char *argv[]) {
 		json.open(json_path);
 		json.precision(10);
 
-		json << "{\"type\":\"FeatureCollection\",\"features\":";
+		json << "{\"type\":\"FeatureCollection\",";
+		if (!epsg.empty())
+			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << epsg << "\"}},";
+		json << "\"features\":";
 		bool first = true;
 		for (const auto &polygon: polygons)
 			json << (std::exchange(first, false) ? '[' : ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
