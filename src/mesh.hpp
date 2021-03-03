@@ -7,6 +7,7 @@
 #include <cmath>
 #include <algorithm>
 #include <utility>
+#include <functional>
 #include <array>
 
 class Mesh {
@@ -111,21 +112,22 @@ public:
 
 	template <typename FaceFunction, typename EdgeFunction>
 	void deconstruct(FaceFunction yield_face, EdgeFunction yield_edge) {
+		auto edge = rightmost(std::less());
+		auto point = edge->first;
+		while (true) {
+			yield_edge(-*edge);
+			graph.erase(edge);
+			if (edge->second == point)
+				break;
+			++edge;
+		}
 		while (!graph.empty()) {
-			try {
-				auto directed = Iterator(*this, graph.begin(), true, true);
-				std::array<EdgeIterator, 3> edges = {directed++, directed++, directed++};
-				if (edges[0] == directed)
-					yield_face({*edges[0], *edges[1], *edges[2]});
-				else
-					for (const auto &edge: edges)
-						yield_edge(*edge);
-				for (const auto &edge: edges)
-					graph.erase(edge);
-			} catch (DanglingEdge &) {
-				yield_edge(*graph.begin());
-				graph.erase(graph.begin());
-			}
+			auto edge = Iterator(*this, graph.begin(), true);
+			std::array edges = {edge++, edge++, edge};
+			yield_face({*edges[0], *edges[1], *edges[2]});
+			graph.erase(edges[0]);
+			graph.erase(edges[1]);
+			graph.erase(edges[2]);
 		}
 	}
 };
