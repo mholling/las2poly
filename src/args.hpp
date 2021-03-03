@@ -63,7 +63,7 @@ class Args {
 			help << "    " << std::left
 				<< std::setw(letter_width) << option.letter << ", "
 				<< std::setw(name_width + 1) << option.name
-				<< std::setw(format_width + 2) << option.format
+				<< std::setw(format_width + 1) << option.format
 				<< option.description << std::endl;
 		return help.str();
 	}

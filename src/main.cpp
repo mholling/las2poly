@@ -7,6 +7,7 @@
 #include <string>
 #include <stdexcept>
 #include <cmath>
+#include <filesystem>
 #include <numeric>
 #include <fstream>
 #include <utility>
@@ -21,17 +22,19 @@ int main(int argc, char *argv[]) {
 		double area = 400.0;
 		double cell = 0.0;
 		bool strict = false;
+		bool overwrite = false;
 		std::vector<std::string> tile_paths;
 		std::string json_path;
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
-		args.option("-l", "--length", "<metres>",  "minimum length for void triangles",      length);
-		args.option("-w", "--width",  "<metres>",  "minimum span width of water features",   width);
-		args.option("-z", "--height", "<metres>",  "maximum average height difference",      height);
-		args.option("-s", "--slope",  "<degrees>", "maximum slope for water features",       slope);
-		args.option("-a", "--area",   "<metres²>", " minimum area for islands and ponds",    area);
-		args.option("-c", "--cell",   "<metres>",  "cell size for thinning, 0 for auto",     cell);
-		args.option("-t", "--strict",              "disqualify voids with no ground points", strict);
+		args.option("-l", "--length",    "<metres>",  "minimum length for void triangles",      length);
+		args.option("-w", "--width",     "<metres>",  "minimum span width of water features",   width);
+		args.option("-z", "--height",    "<metres>",  "maximum average height difference",      height);
+		args.option("-s", "--slope",     "<degrees>", "maximum slope for water features",       slope);
+		args.option("-a", "--area",      "<metres²>", " minimum area for islands and ponds",    area);
+		args.option("-c", "--cell",      "<metres>",  "cell size for thinning, 0 for auto",     cell);
+		args.option("-t", "--strict",                 "disqualify voids with no ground points", strict);
+		args.option("-o", "--overwrite",              "overwrite existing output file",         overwrite);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -55,6 +58,8 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("cell size can't be negative");
 		if (cell == 0)
 			cell = length / std::sqrt(8.0);
+		if (!overwrite && std::filesystem::exists(json_path))
+			throw std::runtime_error("output file already exists");
 
 		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(cell), [&](auto &thinned, const auto &tile_path) {
 			return thinned += PLY(tile_path);
