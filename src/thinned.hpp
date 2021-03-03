@@ -29,9 +29,6 @@ class Thinned {
 			: point2.ground ? false : point1[2] < point2[2];
 	}
 
-public:
-	Thinned(double cell_size) : cell_size(cell_size) { }
-
 	auto &insert(const Point &point) {
 		auto pair = std::pair(Cell(point, cell_size), point);
 		auto [existing, inserted] = thinned.insert(pair);
@@ -41,6 +38,9 @@ public:
 		}
 		return *this;
 	}
+
+public:
+	Thinned(double cell_size) : cell_size(cell_size) { }
 
 	template <typename Tile>
 	auto &operator+=(Tile tile) {
