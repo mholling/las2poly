@@ -5,7 +5,6 @@
 #include "edge.hpp"
 #include "face.hpp"
 #include <unordered_map>
-#include <cmath>
 #include <algorithm>
 #include <utility>
 #include <functional>
@@ -20,14 +19,18 @@ class Mesh {
 		DanglingEdge() : runtime_error("dangling edge") { }
 	};
 
-	static auto atan2(const Edge &edge1, const Edge &edge2) {
-		return std::atan2(edge1 ^ edge2, edge1 * edge2);
+	static auto less_than(const Edge &edge, const Edge &edge1, const Edge &edge2) {
+		auto cross1 = edge ^ edge1, dot1 = edge * edge1;
+		auto cross2 = edge ^ edge2, dot2 = edge * edge2;
+		return cross1 < 0
+			? cross2 > 0 || (dot1 < 0 ? dot2 > 0 || cross1 * dot2 < cross2 * dot1 : dot2 > 0 && cross1 * dot2 < cross2 * dot1)
+			: cross2 > 0 && (dot1 < 0 ? dot2 < 0 && cross1 * dot2 < cross2 * dot1 : dot2 < 0 || cross1 * dot2 < cross2 * dot1);
 	}
 
 	auto next_interior(const EdgeIterator &edge) const {
 		const auto [start, stop] = graph.equal_range(edge->second);
 		auto next = std::max_element(start, stop, [&](const auto &edge1, const auto &edge2) {
-			return edge1 || *edge ? true : edge2 || *edge ? false : atan2(*edge, edge1) < atan2(*edge, edge2);
+			return edge1 || *edge ? true : edge2 || *edge ? false : less_than(*edge, edge1, edge2);
 		});
 		if (next == stop)
 			throw DanglingEdge();
@@ -37,7 +40,7 @@ class Mesh {
 	auto next_exterior(const EdgeIterator &edge) const {
 		const auto [start, stop] = graph.equal_range(edge->second);
 		auto next = std::min_element(start, stop, [&](const auto &edge1, const auto &edge2) {
-			return edge1 || *edge ? false : edge2 || *edge ? true : atan2(*edge, edge1) < atan2(*edge, edge2);
+			return edge1 || *edge ? false : edge2 || *edge ? true : less_than(*edge, edge1, edge2);
 		});
 		if (next == stop)
 			throw DanglingEdge();
