@@ -66,10 +66,8 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("minimum area can't be negative");
 		if (cell.value() < 0)
 			throw std::runtime_error("cell size can't be negative");
-
 		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
 			throw std::runtime_error("output file already exists");
-
 		if (epsg && std::clamp(epsg.value(), 1024, 32767) != epsg.value())
 			throw std::runtime_error("invalid EPSG code");
 
