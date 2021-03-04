@@ -129,7 +129,7 @@ public:
 		for (auto arg = args.begin(); arg != args.end(); ) {
 			const auto option = std::find(options.begin(), options.end(), *arg);
 			if (option == options.end())
-				if (arg->rfind("-", 0) == 0)
+				if (arg->rfind("-", 0) == 0 && arg->size() > 1)
 					throw InvalidArgument("invalid option:", *arg);
 				else
 					position_args.push_back(*arg++);

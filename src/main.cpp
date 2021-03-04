@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <numeric>
+#include <sstream>
 #include <fstream>
 #include <utility>
 #include <iostream>
@@ -66,7 +67,7 @@ int main(int argc, char *argv[]) {
 		if (cell.value() < 0)
 			throw std::runtime_error("cell size can't be negative");
 
-		if (!overwrite && std::filesystem::exists(json_path))
+		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
 			throw std::runtime_error("output file already exists");
 
 		if (epsg && std::clamp(epsg.value(), 1024, 32767) != epsg.value())
@@ -78,9 +79,7 @@ int main(int argc, char *argv[]) {
 		auto mesh = Triangulate(points)();
 		auto polygons = Polygon::from_mesh(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), cell.value(), (bool)strict);
 
-		std::ofstream json;
-		json.exceptions(json.exceptions() | std::ofstream::failbit);
-		json.open(json_path);
+		std::stringstream json;
 		json.precision(10);
 
 		json << "{\"type\":\"FeatureCollection\",";
@@ -90,7 +89,15 @@ int main(int argc, char *argv[]) {
 		bool first = true;
 		for (const auto &polygon: polygons)
 			json << (std::exchange(first, false) ? '[' : ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
-		json << (first ? "[]}" : "]}");
+		json << (first ? "[]}" : "]}") << std::endl;
+
+		if (json_path == "-")
+			std::cout << json.str();
+		else {
+			std::ofstream file(json_path);
+			file.exceptions(file.exceptions() | std::ofstream::failbit | std::ofstream::badbit);
+			file << json.str();
+		}
 		return EXIT_SUCCESS;
 	} catch (std::ios_base::failure &) {
 		std::cerr << "error: problem reading or writing file" << std::endl;
