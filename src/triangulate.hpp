@@ -21,22 +21,21 @@ class Triangulate {
 			return p1[axis] < p2[axis] ? true : p1[axis] > p2[axis] ? false : p1[1-axis] < p2[1-axis];
 		}
 
-		static auto find_candidate(Mesh &mesh, const Mesh::Iterator &edge, const Point &opposite, bool right_side) {
+		template <bool rhs>
+		static auto find_candidate(Mesh &mesh, const Mesh::Iterator &edge, const Point &opposite) {
 			const auto &point = edge->second;
-			while (true) {
-				auto candidate = edge.peek()->second;
-				auto cross_product = (point - opposite) ^ (candidate - opposite);
-				if (cross_product < 0 == right_side)
-					return std::optional<Point>();
-				if (mesh.connected(point)) {
-					mesh.disconnect(point, candidate);
-					auto next_candidate = edge.peek()->second;
-					if (next_candidate.in_circle(right_side ? candidate : point, opposite, right_side ? point : candidate))
-						continue;
-					mesh.connect(point, candidate);
-				}
+			auto candidate = edge.peek()->second;
+			auto cross_product = (point - opposite) ^ (candidate - opposite);
+			if (cross_product < 0 == rhs)
+				return std::optional<Point>();
+			if (!mesh.connected(point))
 				return std::optional<Point>(candidate);
-			}
+			mesh.disconnect(point, candidate);
+			auto next_candidate = edge.peek()->second;
+			if (next_candidate.in_circle(rhs ? candidate : point, opposite, rhs ? point : candidate))
+				return find_candidate<rhs>(mesh, edge, opposite);
+			mesh.connect(point, candidate);
+			return std::optional<Point>(candidate);
 		}
 
 	public:
@@ -84,8 +83,8 @@ class Triangulate {
 					const auto &right_point = right_edge->second;
 					mesh.connect(left_point, right_point);
 
-					auto left_candidate = find_candidate(left_mesh, left_edge, right_point, false);
-					auto right_candidate = find_candidate(right_mesh, right_edge, left_point, true);
+					auto left_candidate = find_candidate<false>(left_mesh, left_edge, right_point);
+					auto right_candidate = find_candidate<true>(right_mesh, right_edge, left_point);
 
 					if (left_candidate && right_candidate) {
 						if (left_candidate.value().in_circle(left_point, right_point, right_candidate.value()))
