@@ -52,6 +52,7 @@ class Mesh {
 		return std::find(start, stop, -*edge);
 	}
 
+public:
 	struct Iterator {
 		const Mesh &mesh;
 		EdgeIterator edge;
@@ -68,7 +69,6 @@ class Mesh {
 		operator EdgeIterator() const { return edge; }
 	};
 
-public:
 	template <typename LessThan>
 	auto rightmost(LessThan less_than) const {
 		const auto &[p1, p2] = *std::max_element(graph.begin(), graph.end(), [&](const auto &edge1, const auto &edge2) {

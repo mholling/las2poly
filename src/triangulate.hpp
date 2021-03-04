@@ -21,8 +21,7 @@ class Triangulate {
 			return p1[axis] < p2[axis] ? true : p1[axis] > p2[axis] ? false : p1[1-axis] < p2[1-axis];
 		}
 
-		template <typename MeshIterator>
-		static auto find_candidate(Mesh &mesh, const MeshIterator &edge, const Point &opposite, bool right_side) {
+		static auto find_candidate(Mesh &mesh, const Mesh::Iterator &edge, const Point &opposite, bool right_side) {
 			const auto &point = edge->second;
 			while (true) {
 				auto candidate = edge.peek()->second;
