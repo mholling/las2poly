@@ -25,10 +25,10 @@ int main(int argc, char *argv[]) {
 		std::optional<double> slope = 10.0;
 		std::optional<double> area = 400.0;
 		std::optional<double> cell;
-		std::optional<bool> strict;
-		std::optional<bool> overwrite;
 		std::optional<int> epsg;
 		std::optional<int> jobs = std::max(1u, std::thread::hardware_concurrency());
+		std::optional<bool> strict;
+		std::optional<bool> overwrite;
 
 		std::vector<std::string> tile_paths;
 		std::string json_path;
@@ -40,10 +40,10 @@ int main(int argc, char *argv[]) {
 		args.option("-s", "--slope",     "<degrees>", "maximum slope for water features",       slope);
 		args.option("-a", "--area",      "<metres²>", " minimum island and waterbody area",     area);
 		args.option("-c", "--cell",      "<metres>",  "cell size for thinning",                 cell);
-		args.option("-t", "--strict",                 "disqualify voids with no ground points", strict);
-		args.option("-e", "--epsg",      "<code>",    "EPSG code to set in output file",        epsg);
-		args.option("-o", "--overwrite",              "overwrite existing output file",         overwrite);
+		args.option("-e", "--epsg",      "<number>",  "EPSG code to set in output file",        epsg);
 		args.option("-j", "--jobs",      "<number>",  "number of threads when processing",      jobs);
+		args.option("-t", "--strict",                 "disqualify voids with no ground points", strict);
+		args.option("-o", "--overwrite",              "overwrite existing output file",         overwrite);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -57,24 +57,24 @@ int main(int argc, char *argv[]) {
 			cell = length.value() / std::sqrt(8.0);
 		if (!width)
 			width = 0.0;
-		if (length.value() < 0)
-			throw std::runtime_error("void length can't be negative");
-		if (width.value() < 0)
-			throw std::runtime_error("span width can't be negative");
-		if (height.value() < 0)
-			throw std::runtime_error("average height difference can't be negative");
-		if (slope.value() < 0)
-			throw std::runtime_error("slope can't be negative");
-		if (area.value() < 0)
-			throw std::runtime_error("minimum area can't be negative");
-		if (cell.value() < 0)
-			throw std::runtime_error("cell size can't be negative");
-		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
-			throw std::runtime_error("output file already exists");
+		if (length.value() <= 0.0)
+			throw std::runtime_error("void length must be positive");
+		if (width.value() <= 0.0)
+			throw std::runtime_error("span width must be positive");
+		if (height.value() <= 0.0)
+			throw std::runtime_error("average height difference must be positive");
+		if (slope.value() <= 0.0)
+			throw std::runtime_error("slope must be positive");
+		if (area.value() <= 0.0)
+			throw std::runtime_error("minimum area must be positive");
+		if (cell.value() <= 0.0)
+			throw std::runtime_error("cell size must be positive");
 		if (epsg && std::clamp(epsg.value(), 1024, 32767) != epsg.value())
 			throw std::runtime_error("invalid EPSG code");
 		if (jobs.value() < 1)
 			throw std::runtime_error("number of threads must be positive");
+		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
+			throw std::runtime_error("output file already exists");
 
 		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(cell.value()), [&](auto &thinned, const auto &tile_path) {
 			return thinned += PLY(tile_path);
