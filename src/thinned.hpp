@@ -55,7 +55,7 @@ public:
 		result.reserve(thinned.size());
 		std::size_t index = 0;
 		for (auto pair: thinned)
-			result.push_back(Point(pair.second, index++));
+			result.emplace_back(pair.second, index++);
 		return result;
 	}
 };

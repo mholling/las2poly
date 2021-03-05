@@ -31,7 +31,7 @@ class Rings {
 
 public:
 	Rings(const Edges &edges) {
-		std::unordered_multimap<Point, Edge> points_edges;
+		std::unordered_multimap<const Point &, Edge> points_edges;
 		std::transform(edges.begin(), edges.end(), std::inserter(points_edges, points_edges.begin()), [](const auto &edge) {
 			return std::pair(edge.first, edge);
 		});

@@ -6,7 +6,7 @@
 #include <functional>
 #include <cstddef>
 
-using Edge = std::pair<Point, Point>;
+using Edge = std::pair<const Point &, const Point &>;
 
 auto operator==(const Edge &edge1, const Edge &edge2) {
 	return edge1.first == edge2.first && edge1.second == edge2.second;
@@ -58,7 +58,7 @@ auto operator-(const Edge &edge) {
 
 template <> struct std::hash<Edge> {
 	std::size_t operator()(const Edge &edge) const {
-		return hash<Point>()(edge.first) << 32 | hash<Point>()(edge.second) & 0xFFFFFFFF;
+		return hash<const Point &>()(edge.first) << 32 | hash<const Point &>()(edge.second) & 0xFFFFFFFF;
 	}
 };
 

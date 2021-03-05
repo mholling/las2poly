@@ -11,7 +11,7 @@
 #include <array>
 
 class Mesh {
-	using Graph = std::unordered_multimap<Point, Point>;
+	using Graph = std::unordered_multimap<const Point &, const Point &>;
 	using EdgeIterator = typename Graph::const_iterator;
 	Graph graph;
 
@@ -117,7 +117,7 @@ public:
 	template <typename FaceFunction, typename EdgeFunction>
 	void deconstruct(FaceFunction yield_face, EdgeFunction yield_edge) {
 		auto edge = rightmost(std::less());
-		auto point = edge->first;
+		const auto &point = edge->first;
 		while (true) {
 			yield_edge(-*edge);
 			graph.erase(edge);

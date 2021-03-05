@@ -35,7 +35,7 @@ struct Point : Vector<3> {
 	}
 };
 
-template <> struct std::hash<Point> {
+template <> struct std::hash<const Point &> {
 	std::size_t operator()(const Point &point) const { return point.index; }
 };
 

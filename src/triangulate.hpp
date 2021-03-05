@@ -24,18 +24,18 @@ class Triangulate {
 		template <bool rhs>
 		static auto find_candidate(Mesh &mesh, const Mesh::Iterator &edge, const Point &opposite) {
 			const auto &point = edge->second;
-			auto candidate = edge.peek()->second;
+			const auto &candidate = edge.peek()->second;
 			auto cross_product = (point - opposite) ^ (candidate - opposite);
 			if (cross_product < 0 == rhs)
-				return std::optional<Point>();
+				return std::optional<Point const *>();
 			if (!mesh.connected(point))
-				return std::optional<Point>(candidate);
+				return std::optional<Point const *>(&candidate);
 			mesh.disconnect(point, candidate);
-			auto next_candidate = edge.peek()->second;
+			const auto &next_candidate = edge.peek()->second;
 			if (next_candidate.in_circle(rhs ? candidate : point, opposite, rhs ? point : candidate))
 				return find_candidate<rhs>(mesh, edge, opposite);
 			mesh.connect(point, candidate);
-			return std::optional<Point>(candidate);
+			return std::optional<Point const *>(&candidate);
 		}
 
 	public:
@@ -87,7 +87,7 @@ class Triangulate {
 					auto right_candidate = find_candidate<true>(right_mesh, right_edge, left_point);
 
 					if (left_candidate && right_candidate) {
-						if (left_candidate.value().in_circle(left_point, right_point, right_candidate.value()))
+						if (left_candidate.value()->in_circle(left_point, right_point, *right_candidate.value()))
 							right_candidate.reset();
 						else
 							left_candidate.reset();
