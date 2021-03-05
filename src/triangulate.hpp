@@ -44,7 +44,7 @@ class Triangulate {
 			auto cross_product = (point - opposite) ^ (candidate - opposite);
 			if (cross_product < 0 == rhs)
 				return std::optional<Point const *>();
-			if (!mesh.connected(point))
+			if (mesh.dangling(point))
 				return std::optional<Point const *>(&candidate);
 			mesh.disconnect(point, candidate);
 			const auto &next_candidate = edge.peek()->second;

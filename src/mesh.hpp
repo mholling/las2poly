@@ -89,8 +89,8 @@ public:
 		return Iterator(*this, edge, false);
 	}
 
-	auto connected(const Point &point) const {
-		return graph.count(point) > 1;
+	auto dangling(const Point &point) const {
+		return graph.count(point) < 2;
 	}
 
 	void connect(const Point &p1, const Point &p2) {
