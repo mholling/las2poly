@@ -14,8 +14,8 @@ class Triangulate {
 	int threads;
 
 	template <typename ContainerIterator, int axis = 0>
-	class Node {
-		using Child = Node<ContainerIterator, 1-axis>;
+	class Partition {
+		using Child = Partition<ContainerIterator, 1-axis>;
 		const ContainerIterator first, middle, last;
 		int threads;
 
@@ -55,7 +55,7 @@ class Triangulate {
 		}
 
 	public:
-		Node(ContainerIterator first, ContainerIterator last, int threads) : first(first), last(last), middle(first + (last - first) / 2), threads(threads) {
+		Partition(ContainerIterator first, ContainerIterator last, int threads) : first(first), last(last), middle(first + (last - first) / 2), threads(threads) {
 			std::nth_element(first, middle, last, less_than);
 		}
 
@@ -119,7 +119,7 @@ public:
 
 	auto operator()() {
 		Mesh mesh;
-		Node(points.begin(), points.end(), threads).triangulate(mesh);
+		Partition(points.begin(), points.end(), threads).triangulate(mesh);
 		return mesh;
 	}
 };
