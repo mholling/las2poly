@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 		args.option("-z", "--height",    "<metres>",  "maximum average height difference",      height);
 		args.option("-s", "--slope",     "<degrees>", "maximum slope for water features",       slope);
 		args.option("-a", "--area",      "<metres²>", " minimum island and waterbody area",     area);
-		args.option("-c", "--cell",      "<metres>",  "cell size for thinning",                 cell);
+		args.option("-c", "--cell",      "<metres>",  "cell size for point thinning",           cell);
 		args.option("-e", "--epsg",      "<number>",  "EPSG code to set in output file",        epsg);
 		args.option("-j", "--jobs",      "<number>",  "number of threads when processing",      jobs);
 		args.option("-t", "--strict",                 "disqualify voids with no ground points", strict);
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 		if (!cell)
 			cell = length.value() / std::sqrt(8.0);
 		if (!width)
-			width = 0.0;
+			width = length.value();
 		if (length.value() <= 0.0)
 			throw std::runtime_error("void length must be positive");
 		if (width.value() <= 0.0)
