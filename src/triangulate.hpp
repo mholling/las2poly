@@ -60,39 +60,32 @@ class Triangulate {
 				auto right_mesh = Child(middle, last).triangulate();
 				auto left_edge = left_mesh.rightmost(less_than);
 				auto right_edge = right_mesh.leftmost(less_than);
-
 				auto check_right = [&]() {
 					return (*right_edge ^ left_edge->first) > 0;
 				};
 				auto check_left = [&]() {
 					return (*left_edge ^ right_edge->first) < 0;
 				};
-
 				while (!check_right() && !check_left()) {
 					if (!check_right())
 						++right_edge;
 					if (!check_left())
 						++left_edge;
 				}
-
 				left_edge.reverse();
 				right_edge.reverse();
-
 				while (true) {
 					const auto &left_point = left_edge->second;
 					const auto &right_point = right_edge->second;
 					mesh.connect(left_point, right_point);
-
 					auto left_candidate = find_candidate<false>(left_mesh, left_edge, right_point);
 					auto right_candidate = find_candidate<true>(right_mesh, right_edge, left_point);
-
 					if (left_candidate && right_candidate) {
 						if (left_candidate.value()->in_circle(left_point, right_point, *right_candidate.value()))
 							right_candidate.reset();
 						else
 							left_candidate.reset();
 					}
-
 					if (left_candidate)
 						++left_edge;
 					else if (right_candidate)
@@ -100,7 +93,6 @@ class Triangulate {
 					else
 						break;
 				}
-
 				mesh += left_mesh;
 				mesh += right_mesh;
 			}
