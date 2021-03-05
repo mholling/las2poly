@@ -4,6 +4,7 @@
 #include "triangulate.hpp"
 #include "polygon.hpp"
 #include <optional>
+#include <thread>
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -27,6 +28,7 @@ int main(int argc, char *argv[]) {
 		std::optional<bool> strict;
 		std::optional<bool> overwrite;
 		std::optional<int> epsg;
+		std::optional<int> jobs = std::max(1u, std::thread::hardware_concurrency());
 
 		std::vector<std::string> tile_paths;
 		std::string json_path;
@@ -41,6 +43,7 @@ int main(int argc, char *argv[]) {
 		args.option("-t", "--strict",                 "disqualify voids with no ground points", strict);
 		args.option("-e", "--epsg",      "<code>",    "EPSG code to set in output file",        epsg);
 		args.option("-o", "--overwrite",              "overwrite existing output file",         overwrite);
+		args.option("-j", "--jobs",      "<number>",  "number of threads when processing",      jobs);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -70,11 +73,13 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("output file already exists");
 		if (epsg && std::clamp(epsg.value(), 1024, 32767) != epsg.value())
 			throw std::runtime_error("invalid EPSG code");
+		if (jobs.value() < 1)
+			throw std::runtime_error("number of threads must be positive");
 
 		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(cell.value()), [&](auto &thinned, const auto &tile_path) {
 			return thinned += PLY(tile_path);
 		})();
-		auto mesh = Triangulate(points)();
+		auto mesh = Triangulate(points, jobs.value())();
 		auto polygons = Polygon::from_mesh(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), cell.value(), (bool)strict);
 
 		std::stringstream json;

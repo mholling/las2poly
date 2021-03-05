@@ -5,20 +5,36 @@
 #include "mesh.hpp"
 #include <vector>
 #include <optional>
-#include <utility>
 #include <algorithm>
+#include <thread>
 #include <stdexcept>
 
 class Triangulate {
 	std::vector<Point> &points;
+	int threads;
 
 	template <typename ContainerIterator, int axis = 0>
 	class Node {
 		using Child = Node<ContainerIterator, 1-axis>;
 		const ContainerIterator first, middle, last;
+		int threads;
 
 		static auto less_than(const Point &p1, const Point &p2) {
 			return p1[axis] < p2[axis] ? true : p1[axis] > p2[axis] ? false : p1[1-axis] < p2[1-axis];
+		}
+
+		void left_right(Mesh &left_mesh, Mesh &right_mesh) {
+			if (threads > 1) {
+				auto left_thread = std::thread([&]() {
+					Child(first, middle, threads/2).triangulate(left_mesh);
+				}), right_thread = std::thread([&]() {
+					Child(middle, last, threads - threads/2).triangulate(right_mesh);
+				});
+				left_thread.join(), right_thread.join();
+			} else {
+				Child(first, middle, 1).triangulate(left_mesh);
+				Child(middle, last, 1).triangulate(right_mesh);
+			}
 		}
 
 		template <bool rhs>
@@ -39,12 +55,11 @@ class Triangulate {
 		}
 
 	public:
-		Node(ContainerIterator first, ContainerIterator last) : first(first), last(last), middle(first + (last - first) / 2) {
+		Node(ContainerIterator first, ContainerIterator last, int threads) : first(first), last(last), middle(first + (last - first) / 2), threads(threads) {
 			std::nth_element(first, middle, last, less_than);
 		}
 
-		Mesh triangulate() {
-			Mesh mesh;
+		void triangulate(Mesh &mesh) {
 			switch (last - first) {
 			case 0:
 			case 1:
@@ -56,8 +71,8 @@ class Triangulate {
 				mesh.connect(*(first+1), *(first+0));
 				break;
 			default:
-				auto left_mesh = Child(first, middle).triangulate();
-				auto right_mesh = Child(middle, last).triangulate();
+				Mesh left_mesh, right_mesh;
+				left_right(left_mesh, right_mesh);
 				auto left_edge = left_mesh.rightmost(less_than);
 				auto right_edge = right_mesh.leftmost(less_than);
 				auto check_right = [&]() {
@@ -96,15 +111,16 @@ class Triangulate {
 				mesh += left_mesh;
 				mesh += right_mesh;
 			}
-			return mesh;
 		}
 	};
 
 public:
-	Triangulate(std::vector<Point> &points) : points(points) { }
+	Triangulate(std::vector<Point> &points, int threads) : points(points), threads(threads) { }
 
 	auto operator()() {
-		return Node(points.begin(), points.end()).triangulate();
+		Mesh mesh;
+		Node(points.begin(), points.end(), threads).triangulate(mesh);
+		return mesh;
 	}
 };
 
