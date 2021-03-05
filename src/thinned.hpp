@@ -1,6 +1,7 @@
 #ifndef THINNED_HPP
 #define THINNED_HPP
 
+#include "raw_point.hpp"
 #include "point.hpp"
 #include <utility>
 #include <cstdint>
@@ -13,23 +14,23 @@ class Thinned {
 	using Indices = std::pair<std::uint32_t, std::uint32_t>;
 
 	struct Cell : Indices {
-		Cell(const Point &point, double cell_size) : Indices(std::floor(point[0] / cell_size), std::floor(point[1] / cell_size)) { }
+		Cell(const RawPoint &point, double cell_size) : Indices(std::floor(point.x / cell_size), std::floor(point.y / cell_size)) { }
 	};
 
 	struct CellHash {
 		std::size_t operator()(const Cell &cell) const { return static_cast<std::size_t>(cell.first) | static_cast<std::size_t>(cell.second) << 32; }
 	};
 
-	std::unordered_map<Cell, Point, CellHash> thinned;
+	std::unordered_map<Cell, RawPoint, CellHash> thinned;
 	double cell_size;
 
-	static auto better_than(const Point &point1, const Point &point2) {
-		return point1.ground
-			? point2.ground ? point1[2] < point2[2] : true
-			: point2.ground ? false : point1[2] < point2[2];
+	static auto better_than(const RawPoint &point1, const RawPoint &point2) {
+		return point1.ground()
+			? point2.ground() ? point1.z < point2.z : true
+			: point2.ground() ? false : point1.z < point2.z;
 	}
 
-	auto &insert(const Point &point) {
+	auto &insert(const RawPoint &point) {
 		auto pair = std::pair(Cell(point, cell_size), point);
 		auto [existing, inserted] = thinned.insert(pair);
 		if (!inserted && better_than(point, existing->second)) {
@@ -53,8 +54,8 @@ public:
 		std::vector<Point> result;
 		result.reserve(thinned.size());
 		std::size_t index = 0;
-		for (auto pair = thinned.begin(); pair != thinned.end(); )
-			result.push_back(Point(std::move(thinned.extract(pair++).mapped()), index++));
+		for (auto pair: thinned)
+			result.push_back(Point(pair.second, index++));
 		return result;
 	}
 };

@@ -1,7 +1,7 @@
 #ifndef PLY_HPP
 #define PLY_HPP
 
-#include "point.hpp"
+#include "raw_point.hpp"
 #include <fstream>
 #include <cstddef>
 #include <string>
@@ -40,14 +40,13 @@ class PLY {
 		std::istringstream(string.erase(0, words.size())) >> t;
 	}
 
-	auto point(std::size_t index) {
-		double x, y, z;
-		unsigned char c;
-		input.read(reinterpret_cast<char *>(&x), sizeof(x));
-		input.read(reinterpret_cast<char *>(&y), sizeof(y));
-		input.read(reinterpret_cast<char *>(&z), sizeof(z));
-		input.read(reinterpret_cast<char *>(&c), sizeof(c));
-		return Point(x, y, z, 2 == c || 3 == c, index);
+	auto point() {
+		RawPoint point;
+		input.read(reinterpret_cast<char *>(&point.x), sizeof(point.x));
+		input.read(reinterpret_cast<char *>(&point.y), sizeof(point.y));
+		input.read(reinterpret_cast<char *>(&point.z), sizeof(point.z));
+		input.read(reinterpret_cast<char *>(&point.c), sizeof(point.c));
+		return point;
 	}
 
 	struct Iterator {
@@ -57,7 +56,7 @@ class PLY {
 		Iterator(PLY &ply, std::size_t index) : ply(ply), index(index) { }
 		auto &operator++() { ++index; return *this;}
 		auto operator!=(Iterator other) const { return index != other.index; }
-		auto operator*() { return ply.point(index); }
+		auto operator*() { return ply.point(); }
 	};
 
 public:
