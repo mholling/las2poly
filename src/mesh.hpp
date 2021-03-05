@@ -15,10 +15,6 @@ class Mesh {
 	using EdgeIterator = typename Graph::const_iterator;
 	Graph graph;
 
-	struct DanglingEdge : std::runtime_error {
-		DanglingEdge() : runtime_error("dangling edge") { }
-	};
-
 	static auto less_than(const Edge &edge, const Edge &edge1, const Edge &edge2) {
 		auto cross1 = edge ^ edge1, dot1 = edge * edge1;
 		auto cross2 = edge ^ edge2, dot2 = edge * edge2;
@@ -33,7 +29,7 @@ class Mesh {
 			return edge1 || *edge ? true : edge2 || *edge ? false : less_than(*edge, edge1, edge2);
 		});
 		if (next == stop)
-			throw DanglingEdge();
+			throw std::runtime_error("unexpected");
 		return next;
 	}
 
@@ -43,7 +39,7 @@ class Mesh {
 			return edge1 || *edge ? false : edge2 || *edge ? true : less_than(*edge, edge1, edge2);
 		});
 		if (next == stop)
-			throw DanglingEdge();
+			throw std::runtime_error("unexpected");
 		return next;
 	}
 
