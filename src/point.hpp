@@ -25,7 +25,7 @@ struct Point : Vector<3> {
 		return {point1[0] - point2[0], point1[1] - point2[1]};
 	}
 
-	friend std::ostream &operator<<(std::ostream &json, const Point &point) {
+	friend auto &operator<<(std::ostream &json, const Point &point) {
 		return json << '[' << point[0] << ',' << point[1] << ']';
 	}
 

@@ -51,7 +51,7 @@ struct Land : std::vector<Polygon> {
 		});
 	}
 
-	friend std::ostream &operator<<(std::ostream &json, const Land &land) {
+	friend auto &operator<<(std::ostream &json, const Land &land) {
 		bool first = true;
 		for (const auto &polygon: land)
 			json << (std::exchange(first, false) ? '[' : ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";

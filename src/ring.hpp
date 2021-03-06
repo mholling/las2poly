@@ -74,7 +74,7 @@ public:
 		return ring.signed_area > signed_area;
 	}
 
-	friend std::ostream &operator<<(std::ostream &json, const Ring &ring) {
+	friend auto &operator<<(std::ostream &json, const Ring &ring) {
 		json << '[';
 		for (const auto &point: ring.points)
 			json << point << ',';

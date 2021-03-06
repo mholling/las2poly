@@ -8,7 +8,7 @@
 
 using Polygon = std::vector<Ring>;
 
-std::ostream &operator<<(std::ostream &json, const Polygon &polygon) {
+auto &operator<<(std::ostream &json, const Polygon &polygon) {
 	bool first = true;
 	for (const auto &ring: polygon)
 		json << (std::exchange(first, false) ? '[' : ',') << ring;
