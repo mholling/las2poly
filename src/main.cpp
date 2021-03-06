@@ -2,7 +2,7 @@
 #include "thinned.hpp"
 #include "ply.hpp"
 #include "triangulate.hpp"
-#include "polygon.hpp"
+#include "land.hpp"
 #include <optional>
 #include <thread>
 #include <vector>
@@ -88,19 +88,14 @@ int main(int argc, char *argv[]) {
 			return thinned += PLY(tile_path);
 		})();
 		auto mesh = Triangulate(points, jobs.value())();
-		auto polygons = Polygon::from_mesh(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), cell.value(), (bool)strict);
+		auto land = Land(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), cell.value(), (bool)strict);
 
 		std::stringstream json;
 		json.precision(10);
-
 		json << "{\"type\":\"FeatureCollection\",";
 		if (epsg)
 			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << epsg.value() << "\"}},";
-		json << "\"features\":";
-		bool first = true;
-		for (const auto &polygon: polygons)
-			json << (std::exchange(first, false) ? '[' : ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
-		json << (first ? "[]}" : "]}") << std::endl;
+		json << "\"features\":" << land << "}" << std::endl;
 
 		if (json_path == "-")
 			std::cout << json.str();
