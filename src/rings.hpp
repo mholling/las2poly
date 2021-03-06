@@ -59,7 +59,7 @@ public:
 		}
 	}
 
-	std::vector<Ring> operator()() {
+	auto operator()() {
 		std::vector<Ring> results;
 		while (!empty())
 			if constexpr (outside)
