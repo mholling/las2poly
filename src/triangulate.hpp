@@ -73,8 +73,8 @@ class Triangulate {
 			default:
 				Mesh left_mesh, right_mesh;
 				left_right(left_mesh, right_mesh);
-				auto left_edge = left_mesh.rightmost(less_than);
-				auto right_edge = right_mesh.leftmost(less_than);
+				auto left_edge = left_mesh.rightmost_clockwise(less_than);
+				auto right_edge = right_mesh.leftmost_anticlockwise(less_than);
 				auto check_right = [&]() {
 					return (*right_edge ^ left_edge->first) > 0;
 				};

@@ -66,7 +66,7 @@ public:
 	};
 
 	template <typename LessThan>
-	auto rightmost(LessThan less_than) const {
+	auto rightmost_clockwise(LessThan less_than) const {
 		const auto &[p1, p2] = *std::max_element(graph.begin(), graph.end(), [&](const auto &edge1, const auto &edge2) {
 			return less_than(edge1.first, edge2.first);
 		});
@@ -78,7 +78,7 @@ public:
 	}
 
 	template <typename LessThan>
-	auto leftmost(LessThan less_than) const {
+	auto leftmost_anticlockwise(LessThan less_than) const {
 		const auto &[p1, p2] = *std::min_element(graph.begin(), graph.end(), [&](const auto &edge1, const auto &edge2) {
 			return less_than(edge1.first, edge2.first);
 		});
@@ -112,7 +112,7 @@ public:
 
 	template <typename FaceFunction, typename EdgeFunction>
 	void deconstruct(FaceFunction yield_face, EdgeFunction yield_edge) {
-		auto edge = rightmost(std::less());
+		auto edge = rightmost_clockwise(std::less());
 		const auto &point = edge->first;
 		while (true) {
 			yield_edge(-*edge);
