@@ -86,20 +86,22 @@ public:
 		else
 			description_with_default << description;
 		options.push_back(Option({letter, name, format, description_with_default.str(), [&](auto arg) {
-			T value;
-			std::stringstream(arg) >> value;
-			optional = value;
+			auto parser = std::stringstream(arg);
+			if (!(parser >> optional.emplace()) || !parser.eof())
+				throw std::runtime_error("invalid argument: " + arg);
 		}}));
 	}
 
 	template <typename T>
 	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<std::vector<T>> &optional) {
 		options.push_back(Option({letter, name, format, description, [&](auto arg) {
-			std::vector<T> values;
+			optional.emplace();
 			auto list = std::stringstream(arg);
-			for (std::string arg; std::getline(list, arg, ','); )
-				std::stringstream(arg) >> values.emplace_back();
-			optional = values;
+			for (std::string arg; std::getline(list, arg, ','); ) {
+				auto parser = std::stringstream(arg);
+				if (!(parser >> optional.value().emplace_back()) || !parser.eof())
+					throw std::runtime_error("invalid argument: " + arg);
+			}
 		}}));
 	}
 
