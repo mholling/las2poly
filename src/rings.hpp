@@ -11,13 +11,9 @@
 #include <algorithm>
 #include <cmath>
 
-template <typename Edges, bool outside = true>
+template <bool outside = true>
 class Rings {
 	std::unordered_map<Edge, Edge> connections;
-
-	auto empty() const {
-		return connections.empty();
-	}
 
 	auto unwind() {
 		std::vector<Edge> edges;
@@ -30,6 +26,7 @@ class Rings {
 	}
 
 public:
+	template <typename Edges>
 	Rings(const Edges &edges) {
 		std::unordered_multimap<const Point &, Edge> points_edges;
 		std::transform(edges.begin(), edges.end(), std::inserter(points_edges, points_edges.begin()), [](const auto &edge) {
@@ -59,14 +56,14 @@ public:
 		}
 	}
 
-	auto operator()() {
+	std::vector<Ring> operator()() {
 		std::vector<Ring> results;
-		while (!empty())
+		while (!connections.empty())
 			if constexpr (outside)
-				for (auto &ring: Rings<decltype(unwind()), false>(unwind())())
+				for (auto &ring: Rings<false>(unwind())())
 					results.push_back(ring);
 			else
-				results.push_back(Ring(unwind()));
+				results.emplace_back(unwind());
 		return results;
 	}
 };
