@@ -12,7 +12,7 @@
 
 class Ring {
 	using Points = std::vector<Point>;
-	using Iterator = typename Points::const_iterator;
+	using PointIterator = typename Points::const_iterator;
 
 	Points points;
 	double signed_area;
@@ -21,18 +21,18 @@ class Ring {
 		PointOnRing() : runtime_error("point on ring") { }
 	};
 
-	struct EdgeIterator {
-		const Iterator start, stop;
-		Iterator here;
+	struct Iterator {
+		const PointIterator start, stop;
+		PointIterator here;
 
-		EdgeIterator(Iterator start, Iterator stop, Iterator here) : start(start), stop(stop), here(here) { }
+		Iterator(PointIterator start, PointIterator stop, PointIterator here) : start(start), stop(stop), here(here) { }
 		auto &operator++() { ++here; return *this;}
-		auto operator!=(EdgeIterator other) const { return here != other.here; }
+		auto operator!=(Iterator other) const { return here != other.here; }
 		auto operator*() { return Edge(*here, *(here + 1 == stop ? start : here + 1)); }
 	};
 
-	auto begin() const { return EdgeIterator(points.begin(), points.end(), points.begin()); }
-	auto   end() const { return EdgeIterator(points.begin(), points.end(), points.end()); }
+	auto begin() const { return Iterator(points.begin(), points.end(), points.begin()); }
+	auto   end() const { return Iterator(points.begin(), points.end(), points.end()); }
 
 	auto winding_number(const Point &point) const {
 		int winding = 0;
