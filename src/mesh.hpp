@@ -94,8 +94,8 @@ public:
 	}
 
 	void connect(const Point &p1, const Point &p2) {
-		graph.insert(Edge(p1, p2));
-		graph.insert(Edge(p2, p1));
+		graph.emplace(p1, p2);
+		graph.emplace(p2, p1);
 	}
 
 	void disconnect(const Point &p1, const Point &p2) {

@@ -55,7 +55,7 @@ public:
 			const auto &[outgoing, angle] = outside
 				? *std::max_element(edges_angles.begin(), edges_angles.end(), ordering)
 				: *std::min_element(edges_angles.begin(), edges_angles.end(), ordering);
-			connections.insert(std::pair(incoming, outgoing));
+			connections.emplace(incoming, outgoing);
 		}
 	}
 

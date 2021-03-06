@@ -7,6 +7,9 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <algorithm>
+#include <cstddef>
+#include <array>
+#include <cmath>
 
 class Faces {
 	std::unordered_set<Face> faces;
@@ -36,7 +39,7 @@ public:
 	Faces &operator+=(const Face &face) {
 		faces.insert(face);
 		for (const auto edge: face)
-			neighbours.insert(std::pair(-edge, face));
+			neighbours.emplace(-edge, face);
 		return *this;
 	}
 

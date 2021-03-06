@@ -33,11 +33,11 @@ class Thinned {
 	}
 
 	auto &insert(const RawPoint &point) {
-		auto pair = std::pair(Cell(point, cell_size), point);
-		auto [existing, inserted] = thinned.insert(pair);
+		auto cell = Cell(point, cell_size);
+		auto [existing, inserted] = thinned.emplace(cell, point);
 		if (!inserted && better_than(point, existing->second)) {
 			thinned.erase(existing);
-			thinned.insert(pair);
+			thinned.emplace(cell, point);
 		}
 		return *this;
 	}

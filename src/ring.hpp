@@ -5,9 +5,6 @@
 #include "edge.hpp"
 #include <vector>
 #include <stdexcept>
-#include <utility>
-#include <numeric>
-#include <unordered_set>
 #include <ostream>
 
 class Ring {

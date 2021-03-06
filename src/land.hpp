@@ -47,7 +47,7 @@ struct Land : std::vector<Polygon> {
 				return exterior.contains(hole);
 			});
 			std::copy(old_remaining, remaining, std::back_inserter(rings));
-			push_back(Polygon(rings));
+			emplace_back(rings);
 		});
 	}
 
