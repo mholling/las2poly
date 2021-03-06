@@ -58,7 +58,7 @@ auto operator-(const Edge &edge) {
 
 template <> struct std::hash<Edge> {
 	std::size_t operator()(const Edge &edge) const {
-		return hash<const Point &>()(edge.first) << 32 | hash<const Point &>()(edge.second) & 0xFFFFFFFF;
+		return static_cast<std::size_t>(edge.first.index) << 32 | static_cast<std::size_t>(edge.second.index);
 	}
 };
 

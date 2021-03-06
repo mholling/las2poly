@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <unordered_map>
 #include <unordered_set>
+#include <stdexcept>
 #include <vector>
 
 class Thinned {
@@ -53,6 +54,8 @@ public:
 		for (const auto point: tile)
 			if (classes.count(point.c))
 				insert(point);
+		if (thinned.size() > UINT32_MAX)
+			throw std::runtime_error("too many points");
 		return *this;
 	}
 

@@ -3,15 +3,16 @@
 
 #include "raw_point.hpp"
 #include "vector.hpp"
-#include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <ostream>
+#include <cstddef>
 
 struct Point : Vector<3> {
 	bool ground;
-	std::size_t index;
+	std::uint32_t index;
 
-	Point(const RawPoint &point, std::size_t index) : Vector<3>({point.x, point.y, point.z}), ground(point.ground()), index(index) { }
+	Point(const RawPoint &point, std::uint32_t index) : Vector<3>({point.x, point.y, point.z}), ground(point.ground()), index(index) { }
 
 	friend auto operator==(const Point &point1, const Point &point2) {
 		return point1.index == point2.index;
