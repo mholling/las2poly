@@ -15,7 +15,7 @@ class Thinned {
 	using Indices = std::pair<std::uint32_t, std::uint32_t>;
 
 	struct Cell : Indices {
-		Cell(const RawPoint &point, double cell_size) : Indices(std::floor(point.x / cell_size), std::floor(point.y / cell_size)) { }
+		Cell(const RawPoint &point, double resolution) : Indices(std::floor(point.x / resolution), std::floor(point.y / resolution)) { }
 	};
 
 	struct CellHash {
@@ -24,7 +24,7 @@ class Thinned {
 
 	std::unordered_map<Cell, RawPoint, CellHash> thinned;
 	std::unordered_set<unsigned char> classes;
-	double cell_size;
+	double resolution;
 
 	static auto better_than(const RawPoint &point1, const RawPoint &point2) {
 		return point1.ground()
@@ -33,7 +33,7 @@ class Thinned {
 	}
 
 	auto &insert(const RawPoint &point) {
-		auto cell = Cell(point, cell_size);
+		auto cell = Cell(point, resolution);
 		auto [existing, inserted] = thinned.emplace(cell, point);
 		if (!inserted && better_than(point, existing->second)) {
 			thinned.erase(existing);
@@ -44,7 +44,7 @@ class Thinned {
 
 public:
 	template <typename Extra>
-	Thinned(double cell_size, Extra extra) : cell_size(cell_size), classes({2,3,4,5,6}) {
+	Thinned(double resolution, Extra extra) : resolution(resolution), classes({2,3,4,5,6}) {
 		classes.insert(extra.begin(), extra.end());
 	}
 

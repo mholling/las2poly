@@ -13,7 +13,7 @@
 #include <ostream>
 
 struct Land : std::vector<Polygon> {
-	Land(Mesh &mesh, double length, double width, double height, double slope, double area, double cell_size, bool strict) {
+	Land(Mesh &mesh, double length, double width, double height, double slope, double area, bool strict) {
 		Faces large_faces;
 		Edges outside_edges;
 

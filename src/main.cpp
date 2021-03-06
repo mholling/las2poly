@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 		std::optional<double> height = 5.0;
 		std::optional<double> slope = 10.0;
 		std::optional<double> area = 400.0;
-		std::optional<double> cell;
+		std::optional<double> resolution;
 		std::optional<std::vector<int>> extra;
 		std::optional<int> epsg;
 		std::optional<int> jobs = std::max(1u, std::thread::hardware_concurrency());
@@ -35,17 +35,17 @@ int main(int argc, char *argv[]) {
 		std::string json_path;
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
-		args.option("-l", "--length",    "<metres>",    "minimum length for void triangles",      length);
-		args.option("-w", "--width",     "<metres>",    "minimum span width for waterbodies",     width);
-		args.option("-z", "--height",    "<metres>",    "maximum average height difference",      height);
-		args.option("-s", "--slope",     "<degrees>",   "maximum slope for water features",       slope);
-		args.option("-a", "--area",      "<metres²>",   " minimum island and waterbody area",     area);
-		args.option("-c", "--cell",      "<metres>",    "cell resolution for point thinning",     cell);
-		args.option("-x", "--extra",     "<class,...>", "extra lidar point classes to consider",  extra);
-		args.option("-e", "--epsg",      "<number>",    "EPSG code to set in output file",        epsg);
-		args.option("-j", "--jobs",      "<number>",    "number of threads when processing",      jobs);
-		args.option("-t", "--strict",                   "disqualify voids with no ground points", strict);
-		args.option("-o", "--overwrite",                "overwrite existing output file",         overwrite);
+		args.option("-l", "--length",     "<metres>",    "minimum length for void triangles",      length);
+		args.option("-w", "--width",      "<metres>",    "minimum span width for waterbodies",     width);
+		args.option("-z", "--height",     "<metres>",    "maximum average height difference",      height);
+		args.option("-s", "--slope",      "<degrees>",   "maximum slope for waterbodies",          slope);
+		args.option("-a", "--area",       "<metres²>",   " minimum island and waterbody area",     area);
+		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
+		args.option("-x", "--extra",      "<class,...>", "extra lidar point classes to include",   extra);
+		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
+		args.option("-j", "--jobs",       "<number>",    "number of threads when processing",      jobs);
+		args.option("-t", "--strict",                    "disqualify voids with no ground points", strict);
+		args.option("-o", "--overwrite",                 "overwrite existing output file",         overwrite);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -55,8 +55,8 @@ int main(int argc, char *argv[]) {
 		if (!args.parse())
 			return EXIT_SUCCESS;
 
-		if (!cell)
-			cell = length.value() / std::sqrt(8.0);
+		if (!resolution)
+			resolution = length.value() / std::sqrt(8.0);
 		if (!width)
 			width = length.value();
 		if (!extra)
@@ -72,8 +72,8 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("slope must be positive");
 		if (area.value() <= 0.0)
 			throw std::runtime_error("minimum area must be positive");
-		if (cell.value() <= 0.0)
-			throw std::runtime_error("cell size must be positive");
+		if (resolution.value() <= 0.0)
+			throw std::runtime_error("resolution must be positive");
 		for (auto klass: extra.value())
 			if (std::clamp(klass, 0, 255) != klass)
 				throw std::runtime_error("invalid lidar point class");
@@ -84,11 +84,11 @@ int main(int argc, char *argv[]) {
 		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
 			throw std::runtime_error("output file already exists");
 
-		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(cell.value(), extra.value()), [&](auto &thinned, const auto &tile_path) {
+		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(resolution.value(), extra.value()), [&](auto &thinned, const auto &tile_path) {
 			return thinned += PLY(tile_path);
 		})();
 		auto mesh = Triangulate(points, jobs.value())();
-		auto land = Land(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), cell.value(), (bool)strict);
+		auto land = Land(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), (bool)strict);
 
 		std::stringstream json;
 		json.precision(10);
