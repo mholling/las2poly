@@ -18,12 +18,16 @@ class Args {
 		InvalidArgument(const std::string message, std::string arg) : runtime_error(message + " " + arg) { }
 	};
 
+	using Callback = std::function<void(std::string)>;
+
 	struct Option {
 		std::string letter;
 		std::string name;
 		std::string format;
 		std::string description;
-		std::function<void(std::string)> callback;
+		Callback callback;
+
+		Option(std::string letter, std::string name, std::string format, std::string description, Callback callback) : letter(letter), name(name), format(format), description(description), callback(callback) { }
 
 		auto operator==(const std::string &arg) const {
 			return arg == letter || arg == name;
@@ -34,7 +38,9 @@ class Args {
 		bool variadic;
 		std::string format;
 		std::string description;
-		std::function<void(std::string)> callback;
+		Callback callback;
+
+		Position(bool variadic, std::string format, std::string description, Callback callback) : variadic(variadic), format(format), description(description), callback(callback) { }
 	};
 
 	std::string command, banner;
@@ -85,16 +91,16 @@ public:
 			description_with_default << description << " (default: " << optional.value() << ")";
 		else
 			description_with_default << description;
-		options.push_back(Option({letter, name, format, description_with_default.str(), [&](auto arg) {
+		options.emplace_back(letter, name, format, description_with_default.str(), [&](auto arg) {
 			auto parser = std::stringstream(arg);
 			if (!(parser >> optional.emplace()) || !parser.eof())
 				throw std::runtime_error("invalid argument: " + arg);
-		}}));
+		});
 	}
 
 	template <typename Value>
 	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<std::vector<Value>> &optional) {
-		options.push_back(Option({letter, name, format, description, [&](auto arg) {
+		options.emplace_back(letter, name, format, description, [&](auto arg) {
 			optional.emplace();
 			auto list = std::stringstream(arg);
 			for (std::string arg; std::getline(list, arg, ','); ) {
@@ -102,7 +108,7 @@ public:
 				if (!(parser >> optional.value().emplace_back()) || !parser.eof())
 					throw std::runtime_error("invalid argument: " + arg);
 			}
-		}}));
+		});
 	}
 
 	void option(std::string letter, std::string name, std::string description, std::optional<bool> &optional) {
@@ -111,9 +117,9 @@ public:
 
 	template <typename Value>
 	void position(std::string format, std::string description, Value &value) {
-		positions.push_back(Position({false, format, description, [&](auto arg) {
+		positions.emplace_back(false, format, description, [&](auto arg) {
 			std::stringstream(arg) >> value;
-		}}));
+		});
 	}
 
 	template <typename Value>
@@ -121,21 +127,21 @@ public:
 		for (const auto &position: positions)
 			if (position.variadic)
 				throw std::runtime_error(format + ": only one variadic positional argument allowed");
-		positions.push_back(Position({true, format, description, [&](auto arg) {
+		positions.emplace_back(true, format, description, [&](auto arg) {
 			std::stringstream(arg) >> values.emplace_back();
-		}}));
+		});
 	}
 
 	void version(std::string version_string) {
-		options.push_back(Option({"-v", "--version", "", "show program version", [&](auto) {
+		options.emplace_back("-v", "--version", "", "show program version", [&](auto) {
 			std::cout << version_string << std::endl;
-		}}));
+		});
 	}
 
 	bool parse() {
-		options.push_back(Option({"-h", "--help", "", "show this help summary", [&](auto) {
+		options.emplace_back("-h", "--help", "", "show this help summary", [&](auto) {
 			std::cout << help();
-		}}));
+		});
 
 		std::vector<std::string> position_args, option_args;
 
