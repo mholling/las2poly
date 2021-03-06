@@ -11,14 +11,16 @@
 #include <ostream>
 
 class Ring {
-	std::vector<Point> points;
+	using Points = std::vector<Point>;
+	using Iterator = typename Points::const_iterator;
+
+	Points points;
 	double signed_area;
 
 	struct PointOnRing : std::runtime_error {
 		PointOnRing() : runtime_error("point on ring") { }
 	};
 
-	template <typename Iterator>
 	struct EdgeIterator {
 		const Iterator start, stop;
 		Iterator here;

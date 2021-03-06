@@ -10,13 +10,16 @@
 #include <stdexcept>
 
 class Triangulate {
-	std::vector<Point> &points;
+	using Points = std::vector<Point>;
+	using Iterator = typename Points::iterator;
+
+	Points &points;
 	int threads;
 
-	template <typename ContainerIterator, int axis = 0>
+	template <int axis = 0>
 	class Partition {
-		using Child = Partition<ContainerIterator, 1-axis>;
-		const ContainerIterator first, middle, last;
+		using Child = Partition<1-axis>;
+		const Iterator first, middle, last;
 		int threads;
 
 		static auto less_than(const Point &p1, const Point &p2) {
@@ -55,7 +58,7 @@ class Triangulate {
 		}
 
 	public:
-		Partition(ContainerIterator first, ContainerIterator last, int threads) : first(first), last(last), middle(first + (last - first) / 2), threads(threads) {
+		Partition(Iterator first, Iterator last, int threads) : first(first), last(last), middle(first + (last - first) / 2), threads(threads) {
 			std::nth_element(first, middle, last, less_than);
 		}
 
