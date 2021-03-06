@@ -32,12 +32,12 @@ class PLY {
 			throw std::runtime_error("unable to process PLY file");
 	}
 
-	template <typename T>
-	void expect(const std::string words, T &t) {
+	template <typename Value>
+	void expect(const std::string words, Value &value) {
 		auto string = line();
 		if (string.rfind(words, 0) != 0)
 			throw std::runtime_error("unable to process PLY file");
-		std::istringstream(string.erase(0, words.size())) >> t;
+		std::istringstream(string.erase(0, words.size())) >> value;
 	}
 
 	auto point() {

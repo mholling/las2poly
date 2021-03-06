@@ -78,8 +78,8 @@ public:
 			args.push_back("--help");
 	}
 
-	template <typename T>
-	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<T> &optional) {
+	template <typename Value>
+	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<Value> &optional) {
 		std::stringstream description_with_default;
 		if (optional)
 			description_with_default << description << " (default: " << optional.value() << ")";
@@ -92,8 +92,8 @@ public:
 		}}));
 	}
 
-	template <typename T>
-	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<std::vector<T>> &optional) {
+	template <typename Value>
+	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<std::vector<Value>> &optional) {
 		options.push_back(Option({letter, name, format, description, [&](auto arg) {
 			optional.emplace();
 			auto list = std::stringstream(arg);
@@ -109,15 +109,15 @@ public:
 		option(letter, name, "", description, optional);
 	}
 
-	template <typename T>
-	void position(std::string format, std::string description, T &value) {
+	template <typename Value>
+	void position(std::string format, std::string description, Value &value) {
 		positions.push_back(Position({false, format, description, [&](auto arg) {
 			std::stringstream(arg) >> value;
 		}}));
 	}
 
-	template <typename T>
-	void position(std::string format, std::string description, std::vector<T> &values) {
+	template <typename Value>
+	void position(std::string format, std::string description, std::vector<Value> &values) {
 		for (const auto &position: positions)
 			if (position.variadic)
 				throw std::runtime_error(format + ": only one variadic positional argument allowed");
