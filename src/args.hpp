@@ -92,6 +92,17 @@ public:
 		}}));
 	}
 
+	template <typename T>
+	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<std::vector<T>> &optional) {
+		options.push_back(Option({letter, name, format, description, [&](auto arg) {
+			std::vector<T> values;
+			auto list = std::stringstream(arg);
+			for (std::string arg; std::getline(list, arg, ','); )
+				std::stringstream(arg) >> values.emplace_back();
+			optional = values;
+		}}));
+	}
+
 	void option(std::string letter, std::string name, std::string description, std::optional<bool> &optional) {
 		option(letter, name, "", description, optional);
 	}

@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cstddef>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class Thinned {
@@ -22,6 +23,7 @@ class Thinned {
 	};
 
 	std::unordered_map<Cell, RawPoint, CellHash> thinned;
+	std::unordered_set<unsigned char> classes;
 	double cell_size;
 
 	static auto better_than(const RawPoint &point1, const RawPoint &point2) {
@@ -41,12 +43,16 @@ class Thinned {
 	}
 
 public:
-	Thinned(double cell_size) : cell_size(cell_size) { }
+	template <typename Extra>
+	Thinned(double cell_size, Extra extra) : cell_size(cell_size), classes({2,3,4,5,6}) {
+		classes.insert(extra.begin(), extra.end());
+	}
 
 	template <typename Tile>
 	auto &operator+=(Tile tile) {
 		for (const auto point: tile)
-			insert(point);
+			if (classes.count(point.c))
+				insert(point);
 		return *this;
 	}
 
