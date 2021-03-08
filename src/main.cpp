@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 		auto land = Land(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), (bool)strict);
 
 		std::stringstream json;
-		json.precision(10);
+		json.precision(12);
 		json << "{\"type\":\"FeatureCollection\",";
 		if (epsg)
 			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << epsg.value() << "\"}},";
