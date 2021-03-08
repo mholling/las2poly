@@ -36,7 +36,7 @@ public:
 		};
 		for (const auto &incoming: edges) {
 			std::unordered_map<Edge, double> edges_angles;
-			const auto &[start, stop] = points_edges.equal_range(incoming.first);
+			const auto &[start, stop] = points_edges.equal_range(incoming.second);
 			std::for_each(start, stop, [&](const auto &point_edge) {
 				const auto &[point, outgoing] = point_edge;
 				const auto cross = incoming ^ outgoing;
