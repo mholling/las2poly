@@ -6,7 +6,6 @@
 #include "ring.hpp"
 #include <unordered_map>
 #include <vector>
-#include <iterator>
 #include <utility>
 #include <algorithm>
 #include <cmath>
@@ -29,10 +28,8 @@ public:
 	template <typename Edges>
 	Rings(const Edges &edges) {
 		std::unordered_multimap<const Point &, Edge> points_edges;
-		std::transform(edges.begin(), edges.end(), std::inserter(points_edges, points_edges.begin()), [](const auto &edge) {
-			return std::pair(edge.first, edge);
-		});
-
+		for (const auto &edge: edges)
+			points_edges.emplace(edge.first, edge);
 		auto ordering = [](const auto &pair1, const auto &pair2) {
 			const auto &[edge1, angle1] = pair1;
 			const auto &[edge2, angle2] = pair2;
@@ -42,12 +39,12 @@ public:
 		for (const auto &incoming: edges) {
 			std::vector<std::pair<Edge, double>> edges_angles;
 			const auto &[start, stop] = points_edges.equal_range(incoming.first);
-			std::transform(start, stop, std::back_inserter(edges_angles), [&](const auto &point_edge) {
+			std::for_each(start, stop, [&](const auto &point_edge) {
 				const auto &[point, outgoing] = point_edge;
 				const auto cross = incoming ^ outgoing;
 				const auto   dot = incoming * outgoing;
 				const auto angle = std::atan2(cross, dot);
-				return std::pair(outgoing, angle);
+				edges_angles.emplace_back(outgoing, angle);
 			});
 			const auto &[outgoing, angle] = outside
 				? *std::max_element(edges_angles.begin(), edges_angles.end(), ordering)
