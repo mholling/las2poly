@@ -43,18 +43,20 @@ class Triangulate {
 		template <bool rhs>
 		static auto find_candidate(Mesh &mesh, const Mesh::Iterator &edge, const Point &opposite) {
 			const auto &point = edge->second;
-			const auto &candidate = edge.peek()->second;
-			auto cross_product = (point - opposite) ^ (candidate - opposite);
-			if (cross_product <= 0.0 == rhs)
-				return std::optional<Point const *>();
-			if (mesh.dangling(point))
+			while (true) {
+				const auto &candidate = edge.peek()->second;
+				auto cross_product = (point - opposite) ^ (candidate - opposite);
+				if (cross_product <= 0.0 == rhs)
+					return std::optional<Point const *>();
+				if (mesh.dangling(point))
+					return std::optional<Point const *>(&candidate);
+				mesh.disconnect(point, candidate);
+				const auto &next_candidate = edge.peek()->second;
+				if (next_candidate.in_circle(rhs ? candidate : point, opposite, rhs ? point : candidate))
+					continue;
+				mesh.connect(point, candidate);
 				return std::optional<Point const *>(&candidate);
-			mesh.disconnect(point, candidate);
-			const auto &next_candidate = edge.peek()->second;
-			if (next_candidate.in_circle(rhs ? candidate : point, opposite, rhs ? point : candidate))
-				return find_candidate<rhs>(mesh, edge, opposite);
-			mesh.connect(point, candidate);
-			return std::optional<Point const *>(&candidate);
+			}
 		}
 
 	public:
