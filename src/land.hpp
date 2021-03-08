@@ -21,7 +21,7 @@ struct Land : std::vector<Polygon> {
 			if (face > length)
 				large_faces += face;
 		}, [&](const auto &edge) {
-			outside_edges += edge;
+			outside_edges.insert(edge);
 		});
 
 		large_faces.explode([&](const auto &faces) {

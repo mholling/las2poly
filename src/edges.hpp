@@ -9,27 +9,10 @@
 
 using Edges = std::unordered_set<Edge>;
 
-auto &operator+=(Edges &edges, const Edge &edge) {
-	if (!edges.erase(-edge))
-		edges.insert(edge);
-	return edges;
-}
-
-auto &operator-=(Edges &edges, const Edge &edge) {
-	if (!edges.erase(edge))
-		edges.insert(-edge);
-	return edges;
-}
-
-auto &operator+=(Edges &edges, const Face &face) {
-	for (const auto &edge: face)
-		edges += edge;
-	return edges;
-}
-
 auto &operator-=(Edges &edges, const Face &face) {
 	for (const auto &edge: face)
-		edges -= edge;
+		if (!edges.erase(edge))
+			edges.insert(-edge);
 	return edges;
 }
 
