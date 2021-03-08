@@ -84,7 +84,7 @@ class Triangulate {
 				auto check_left = [&]() {
 					return (*left_edge ^ right_edge->first) <= 0.0;
 				};
-				while (!check_right() && !check_left()) {
+				while (!check_right() || !check_left()) {
 					if (!check_right())
 						++right_edge;
 					if (!check_left())
