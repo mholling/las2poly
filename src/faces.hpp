@@ -62,7 +62,7 @@ public:
 		});
 	}
 
-	auto is_water(double height, double slope, bool strict) const {
+	auto is_water(double height, double slope, bool permissive) const {
 		Vector<3> perp;
 		double sum_abs = 0.0;
 		std::size_t count = 0;
@@ -82,7 +82,7 @@ public:
 		}
 
 		auto angle = std::acos(std::abs(perp.normalise()[2])) * 180.0 / M_PI;
-		return angle > slope ? false : count < 3 ? !strict : sum_abs / count < height;
+		return angle > slope ? false : count < 3 ? permissive : sum_abs / count < height;
 	}
 };
 

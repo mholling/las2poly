@@ -28,24 +28,24 @@ int main(int argc, char *argv[]) {
 		std::optional<std::vector<int>> extra;
 		std::optional<int> epsg;
 		std::optional<int> jobs = std::max(1u, std::thread::hardware_concurrency());
-		std::optional<bool> strict;
+		std::optional<bool> permissive;
 		std::optional<bool> overwrite;
 
 		std::vector<std::string> tile_paths;
 		std::string json_path;
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
-		args.option("-l", "--length",     "<metres>",    "minimum length for void triangles",      length);
-		args.option("-w", "--width",      "<metres>",    "minimum span width for waterbodies",     width);
-		args.option("-z", "--height",     "<metres>",    "maximum average height difference",      height);
-		args.option("-s", "--slope",      "<degrees>",   "maximum slope for waterbodies",          slope);
-		args.option("-a", "--area",       "<metres²>",   " minimum island and waterbody area",     area);
-		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
-		args.option("-x", "--extra",      "<class,...>", "extra lidar point classes to include",   extra);
-		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
-		args.option("-j", "--jobs",       "<number>",    "number of threads when processing",      jobs);
-		args.option("-t", "--strict",                    "disqualify voids with no ground points", strict);
-		args.option("-o", "--overwrite",                 "overwrite existing output file",         overwrite);
+		args.option("-l", "--length",     "<metres>",    "minimum length for void triangles",    length);
+		args.option("-w", "--width",      "<metres>",    "minimum span width for waterbodies",   width);
+		args.option("-z", "--height",     "<metres>",    "maximum average height difference",    height);
+		args.option("-s", "--slope",      "<degrees>",   "maximum slope for waterbodies",        slope);
+		args.option("-a", "--area",       "<metres²>",   " minimum island and waterbody area",   area);
+		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",        resolution);
+		args.option("-x", "--extra",      "<class,...>", "extra lidar point classes to include", extra);
+		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",      epsg);
+		args.option("-j", "--jobs",       "<number>",    "number of threads when processing",    jobs);
+		args.option("-p", "--permissive",                "allow voids with no ground points",    permissive);
+		args.option("-o", "--overwrite",                 "overwrite existing output file",       overwrite);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
 			return thin += Tile(tile_path);
 		})();
 		auto mesh = Triangulate(points, jobs.value())();
-		auto land = Land(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), (bool)strict);
+		auto land = Land(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), (bool)permissive);
 
 		std::stringstream json;
 		json.precision(12);

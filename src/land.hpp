@@ -13,7 +13,7 @@
 #include <ostream>
 
 struct Land : std::vector<Polygon> {
-	Land(Mesh &mesh, double length, double width, double height, double slope, double area, bool strict) {
+	Land(Mesh &mesh, double length, double width, double height, double slope, double area, bool permissive) {
 		Faces large_faces;
 		Edges outside_edges;
 
@@ -25,7 +25,7 @@ struct Land : std::vector<Polygon> {
 		});
 
 		large_faces.explode([&](const auto &faces) {
-			if ((outside_edges || faces) || ((width <= length || faces > width) && faces.is_water(height, slope, strict)))
+			if ((outside_edges || faces) || ((width <= length || faces > width) && faces.is_water(height, slope, permissive)))
 				for (const auto &face: faces)
 					outside_edges -= face;
 		});
