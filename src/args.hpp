@@ -80,8 +80,6 @@ public:
 		command = std::filesystem::path(*argv++).filename();
 		for (--argc; argc > 0; --argc)
 			args.push_back(*argv++);
-		if (args.empty())
-			args.push_back("--help");
 	}
 
 	template <typename Value>
@@ -145,46 +143,51 @@ public:
 
 		std::vector<std::string> position_args, option_args;
 
-		for (auto arg = args.begin(); arg != args.end(); ) {
-			const auto option = std::find(options.begin(), options.end(), *arg);
-			if (option == options.end())
-				if (arg->rfind("-", 0) == 0 && arg->size() > 1)
-					throw InvalidArgument("invalid option:", *arg);
-				else
-					position_args.push_back(*arg++);
-			else if (option->format.empty() || arg + 1 == args.end())
-				option_args.push_back(*arg++);
-			else {
-				option_args.push_back(*arg++);
-				option_args.push_back(*arg++);
+		try {
+			for (auto arg = args.begin(); arg != args.end(); ) {
+				const auto option = std::find(options.begin(), options.end(), *arg);
+				if (option == options.end())
+					if (arg->rfind("-", 0) == 0 && arg->size() > 1)
+						throw InvalidArgument("invalid option:", *arg);
+					else
+						position_args.push_back(*arg++);
+				else if (option->format.empty() || arg + 1 == args.end())
+					option_args.push_back(*arg++);
+				else {
+					option_args.push_back(*arg++);
+					option_args.push_back(*arg++);
+				}
 			}
+
+			for (auto arg = option_args.begin(); arg != option_args.end(); ++arg) {
+				const auto option = std::find(options.begin(), options.end(), *arg);
+				if (option->format.empty())
+					option->callback("1");
+				else if (arg + 1 == option_args.end())
+					throw InvalidArgument("missing argument for option:", *arg);
+				else
+					option->callback(*++arg);
+				if (option->name == "--help" || option->name == "--version")
+					return false;
+			}
+
+			auto position = positions.begin();
+			for (auto arg = position_args.begin(); arg != position_args.end(); ++arg)
+				if (position == positions.end())
+					throw InvalidArgument("invalid argument:", *arg);
+				else if (!position->variadic)
+					(position++)->callback(*arg);
+				else if (position_args.end() - arg > positions.end() - position)
+					position->callback(*arg);
+				else
+					(position++)->callback(*arg);
+
+			if (position != positions.end())
+				throw InvalidArgument("missing argument:", position->description);
+		} catch (InvalidArgument &error) {
+			std::cerr << help();
+			throw error;
 		}
-
-		for (auto arg = option_args.begin(); arg != option_args.end(); ++arg) {
-			const auto option = std::find(options.begin(), options.end(), *arg);
-			if (option->format.empty())
-				option->callback("1");
-			else if (arg + 1 == option_args.end())
-				throw InvalidArgument("missing argument for option:", *arg);
-			else
-				option->callback(*++arg);
-			if (option->name == "--help" || option->name == "--version")
-				return false;
-		}
-
-		auto position = positions.begin();
-		for (auto arg = position_args.begin(); arg != position_args.end(); ++arg)
-			if (position == positions.end())
-				throw InvalidArgument("invalid argument:", *arg);
-			else if (!position->variadic)
-				(position++)->callback(*arg);
-			else if (position_args.end() - arg > positions.end() - position)
-				position->callback(*arg);
-			else
-				(position++)->callback(*arg);
-
-		if (position != positions.end())
-			throw InvalidArgument("missing argument:", position->description);
 
 		return true;
 	}

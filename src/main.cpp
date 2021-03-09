@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
 #ifdef VERSION
 		args.version(VERSION);
 #endif
-		args.position("<tile.las>", "input LAS or PLY path", tile_paths);
-		args.position("<polys.json>", "output GeoJSON path", json_path);
+		args.position("<tile.las>", "LAS or PLY input path", tile_paths);
+		args.position("<land.json>", "GeoJSON output path", json_path);
 
 		if (!args.parse())
 			return EXIT_SUCCESS;
