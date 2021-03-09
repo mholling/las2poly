@@ -27,16 +27,10 @@ class Thin {
 	std::unordered_set<unsigned char> classes;
 	double resolution;
 
-	static auto better_than(const RawPoint &point1, const RawPoint &point2) {
-		return point1.ground()
-			? point2.ground() ? point1.z < point2.z : true
-			: point2.ground() ? false : point1.z < point2.z;
-	}
-
 	auto &insert(const RawPoint &point) {
 		auto cell = Cell(point, resolution);
 		auto [existing, inserted] = thinned.emplace(cell, point);
-		if (!inserted && better_than(point, existing->second)) {
+		if (!inserted && point < existing->second) {
 			thinned.erase(existing);
 			thinned.emplace(cell, point);
 		}
