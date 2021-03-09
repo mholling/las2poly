@@ -1,5 +1,5 @@
-#ifndef THINNED_HPP
-#define THINNED_HPP
+#ifndef THIN_HPP
+#define THIN_HPP
 
 #include "raw_point.hpp"
 #include "point.hpp"
@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <vector>
 
-class Thinned {
+class Thin {
 	using Indices = std::pair<std::uint32_t, std::uint32_t>;
 
 	struct Cell : Indices {
@@ -45,7 +45,7 @@ class Thinned {
 
 public:
 	template <typename Extra>
-	Thinned(double resolution, Extra extra) : resolution(resolution), classes({2,3,4,5,6}) {
+	Thin(double resolution, Extra extra) : resolution(resolution), classes({2,3,4,5,6}) {
 		classes.insert(extra.begin(), extra.end());
 	}
 

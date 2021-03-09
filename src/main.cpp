@@ -1,5 +1,5 @@
 #include "args.hpp"
-#include "thinned.hpp"
+#include "thin.hpp"
 #include "tile.hpp"
 #include "triangulate.hpp"
 #include "land.hpp"
@@ -84,8 +84,8 @@ int main(int argc, char *argv[]) {
 		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
 			throw std::runtime_error("output file already exists");
 
-		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(resolution.value(), extra.value()), [&](auto &thinned, const auto &tile_path) {
-			return thinned += Tile(tile_path);
+		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thin(resolution.value(), extra.value()), [&](auto &thin, const auto &tile_path) {
+			return thin += Tile(tile_path);
 		})();
 		auto mesh = Triangulate(points, jobs.value())();
 		auto land = Land(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), (bool)strict);
