@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 		std::optional<double> resolution;
 		std::optional<std::vector<int>> extra;
 		std::optional<int> epsg;
-		std::optional<int> jobs = std::max(1u, std::thread::hardware_concurrency());
+		std::optional<int> threads = std::max(1u, std::thread::hardware_concurrency());
 		std::optional<bool> permissive;
 		std::optional<bool> overwrite;
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",        resolution);
 		args.option("-x", "--extra",      "<class,...>", "extra lidar point classes to include", extra);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",      epsg);
-		args.option("-j", "--jobs",       "<number>",    "number of threads when processing",    jobs);
+		args.option("-t", "--threads",    "<number>",    "number of threads when processing",    threads);
 		args.option("-p", "--permissive",                "allow voids with no ground points",    permissive);
 		args.option("-o", "--overwrite",                 "overwrite existing output file",       overwrite);
 #ifdef VERSION
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
 				throw std::runtime_error("invalid lidar point class");
 		if (epsg && std::clamp(epsg.value(), 1024, 32767) != epsg.value())
 			throw std::runtime_error("invalid EPSG code");
-		if (jobs.value() < 1)
+		if (threads.value() < 1)
 			throw std::runtime_error("number of threads must be positive");
 		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
 			throw std::runtime_error("output file already exists");
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thin(resolution.value(), extra.value()), [&](auto &thin, const auto &tile_path) {
 			return thin += Tile(tile_path);
 		})();
-		auto mesh = Triangulate(points, jobs.value())();
+		auto mesh = Triangulate(points, threads.value())();
 		auto land = Land(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), (bool)permissive);
 
 		std::stringstream json;
