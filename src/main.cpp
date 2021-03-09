@@ -1,6 +1,6 @@
 #include "args.hpp"
 #include "thinned.hpp"
-#include "ply.hpp"
+#include "tile.hpp"
 #include "triangulate.hpp"
 #include "land.hpp"
 #include <optional>
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 #ifdef VERSION
 		args.version(VERSION);
 #endif
-		args.position("<tile.ply>",   "input PLY path",      tile_paths);
+		args.position("<tile.las>", "input LAS or PLY path", tile_paths);
 		args.position("<polys.json>", "output GeoJSON path", json_path);
 
 		if (!args.parse())
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("output file already exists");
 
 		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thinned(resolution.value(), extra.value()), [&](auto &thinned, const auto &tile_path) {
-			return thinned += PLY(tile_path);
+			return thinned += Tile(tile_path);
 		})();
 		auto mesh = Triangulate(points, jobs.value())();
 		auto land = Land(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), (bool)strict);

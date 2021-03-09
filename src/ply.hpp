@@ -3,13 +3,13 @@
 
 #include "raw_point.hpp"
 #include <fstream>
-#include <cstddef>
 #include <string>
 #include <stdexcept>
+#include <sstream>
+#include <cstddef>
 
 class PLY {
-	std::ifstream input;
-	std::size_t vertex_count;
+	std::ifstream &input;
 
 	auto format_string() const {
 		union {
@@ -40,33 +40,12 @@ class PLY {
 		std::istringstream(string.erase(0, words.size())) >> value;
 	}
 
-	auto point() {
-		RawPoint point;
-		input.read(reinterpret_cast<char *>(&point.x), sizeof(point.x));
-		input.read(reinterpret_cast<char *>(&point.y), sizeof(point.y));
-		input.read(reinterpret_cast<char *>(&point.z), sizeof(point.z));
-		input.read(reinterpret_cast<char *>(&point.c), sizeof(point.c));
-		return point;
-	}
-
-	struct Iterator {
-		PLY &ply;
-		std::size_t index;
-
-		Iterator(PLY &ply, std::size_t index) : ply(ply), index(index) { }
-		auto &operator++() { ++index; return *this;}
-		auto operator!=(Iterator other) const { return index != other.index; }
-		auto operator*() { return ply.point(); }
-	};
-
 public:
-	PLY(const std::string &path) {
-		input.exceptions(input.exceptions() | std::ifstream::failbit);
-		input.open(path, std::ios::binary);
+	std::size_t count;
 
-		expect("ply");
+	PLY(std::ifstream &input) : input(input) {
 		expect(format_string());
-		expect("element vertex", vertex_count);
+		expect("element vertex", count);
 		expect("property float64 x");
 		expect("property float64 y");
 		expect("property float64 z");
@@ -74,8 +53,14 @@ public:
 		expect("end_header");
 	}
 
-	auto begin() { return Iterator(*this, 0); }
-	auto   end() { return Iterator(*this, vertex_count); }
+	auto point() const {
+		RawPoint point;
+		input.read(reinterpret_cast<char *>(&point.x), sizeof(point.x));
+		input.read(reinterpret_cast<char *>(&point.y), sizeof(point.y));
+		input.read(reinterpret_cast<char *>(&point.z), sizeof(point.z));
+		input.read(reinterpret_cast<char *>(&point.c), sizeof(point.c));
+		return point;
+	}
 };
 
 #endif
