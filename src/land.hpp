@@ -3,7 +3,7 @@
 
 #include "polygon.hpp"
 #include "mesh.hpp"
-#include "faces.hpp"
+#include "triangles.hpp"
 #include "edges.hpp"
 #include "rings.hpp"
 #include "ring.hpp"
@@ -14,20 +14,20 @@
 
 struct Land : std::vector<Polygon> {
 	Land(Mesh &mesh, double length, double width, double height, double slope, double area, bool permissive) {
-		Faces large_faces;
+		Triangles large_triangles;
 		Edges outside_edges;
 
-		mesh.deconstruct([&](const auto &face) {
-			if (face > length)
-				large_faces += face;
+		mesh.deconstruct([&](const auto &triangle) {
+			if (triangle > length)
+				large_triangles += triangle;
 		}, [&](const auto &edge) {
 			outside_edges.insert(edge);
 		});
 
-		large_faces.explode([&](const auto &faces) {
-			if ((outside_edges || faces) || ((width <= length || faces > width) && faces.is_water(height, slope, permissive)))
-				for (const auto &face: faces)
-					outside_edges -= face;
+		large_triangles.explode([&](const auto &triangles) {
+			if ((outside_edges || triangles) || ((width <= length || triangles > width) && triangles.is_water(height, slope, permissive)))
+				for (const auto &triangle: triangles)
+					outside_edges -= triangle;
 		});
 
 		auto rings = Rings(outside_edges)();

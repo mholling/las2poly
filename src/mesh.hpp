@@ -3,7 +3,7 @@
 
 #include "point.hpp"
 #include "edge.hpp"
-#include "face.hpp"
+#include "triangle.hpp"
 #include <unordered_map>
 #include <algorithm>
 #include <utility>
@@ -110,8 +110,8 @@ public:
 		return *this;
 	}
 
-	template <typename FaceFunction, typename EdgeFunction>
-	void deconstruct(FaceFunction yield_face, EdgeFunction yield_edge) {
+	template <typename TriangleFunction, typename EdgeFunction>
+	void deconstruct(TriangleFunction yield_triangle, EdgeFunction yield_edge) {
 		auto edge = rightmost_clockwise(std::less());
 		const auto &point = edge->first;
 		while (true) {
@@ -124,7 +124,7 @@ public:
 		while (!graph.empty()) {
 			auto edge = Iterator(*this, graph.begin(), true);
 			std::array edges = {edge++, edge++, edge};
-			yield_face(Face({*edges[0], *edges[1], *edges[2]}));
+			yield_triangle(Triangle({*edges[0], *edges[1], *edges[2]}));
 			graph.erase(edges[0]);
 			graph.erase(edges[1]);
 			graph.erase(edges[2]);

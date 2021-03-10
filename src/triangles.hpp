@@ -1,7 +1,7 @@
-#ifndef FACES_HPP
-#define FACES_HPP
+#ifndef TRIANGLES_HPP
+#define TRIANGLES_HPP
 
-#include "face.hpp"
+#include "triangle.hpp"
 #include "edge.hpp"
 #include "vector.hpp"
 #include <unordered_set>
@@ -11,54 +11,54 @@
 #include <array>
 #include <cmath>
 
-class Faces {
-	std::unordered_set<Face> faces;
-	std::unordered_map<Edge, Face> neighbours;
+class Triangles {
+	std::unordered_set<Triangle> triangles;
+	std::unordered_map<Edge, Triangle> neighbours;
 
-	Faces(Faces *source) {
-		std::unordered_set<Face> pending;
-		for (pending.insert(*source->faces.begin()); !pending.empty(); ) {
-			const auto &face = *pending.begin();
-			*source -= face;
-			*this += face;
-			for (const auto edge: face) {
+	Triangles(Triangles *source) {
+		std::unordered_set<Triangle> pending;
+		for (pending.insert(*source->triangles.begin()); !pending.empty(); ) {
+			const auto &triangle = *pending.begin();
+			*source -= triangle;
+			*this += triangle;
+			for (const auto edge: triangle) {
 				const auto pair = source->neighbours.find(edge);
 				if (pair != source->neighbours.end())
 					pending.insert(pair->second);
 			}
-			pending.erase(face);
+			pending.erase(triangle);
 		}
 	}
 
 public:
-	Faces() { }
+	Triangles() { }
 
-	auto begin() const { return faces.begin(); }
-	auto   end() const { return faces.end(); }
+	auto begin() const { return triangles.begin(); }
+	auto   end() const { return triangles.end(); }
 
-	Faces &operator+=(const Face &face) {
-		faces.insert(face);
-		for (const auto edge: face)
-			neighbours.emplace(-edge, face);
+	Triangles &operator+=(const Triangle &triangle) {
+		triangles.insert(triangle);
+		for (const auto edge: triangle)
+			neighbours.emplace(-edge, triangle);
 		return *this;
 	}
 
-	Faces &operator-=(const Face &face) {
-		faces.erase(face);
-		for (const auto edge: face)
+	Triangles &operator-=(const Triangle &triangle) {
+		triangles.erase(triangle);
+		for (const auto edge: triangle)
 			neighbours.erase(-edge);
 		return *this;
 	}
 
 	template <typename Function>
 	auto explode(Function function) {
-		while (!faces.empty())
-			function(Faces(this));
+		while (!triangles.empty())
+			function(Triangles(this));
 	}
 
 	auto operator>(double length) const {
-		return std::any_of(faces.begin(), faces.end(), [=](const auto &face) {
-			return face > length;
+		return std::any_of(triangles.begin(), triangles.end(), [=](const auto &triangle) {
+			return triangle > length;
 		});
 	}
 
@@ -67,8 +67,8 @@ public:
 		double sum_abs = 0.0;
 		std::size_t count = 0;
 
-		for (const auto &face: faces) {
-			auto edge = face.begin();
+		for (const auto &triangle: triangles) {
+			auto edge = triangle.begin();
 			std::array edges = {edge++, edge++, edge};
 			std::iter_swap(edges.begin(), std::min_element(edges.begin(), edges.end(), [](const auto &edge1, const auto *edge2) {
 				return *edge1 < *edge2;
