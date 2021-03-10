@@ -12,7 +12,7 @@
 #include <iterator>
 #include <ostream>
 
-class Land : std::vector<Polygon> {
+struct Land : std::vector<Polygon> {
 	static auto is_water(const Triangles &triangles, double delta, double slope, bool permissive) {
 		Vector<3> perp;
 		double sum_abs = 0.0;
@@ -36,7 +36,6 @@ class Land : std::vector<Polygon> {
 		return angle > slope ? false : count < 3 ? permissive : sum_abs / count < delta;
 	}
 
-public:
 	Land(Mesh &mesh, double length, double width, double delta, double slope, double area, bool permissive) {
 		Triangles large_triangles;
 		Edges outside_edges;
@@ -74,14 +73,14 @@ public:
 			emplace_back(rings);
 		});
 	}
-
-	friend auto &operator<<(std::ostream &json, const Land &land) {
-		bool first = true;
-		for (const auto &polygon: land)
-			json << (std::exchange(first, false) ? '[' : ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
-		json << (first ? "[]" : "]");
-		return json;
-	}
 };
+
+auto &operator<<(std::ostream &json, const Land &land) {
+	bool first = true;
+	for (const auto &polygon: land)
+		json << (std::exchange(first, false) ? '[' : ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
+	json << (first ? "[]" : "]");
+	return json;
+}
 
 #endif
