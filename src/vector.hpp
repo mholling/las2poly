@@ -8,40 +8,32 @@
 #include <functional>
 #include <numeric>
 #include <cmath>
+#include <ostream>
+#include <utility>
 
 template <std::size_t N>
-struct Vector {
-	std::array<double, N> values = {};
-
-	auto begin() { return values.begin(); }
-	auto   end() { return values.end(); }
-
-	auto begin() const { return values.begin(); }
-	auto   end() const { return values.end(); }
-
-	auto operator[](std::size_t pos) const { return values[pos]; }
-
+struct Vector : std::array<double, N> {
 	template <typename T>
 	auto &operator+=(const T &t) {
-		std::transform(begin(), end(), t.begin(), begin(), std::plus<>());
+		std::transform(this->begin(), this->end(), t.begin(), this->begin(), std::plus<>());
 		return *this;
 	}
 
 	template <typename T>
 	auto &operator-=(const T &t) {
-		std::transform(begin(), end(), t.begin(), begin(), std::minus<>());
+		std::transform(this->begin(), this->end(), t.begin(), this->begin(), std::minus<>());
 		return *this;
 	}
 
 	template <typename T>
 	auto &operator*=(const T &t) {
-		for (auto &value: values) value *= t;
+		for (auto &value: *this) value *= t;
 		return *this;
 	}
 
 	template <typename T>
 	auto &operator/=(const T &t) {
-		for (auto &value: values) value /= t;
+		for (auto &value: *this) value /= t;
 		return *this;
 	}
 
@@ -80,6 +72,13 @@ Vector<3> operator^(const Vector<3> &v1, const Vector<3> &v2) {
 
 auto operator^(const Vector<2> &v1, const Vector<2> &v2) {
 	return v1[0] * v2[1] - v1[1] * v2[0];
+}
+
+auto &operator<<(std::ostream &json, const Vector<2> &vector) {
+	auto separator = '[';
+	for (const auto &coord: vector)
+		json << std::exchange(separator, ',') << coord;
+	return json << ']';
 }
 
 #endif

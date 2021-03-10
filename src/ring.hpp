@@ -1,64 +1,71 @@
 #ifndef RING_HPP
 #define RING_HPP
 
-#include "point.hpp"
-#include "edge.hpp"
+#include "vector.hpp"
 #include <vector>
 #include <stdexcept>
+#include <utility>
+#include <cmath>
+#include <algorithm>
 #include <ostream>
 
 class Ring {
-	using Points = std::vector<Point>;
-	using PointIterator = typename Points::const_iterator;
+	using Vertex = Vector<2>;
+	using Vertices = std::vector<Vertex>;
+	using VertexIterator = typename Vertices::const_iterator;
 
-	Points points;
+	Vertices vertices;
 	double signed_area;
 
-	struct PointOnRing : std::runtime_error {
-		PointOnRing() : runtime_error("point on ring") { }
+	struct VertexOnRing : std::runtime_error {
+		VertexOnRing() : runtime_error("vertex on ring") { }
 	};
 
 	struct Iterator {
-		const PointIterator start, stop;
-		PointIterator here;
+		const VertexIterator start, stop;
+		VertexIterator here;
 
-		Iterator(PointIterator start, PointIterator stop, PointIterator here) : start(start), stop(stop), here(here) { }
+		Iterator(VertexIterator start, VertexIterator stop, VertexIterator here) : start(start), stop(stop), here(here) { }
 		auto &operator++() { ++here; return *this;}
 		auto operator!=(Iterator other) const { return here != other.here; }
-		auto operator*() { return Edge(*here, *(here + 1 == stop ? start : here + 1)); }
+		auto operator*() { return std::pair(*here, *(here + 1 == stop ? start : here + 1)); }
 	};
 
-	auto begin() const { return Iterator(points.begin(), points.end(), points.begin()); }
-	auto   end() const { return Iterator(points.begin(), points.end(), points.end()); }
+	auto begin() const { return Iterator(vertices.begin(), vertices.end(), vertices.begin()); }
+	auto   end() const { return Iterator(vertices.begin(), vertices.end(), vertices.end()); }
 
-	auto winding_number(const Point &point) const {
+	auto winding_number(const Vertex &v) const {
 		int winding = 0;
-		for (const auto edge: *this)
-			if (edge && point)
-				throw PointOnRing();
-			else if (edge << point)
+		for (const auto &[v1, v2]: *this)
+			if (v1 == v || v2 == v)
+				throw VertexOnRing();
+			else if ((v1 < v) && !(v2 < v) && ((v1 - v) ^ (v2 - v)) > 0)
 				++winding;
-			else if (edge >> point)
+			else if ((v2 < v) && !(v1 < v) && ((v2 - v) ^ (v1 - v)) > 0)
 				--winding;
 		return winding;
+	}
+
+	auto update_signed_area() {
+		const auto &v = vertices[0];
+		double sum = 0.0;
+		for (const auto &[v0, v1, v2]: *this)
+			sum += (v1 - v) ^ (v2 - v);
+		signed_area = sum * 0.5;
 	}
 
 public:
 	template <typename Edges>
 	Ring(const Edges &edges) {
-		const auto &origin = edges.begin()->first;
-		double sum = 0.0;
-		for (const auto &edge: edges) {
-			points.push_back(edge.first);
-			sum += edge ^ origin;
-		}
-		signed_area = sum * 0.5;
+		for (const auto &[p1, p2]: edges)
+			vertices.push_back(p1);
+		update_signed_area();
 	}
 
 	auto contains(const Ring &ring) const {
-		for (const auto &point: points)
-			try { return winding_number(point) != 0; }
-			catch (PointOnRing &) { }
+		for (const auto &vertex: vertices)
+			try { return winding_number(vertex) != 0; }
+			catch (VertexOnRing &) { }
 		return false; // ring == *this
 	}
 
@@ -76,9 +83,9 @@ public:
 
 	friend auto &operator<<(std::ostream &json, const Ring &ring) {
 		json << '[';
-		for (const auto &point: ring.points)
-			json << point << ',';
-		return json << ring.points[0] << ']';
+		for (const auto &vertex: ring.vertices)
+			json << vertex << ',';
+		return json << ring.vertices[0] << ']';
 	}
 };
 

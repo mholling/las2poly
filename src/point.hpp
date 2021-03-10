@@ -5,7 +5,6 @@
 #include "vector.hpp"
 #include <cstdint>
 #include <functional>
-#include <ostream>
 #include <cstddef>
 
 struct Point : Vector<3> {
@@ -18,16 +17,12 @@ struct Point : Vector<3> {
 		return point1.index == point2.index;
 	}
 
-	friend auto operator<(const Point &point1, const Point &point2) {
-		return point1[0] < point2[0] ? true : point1[0] > point2[0] ? false : point1[1] < point2[1];
-	}
-
 	friend Vector<2> operator-(const Point &point1, const Point &point2) {
 		return {point1[0] - point2[0], point1[1] - point2[1]};
 	}
 
-	friend auto &operator<<(std::ostream &json, const Point &point) {
-		return json << '[' << point[0] << ',' << point[1] << ']';
+	operator Vector<2>() const {
+		return {(*this)[0], (*this)[1]};
 	}
 
 	auto in_circle(const Point &a, const Point &b, const Point &c) const {
