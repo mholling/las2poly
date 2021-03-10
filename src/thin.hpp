@@ -30,16 +30,16 @@ class Thin {
 		}
 	};
 
-	std::unordered_map<Cell, RawPoint, Hash> thinned;
+	std::unordered_map<Cell, RawPoint, Hash> points;
 	std::unordered_set<unsigned char> classes;
 	double resolution;
 
 	auto &insert(const RawPoint &point) {
 		auto cell = Cell(point, resolution);
-		auto [existing, inserted] = thinned.emplace(cell, point);
+		auto [existing, inserted] = points.emplace(cell, point);
 		if (!inserted && point < existing->second) {
-			thinned.erase(existing);
-			thinned.emplace(cell, point);
+			points.erase(existing);
+			points.emplace(cell, point);
 		}
 		return *this;
 	}
@@ -55,16 +55,16 @@ public:
 		for (const auto point: tile)
 			if (classes.count(point.c))
 				insert(point);
-		if (thinned.size() > UINT32_MAX)
+		if (points.size() > UINT32_MAX)
 			throw std::runtime_error("too many points");
 		return *this;
 	}
 
 	auto operator()() {
 		std::vector<Point> result;
-		result.reserve(thinned.size());
+		result.reserve(points.size());
 		std::size_t index = 0;
-		for (auto pair: thinned)
+		for (auto pair: points)
 			result.emplace_back(pair.second, index++);
 		return result;
 	}
