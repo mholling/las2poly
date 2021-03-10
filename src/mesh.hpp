@@ -6,6 +6,7 @@
 #include "triangle.hpp"
 #include <unordered_map>
 #include <algorithm>
+#include <stdexcept>
 #include <utility>
 #include <functional>
 #include <array>

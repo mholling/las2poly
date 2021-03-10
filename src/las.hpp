@@ -4,6 +4,7 @@
 #include "raw_point.hpp"
 #include <fstream>
 #include <cstddef>
+#include <stdexcept>
 
 class LAS {
 	std::ifstream &input;
