@@ -61,29 +61,6 @@ public:
 			return triangle > length;
 		});
 	}
-
-	auto is_water(double delta, double slope, bool permissive) const {
-		Vector<3> perp;
-		double sum_abs = 0.0;
-		std::size_t count = 0;
-
-		for (const auto &triangle: triangles) {
-			auto edge = triangle.begin();
-			std::array edges = {edge++, edge++, edge};
-			std::iter_swap(edges.begin(), std::min_element(edges.begin(), edges.end(), [](const auto &edge1, const auto *edge2) {
-				return *edge1 < *edge2;
-			}));
-			perp += *edges[1] % *edges[2];
-			for (const auto &edge: {edges[1], edges[2]})
-				if (edge->first.ground && edge->second.ground) {
-					sum_abs += std::abs(edge->second[2] - edge->first[2]);
-					++count;
-				}
-		}
-
-		auto angle = std::acos(std::abs(perp.normalise()[2])) * 180.0 / M_PI;
-		return angle > slope ? false : count < 3 ? permissive : sum_abs / count < delta;
-	}
 };
 
 #endif
