@@ -20,7 +20,7 @@ class Land : std::vector<Polygon> {
 
 		for (const auto &triangle: triangles) {
 			auto edge = triangle.begin();
-			std::array edges = {edge++, edge++, edge};
+			std::array edges = {edge, ++edge, ++edge};
 			std::iter_swap(edges.begin(), std::min_element(edges.begin(), edges.end(), [](const auto &edge1, const auto *edge2) {
 				return *edge1 < *edge2;
 			}));

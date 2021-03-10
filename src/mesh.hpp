@@ -57,9 +57,7 @@ public:
 		Iterator(const Mesh &mesh, const EdgeIterator &edge, bool interior) : mesh(mesh), edge(edge), interior(interior) { }
 		auto peek() const { return interior ? mesh.next_interior(edge) : mesh.next_exterior(edge); }
 		auto &operator++() { edge = peek(); return *this; }
-		auto operator++(int) { auto old = *this; ++(*this); return old; }
 		auto &reverse() { interior = !interior; edge = mesh.opposing(edge); return *this; }
-		auto operator==(const Iterator &other) const { return edge == other.edge; }
 		auto operator*() const { return *edge; }
 		auto &operator->() const { return edge; }
 		operator EdgeIterator() const { return edge; }
@@ -123,7 +121,7 @@ public:
 		}
 		while (!graph.empty()) {
 			auto edge = Iterator(*this, graph.begin(), true);
-			std::array edges = {edge++, edge++, edge};
+			std::array edges = {edge, ++edge, ++edge};
 			yield_triangle(Triangle({*edges[0], *edges[1], *edges[2]}));
 			graph.erase(edges[0]);
 			graph.erase(edges[1]);
