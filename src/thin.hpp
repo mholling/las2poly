@@ -19,11 +19,18 @@ class Thin {
 		Cell(const RawPoint &point, double resolution) : Indices(std::floor(point.x / resolution), std::floor(point.y / resolution)) { }
 	};
 
-	struct CellHash {
-		std::size_t operator()(const Cell &cell) const { return static_cast<std::size_t>(cell.first) | static_cast<std::size_t>(cell.second) << 32; }
+	struct Hash {
+		std::size_t operator()(const Cell &cell) const {
+			if constexpr (sizeof(std::size_t) < 8) {
+				auto constexpr hash = std::hash<std::uint32_t>();
+				auto seed = hash(cell.first);
+				return seed ^ (hash(cell.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+			} else
+				return static_cast<std::size_t>(cell.first) << 32 | static_cast<std::size_t>(cell.second);
+		}
 	};
 
-	std::unordered_map<Cell, RawPoint, CellHash> thinned;
+	std::unordered_map<Cell, RawPoint, Hash> thinned;
 	std::unordered_set<unsigned char> classes;
 	double resolution;
 

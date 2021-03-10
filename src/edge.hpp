@@ -58,7 +58,12 @@ auto operator-(const Edge &edge) {
 
 template <> struct std::hash<Edge> {
 	std::size_t operator()(const Edge &edge) const {
-		return static_cast<std::size_t>(edge.first.index) << 32 | static_cast<std::size_t>(edge.second.index);
+		if constexpr (sizeof(std::size_t) < 8) {
+			auto constexpr hash = std::hash<std::uint32_t>();
+			auto seed = hash(edge.first.index);
+			return seed ^ (hash(edge.second.index) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+		} else
+			return static_cast<std::size_t>(edge.first.index) << 32 | static_cast<std::size_t>(edge.second.index);
 	}
 };
 
