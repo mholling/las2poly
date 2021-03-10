@@ -19,11 +19,11 @@
 
 int main(int argc, char *argv[]) {
 	try {
-		std::optional<double> length = 10.0;
-		std::optional<double> width;
-		std::optional<double> height = 5.0;
+		std::optional<double> width = 10.0;
 		std::optional<double> slope = 10.0;
-		std::optional<double> area = 400.0;
+		std::optional<double> delta = 5.0;
+		std::optional<double> length;
+		std::optional<double> area;
 		std::optional<double> resolution;
 		std::optional<std::vector<int>> extra;
 		std::optional<int> epsg;
@@ -35,17 +35,17 @@ int main(int argc, char *argv[]) {
 		std::string json_path;
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
-		args.option("-l", "--length",     "<metres>",    "minimum length for void triangles",    length);
-		args.option("-w", "--width",      "<metres>",    "minimum span width for waterbodies",   width);
-		args.option("-z", "--height",     "<metres>",    "maximum average height difference",    height);
-		args.option("-s", "--slope",      "<degrees>",   "maximum slope for waterbodies",        slope);
-		args.option("-a", "--area",       "<metres²>",   " minimum island and waterbody area",   area);
-		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",        resolution);
-		args.option("-x", "--extra",      "<class,...>", "extra lidar point classes to include", extra);
-		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",      epsg);
-		args.option("-t", "--threads",    "<number>",    "number of threads when processing",    threads);
-		args.option("-p", "--permissive",                "allow voids with no ground points",    permissive);
-		args.option("-o", "--overwrite",                 "overwrite existing output file",       overwrite);
+		args.option("-w", "--width",      "<metres>",    "minimum width for waterbodies",          width);
+		args.option("-s", "--slope",      "<degrees>",   "maximum slope for waterbodies",          slope);
+		args.option("-d", "--delta",      "<metres>",    "maximum average height difference",      delta);
+		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
+		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
+		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
+		args.option("-x", "--extra",      "<class,...>", "extra lidar point classes",              extra);
+		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
+		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
+		args.option("-p", "--permissive",                "allow voids with no ground points",      permissive);
+		args.option("-o", "--overwrite",                 "overwrite existing output file",         overwrite);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -55,23 +55,27 @@ int main(int argc, char *argv[]) {
 		if (!args.parse())
 			return EXIT_SUCCESS;
 
+		if (!length)
+			length = width.value();
+		if (!area)
+			area = 4 * width.value() * width.value();
 		if (!resolution)
 			resolution = length.value() / std::sqrt(8.0);
-		if (!width)
-			width = length.value();
 		if (!extra)
 			extra.emplace();
 
-		if (length.value() <= 0.0)
-			throw std::runtime_error("void length must be positive");
 		if (width.value() <= 0.0)
-			throw std::runtime_error("span width must be positive");
-		if (height.value() <= 0.0)
-			throw std::runtime_error("average height difference must be positive");
+			throw std::runtime_error("width must be positive");
 		if (slope.value() <= 0.0)
 			throw std::runtime_error("slope must be positive");
-		if (area.value() <= 0.0)
-			throw std::runtime_error("minimum area must be positive");
+		if (delta.value() <= 0.0)
+			throw std::runtime_error("average height difference must be positive");
+		if (length.value() <= 0.0)
+			throw std::runtime_error("edge length must be positive");
+		if (length.value() > width.value())
+			throw std::runtime_error("edge length can't be more than width");
+		if (area.value() < 0.0)
+			throw std::runtime_error("area can't be negative");
 		if (resolution.value() <= 0.0)
 			throw std::runtime_error("resolution must be positive");
 		for (auto klass: extra.value())
@@ -88,7 +92,7 @@ int main(int argc, char *argv[]) {
 			return thin += Tile(tile_path);
 		})();
 		auto mesh = Triangulate(points, threads.value())();
-		auto land = Land(mesh, length.value(), width.value(), height.value(), slope.value(), area.value(), (bool)permissive);
+		auto land = Land(mesh, length.value(), width.value(), delta.value(), slope.value(), area.value(), (bool)permissive);
 
 		std::stringstream json;
 		json.precision(12);
