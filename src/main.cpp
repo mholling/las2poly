@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 		std::optional<double> length;
 		std::optional<double> area;
 		std::optional<double> resolution;
-		std::optional<std::vector<int>> extra;
+		std::optional<std::vector<int>> classes;
 		std::optional<int> epsg;
 		std::optional<int> threads = std::max(1u, std::thread::hardware_concurrency());
 		std::optional<bool> permissive;
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
 		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
-		args.option("-x", "--extra",      "<class,...>", "extra lidar point classes",              extra);
+		args.option("-x", "--classes",    "<class,...>", "additional lidar point classes",         classes);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
 		args.option("-p", "--permissive",                "allow voids with no ground points",      permissive);
@@ -61,8 +61,8 @@ int main(int argc, char *argv[]) {
 			area = 4 * width.value() * width.value();
 		if (!resolution)
 			resolution = length.value() / std::sqrt(8.0);
-		if (!extra)
-			extra.emplace();
+		if (!classes)
+			classes.emplace();
 
 		if (width.value() <= 0.0)
 			throw std::runtime_error("width must be positive");
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("area can't be negative");
 		if (resolution.value() <= 0.0)
 			throw std::runtime_error("resolution must be positive");
-		for (auto klass: extra.value())
+		for (auto klass: classes.value())
 			if (std::clamp(klass, 0, 255) != klass)
 				throw std::runtime_error("invalid lidar point class");
 		if (epsg && std::clamp(epsg.value(), 1024, 32767) != epsg.value())
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
 		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
 			throw std::runtime_error("output file already exists");
 
-		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thin(resolution.value(), extra.value()), [&](auto &thin, const auto &tile_path) {
+		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thin(resolution.value(), classes.value()), [&](auto &thin, const auto &tile_path) {
 			return thin += Tile(tile_path);
 		})();
 		auto mesh = Triangulate(points, threads.value())();

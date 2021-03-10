@@ -38,9 +38,9 @@ class Thin {
 	}
 
 public:
-	template <typename Extra>
-	Thin(double resolution, Extra extra) : resolution(resolution), classes({2,3,4,5,6}) {
-		classes.insert(extra.begin(), extra.end());
+	template <typename Classes>
+	Thin(double resolution, Classes additional) : resolution(resolution), classes({2,3,4,5,6}) {
+		classes.insert(additional.begin(), additional.end());
 	}
 
 	template <typename Tile>
