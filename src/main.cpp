@@ -78,9 +78,12 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("area can't be negative");
 		if (resolution.value() <= 0.0)
 			throw std::runtime_error("resolution must be positive");
-		for (auto klass: classes.value())
+		for (auto klass: classes.value()) {
 			if (std::clamp(klass, 0, 255) != klass)
-				throw std::runtime_error("invalid lidar point class");
+				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
+			if (7 == klass || 9 == klass || 18 == klass)
+				throw std::runtime_error("can't use lidar point class " + std::to_string(klass));
+		}
 		if (epsg && std::clamp(epsg.value(), 1024, 32767) != epsg.value())
 			throw std::runtime_error("invalid EPSG code");
 		if (threads.value() < 1)
