@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
 		std::optional<double> length;
 		std::optional<double> area;
 		std::optional<double> resolution;
+		std::optional<double> smooth;
 		std::optional<std::vector<int>> classes;
 		std::optional<int> epsg;
 		std::optional<int> threads = std::max(1u, std::thread::hardware_concurrency());
@@ -41,6 +42,7 @@ int main(int argc, char *argv[]) {
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
 		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
+		args.option("-m", "--smooth",     "<metres>",    "smooth output to given tolerance",       smooth);
 		args.option("-x", "--classes",    "<class,...>", "additional lidar point classes",         classes);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
@@ -78,6 +80,8 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("area can't be negative");
 		if (resolution.value() <= 0.0)
 			throw std::runtime_error("resolution must be positive");
+		if (smooth && smooth.value() <= 0.0)
+			throw std::runtime_error("smoothing tolerance must be positive");
 		for (auto klass: classes.value()) {
 			if (std::clamp(klass, 0, 255) != klass)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
@@ -96,6 +100,9 @@ int main(int argc, char *argv[]) {
 		})();
 		auto mesh = Triangulate(points, threads.value())();
 		auto land = Land(mesh, length.value(), width.value(), delta.value(), slope.value(), area.value(), (bool)permissive);
+
+		if (smooth)
+			land.smooth(smooth.value(), 15.0);
 
 		std::stringstream json;
 		json.precision(12);

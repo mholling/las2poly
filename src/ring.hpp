@@ -28,7 +28,7 @@ class Ring {
 		Iterator(VertexIterator start, VertexIterator stop, VertexIterator here) : start(start), stop(stop), here(here) { }
 		auto &operator++() { ++here; return *this;}
 		auto operator!=(Iterator other) const { return here != other.here; }
-		auto operator*() { return std::pair(*here, *(here + 1 == stop ? start : here + 1)); }
+		auto operator*() { return std::tuple(*(here == start ? stop - 1 : here - 1), *here, *(here + 1 == stop ? start : here + 1)); }
 	};
 
 	auto begin() const { return Iterator(vertices.begin(), vertices.end(), vertices.begin()); }
@@ -36,7 +36,7 @@ class Ring {
 
 	auto winding_number(const Vertex &v) const {
 		int winding = 0;
-		for (const auto &[v1, v2]: *this)
+		for (const auto &[v0, v1, v2]: *this)
 			if (v1 == v || v2 == v)
 				throw VertexOnRing();
 			else if ((v1 < v) && !(v2 < v) && ((v1 - v) ^ (v2 - v)) > 0)
@@ -67,6 +67,31 @@ public:
 			try { return winding_number(vertex) != 0; }
 			catch (VertexOnRing &) { }
 		return false; // ring == *this
+	}
+
+	void smooth(double tolerance, double angle) {
+		auto cosine = std::cos(angle * 3.141592653589793 / 180.0);
+		while (true) {
+			Vertices smoothed;
+			for (const auto &[v0, v1, v2]: *this) {
+				auto d0 = v1 - v0;
+				auto d2 = v2 - v1;
+				auto n0 = d0.norm();
+				auto n2 = d2.norm();
+				if (d0 * d2 > cosine * n0 * n2)
+					smoothed.push_back(v1);
+				else {
+					auto f0 = std::min(0.25, tolerance / n0);
+					auto f2 = std::min(0.25, tolerance / n2);
+					smoothed.push_back(v0 * f0 + v1 * (1.0 - f0));
+					smoothed.push_back(v2 * f2 + v1 * (1.0 - f2));
+				}
+			}
+			if (smoothed.size() == vertices.size())
+				break;
+			vertices.swap(smoothed);
+		}
+		update_signed_area();
 	}
 
 	friend auto operator<(const Ring &ring1, const Ring &ring2) {
