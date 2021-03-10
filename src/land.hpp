@@ -76,11 +76,10 @@ struct Land : std::vector<Polygon> {
 };
 
 auto &operator<<(std::ostream &json, const Land &land) {
-	bool first = true;
+	auto separator = '[';
 	for (const auto &polygon: land)
-		json << (std::exchange(first, false) ? '[' : ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
-	json << (first ? "[]" : "]");
-	return json;
+		json << std::exchange(separator, ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
+	return json << (separator == '[' ? "[]" : "]");
 }
 
 #endif
