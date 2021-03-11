@@ -2,9 +2,11 @@
 #define RING_HPP
 
 #include "vector.hpp"
+#include "corner.hpp"
 #include <vector>
 #include <stdexcept>
-#include <utility>
+#include <cstddef>
+#include <iterator>
 #include <cmath>
 #include <algorithm>
 #include <ostream>
@@ -22,13 +24,19 @@ class Ring {
 	};
 
 	struct Iterator {
-		const VertexIterator start, stop;
-		VertexIterator here;
+		using iterator_category = std::forward_iterator_tag;
+		using difference_type   = std::ptrdiff_t;
+		using value_type        = Corner;
+		using reference         = Corner&;
+		using pointer           = void;
+
+		VertexIterator start, stop, here;
 
 		Iterator(VertexIterator start, VertexIterator stop, VertexIterator here) : start(start), stop(stop), here(here) { }
 		auto &operator++() { ++here; return *this;}
 		auto operator!=(Iterator other) const { return here != other.here; }
-		auto operator*() { return std::tuple(*(here == start ? stop - 1 : here - 1), *here, *(here + 1 == stop ? start : here + 1)); }
+		auto operator*() { return Corner(*(here == start ? stop - 1 : here - 1), *here, *(here + 1 == stop ? start : here + 1)); }
+		operator VertexIterator() const { return here; }
 	};
 
 	auto begin() const { return Iterator(vertices.begin(), vertices.end(), vertices.begin()); }
@@ -67,6 +75,18 @@ public:
 			try { return winding_number(vertex) != 0; }
 			catch (VertexOnRing &) { }
 		return false; // ring == *this
+	}
+
+	void simplify(double tolerance) {
+		while (vertices.size() > 3) {
+			auto least_important = std::min_element(begin(), end());
+			auto [v0, v1, v2] = *least_important;
+			auto area = 0.5 * std::abs((v1 - v0) ^ (v2 - v1));
+			if (area > tolerance)
+				break;
+			vertices.erase(least_important);
+		}
+		update_signed_area();
 	}
 
 	void smooth(double tolerance, double angle) {

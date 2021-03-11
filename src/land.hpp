@@ -73,12 +73,6 @@ struct Land : std::vector<Polygon> {
 			emplace_back(rings);
 		});
 	}
-
-	void smooth(double tolerance, double angle) {
-		for (auto &polygon: *this)
-			for (auto &ring: polygon)
-				ring.smooth(tolerance, angle);
-	}
 };
 
 auto &operator<<(std::ostream &json, const Land &land) {

@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
 		std::optional<double> length;
 		std::optional<double> area;
 		std::optional<double> resolution;
+		std::optional<double> simplify;
 		std::optional<double> smooth;
 		std::optional<std::vector<int>> classes;
 		std::optional<int> epsg;
@@ -42,6 +43,7 @@ int main(int argc, char *argv[]) {
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
 		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
+		args.option("-i", "--simplify",   "<metres²>",   " simplify output to given tolerance",    simplify);
 		args.option("-m", "--smooth",     "<metres>",    "smooth output to given tolerance",       smooth);
 		args.option("-x", "--classes",    "<class,...>", "additional lidar point classes",         classes);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
@@ -101,8 +103,15 @@ int main(int argc, char *argv[]) {
 		auto mesh = Triangulate(points, threads.value())();
 		auto land = Land(mesh, length.value(), width.value(), delta.value(), slope.value(), area.value(), (bool)permissive);
 
+		if (simplify)
+			for (auto &polygon: land)
+				for (auto &ring: polygon)
+					ring.simplify(simplify.value());
+
 		if (smooth)
-			land.smooth(smooth.value(), 15.0);
+			for (auto &polygon: land)
+				for (auto &ring: polygon)
+					ring.smooth(smooth.value(), 15.0);
 
 		std::stringstream json;
 		json.precision(12);
