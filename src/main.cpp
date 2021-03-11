@@ -4,18 +4,18 @@
 #include "triangulate.hpp"
 #include "land.hpp"
 #include <optional>
-#include <thread>
 #include <vector>
+#include <thread>
 #include <string>
-#include <stdexcept>
 #include <cmath>
+#include <stdexcept>
 #include <filesystem>
 #include <algorithm>
 #include <numeric>
-#include <sstream>
-#include <fstream>
-#include <utility>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <cstdlib>
 
 int main(int argc, char *argv[]) {
 	try {
@@ -97,9 +97,16 @@ int main(int argc, char *argv[]) {
 		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
 			throw std::runtime_error("output file already exists");
 
+		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
+			throw std::runtime_error("can't read standard input more than once");
+
 		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thin(resolution.value(), classes.value()), [&](auto &thin, const auto &tile_path) {
-			return thin += Tile(tile_path);
+			if (tile_path == "-")
+				return thin += Tile(std::cin);
+			std::ifstream input(tile_path, std::ios::binary);
+			return thin += Tile(input);
 		})();
+
 		auto mesh = Triangulate(points, threads.value())();
 		auto land = Land(mesh, length.value(), width.value(), delta.value(), slope.value(), area.value(), (bool)permissive);
 
@@ -124,7 +131,7 @@ int main(int argc, char *argv[]) {
 			std::cout << json.str();
 		else {
 			std::ofstream file(json_path);
-			file.exceptions(file.exceptions() | std::ofstream::failbit | std::ofstream::badbit);
+			file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 			file << json.str();
 		}
 		return EXIT_SUCCESS;

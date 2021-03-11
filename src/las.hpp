@@ -2,17 +2,17 @@
 #define LAS_HPP
 
 #include "raw_point.hpp"
-#include <fstream>
+#include <istream>
 #include <cstddef>
 #include <stdexcept>
 
 class LAS {
-	std::ifstream &input;
+	std::istream &input;
 
 public:
 	std::size_t count;
 
-	LAS(std::ifstream &input) : input(input), count(0) {
+	LAS(std::istream &input) : input(input), count(0) {
 		throw std::runtime_error("LAS reader not implemented");
 	}
 

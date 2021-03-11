@@ -4,7 +4,7 @@
 #include "ply.hpp"
 #include "las.hpp"
 #include <variant>
-#include <fstream>
+#include <istream>
 #include <array>
 #include <stdexcept>
 #include <cstddef>
@@ -13,7 +13,7 @@
 class Tile {
 	using TileVariant = std::variant<PLY, LAS>;
 
-	static auto from(std::ifstream &input) {
+	static auto from(std::istream &input) {
 		constexpr std::array<char, 4> las_magic = {'L','A','S','F'};
 		constexpr std::array<char, 4> ply_magic = {'p','l','y','\n'};
 
@@ -38,11 +38,11 @@ class Tile {
 		auto operator()(LAS &las) { return las.count; }
 	};
 
-	auto point() { return std::visit(Point(), tile); }
-	auto count() { return std::visit(Count(), tile); }
+	auto point() { return std::visit(Point(), tile_variant); }
+	auto count() { return std::visit(Count(), tile_variant); }
 
-	std::ifstream input;
-	TileVariant tile;
+	std::istream &input;
+	TileVariant tile_variant;
 
 	struct Iterator {
 		Tile &tile;
@@ -55,8 +55,8 @@ class Tile {
 	};
 
 public:
-	Tile(const std::string &path) : input(path, std::ios::binary), tile(from(input)) {
-		input.exceptions(input.exceptions() | std::ifstream::failbit);
+	Tile(std::istream &input) : input(input), tile_variant(from(input)) {
+		input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	}
 
 	auto begin() { return Iterator(*this, 0); }

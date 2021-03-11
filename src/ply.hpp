@@ -2,14 +2,14 @@
 #define PLY_HPP
 
 #include "raw_point.hpp"
-#include <fstream>
+#include <istream>
 #include <string>
 #include <stdexcept>
 #include <sstream>
 #include <cstddef>
 
 class PLY {
-	std::ifstream &input;
+	std::istream &input;
 
 	auto format_string() const {
 		union {
@@ -43,7 +43,7 @@ class PLY {
 public:
 	std::size_t count;
 
-	PLY(std::ifstream &input) : input(input) {
+	PLY(std::istream &input) : input(input) {
 		expect(format_string());
 		expect("element vertex", count);
 		expect("property float64 x");
