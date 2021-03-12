@@ -43,9 +43,9 @@ int main(int argc, char *argv[]) {
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
 		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
-		args.option("-i", "--simplify",   "<metres²>",   " simplify output to given tolerance",    simplify);
-		args.option("-m", "--smooth",     "<metres>",    "smooth output to given tolerance",       smooth);
-		args.option("-x", "--classes",    "<class,...>", "additional lidar point classes",         classes);
+		args.option("-i", "--simplify",   "<metres²>",   " tolerance for output simplification",   simplify);
+		args.option("-m", "--smooth",     "<metres>",    "tolerance for output smoothing",         smooth);
+		args.option("-c", "--classes",    "<class,...>", "additional lidar point classes",         classes);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
 		args.option("-p", "--permissive",                "allow voids with no ground points",      permissive);
