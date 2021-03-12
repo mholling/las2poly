@@ -2,18 +2,19 @@
 #define RING_HPP
 
 #include "vector.hpp"
-#include "corner.hpp"
-#include <vector>
+#include <utility>
+#include <list>
 #include <stdexcept>
 #include <cstddef>
-#include <iterator>
+#include <map>
 #include <cmath>
 #include <algorithm>
 #include <ostream>
 
 class Ring {
 	using Vertex = Vector<2>;
-	using Vertices = std::vector<Vertex>;
+	using Corner = std::tuple<Vertex, Vertex, Vertex>;
+	using Vertices = std::list<Vertex>;
 	using VertexIterator = typename Vertices::const_iterator;
 
 	Vertices vertices;
@@ -24,23 +25,30 @@ class Ring {
 	};
 
 	struct Iterator {
-		using iterator_category = std::forward_iterator_tag;
-		using difference_type   = std::ptrdiff_t;
-		using value_type        = Corner;
-		using reference         = Corner&;
-		using pointer           = void;
+		const Vertices *vertices;
+		VertexIterator here;
 
-		VertexIterator start, stop, here;
-
-		Iterator(VertexIterator start, VertexIterator stop, VertexIterator here) : start(start), stop(stop), here(here) { }
+		Iterator(const Vertices *vertices, VertexIterator here) : vertices(vertices), here(here) { }
 		auto &operator++() { ++here; return *this;}
+		auto &operator--() { --here; return *this;}
 		auto operator!=(Iterator other) const { return here != other.here; }
-		auto operator*() { return Corner(*(here == start ? stop - 1 : here - 1), *here, *(here + 1 == stop ? start : here + 1)); }
+		auto next() const { return here == --vertices->end() ? Iterator(vertices, vertices->begin()) : ++Iterator(vertices, here); }
+		auto prev() const { return here == vertices->begin() ? --Iterator(vertices, vertices->end()) : --Iterator(vertices, here); }
 		operator VertexIterator() const { return here; }
+		operator Vertex() const { return *here; }
+		auto operator*() const { return Corner(prev(), *here, next()); }
 	};
 
-	auto begin() const { return Iterator(vertices.begin(), vertices.end(), vertices.begin()); }
-	auto   end() const { return Iterator(vertices.begin(), vertices.end(), vertices.end()); }
+	struct CompareCornerAreas {
+		auto operator()(const Corner &u, const Corner &v) const {
+			const auto &[u0, u1, u2] = u;
+			const auto &[v0, v1, v2] = v;
+			return std::abs((u1 - u0) ^ (u2 - u1)) < std::abs((v1 - v0) ^ (v2 - v1));
+		}
+	};
+
+	auto begin() const { return Iterator(&vertices, vertices.begin()); }
+	auto   end() const { return Iterator(&vertices, vertices.end()); }
 
 	auto winding_number(const Vertex &v) const {
 		int winding = 0;
@@ -55,7 +63,7 @@ class Ring {
 	}
 
 	auto update_signed_area() {
-		const auto &v = vertices[0];
+		const auto &v = vertices.front();
 		double sum = 0.0;
 		for (const auto &[v0, v1, v2]: *this)
 			sum += (v1 - v) ^ (v2 - v);
@@ -78,21 +86,34 @@ public:
 	}
 
 	void simplify(double tolerance) {
-		while (vertices.size() > 3) {
-			auto least_important = std::min_element(begin(), end());
-			auto [v0, v1, v2] = *least_important;
-			auto area = 0.5 * std::abs((v1 - v0) ^ (v2 - v1));
-			if (area > tolerance)
+		std::map<Corner, Iterator, CompareCornerAreas> corners;
+		for (auto iterator = begin(); iterator != end(); ++iterator)
+			corners.emplace(*iterator, iterator);
+		while (corners.size() > 3) {
+			const auto &[this_corner, iterator] = *corners.begin();
+			const auto &[v0, v1, v2] = this_corner;
+			if (std::abs((v1 - v0) ^ (v2 - v1)) > 2 * tolerance)
 				break;
-			vertices.erase(least_important);
+			auto prev = iterator.prev();
+			auto next = iterator.next();
+			auto prev_corner = *prev;
+			auto next_corner = *next;
+			vertices.erase(iterator);
+			corners.erase(this_corner);
+			corners.erase(prev_corner);
+			corners.erase(next_corner);
+			next = prev.next();
+			prev = next.prev();
+			corners.emplace(*prev, prev);
+			corners.emplace(*next, next);
 		}
 		update_signed_area();
 	}
 
 	void smooth(double tolerance, double angle) {
 		auto cosine = std::cos(angle * 3.141592653589793 / 180.0);
-		while (true) {
-			Vertices smoothed;
+		for (Vertices smoothed; smoothed.size() != vertices.size(); vertices.swap(smoothed)) {
+			smoothed.clear();
 			for (const auto &[v0, v1, v2]: *this) {
 				auto d0 = v1 - v0;
 				auto d2 = v2 - v1;
@@ -107,9 +128,6 @@ public:
 					smoothed.push_back(v2 * f2 + v1 * (1.0 - f2));
 				}
 			}
-			if (smoothed.size() == vertices.size())
-				break;
-			vertices.swap(smoothed);
 		}
 		update_signed_area();
 	}
@@ -130,7 +148,7 @@ public:
 		json << '[';
 		for (const auto &vertex: ring.vertices)
 			json << vertex << ',';
-		return json << ring.vertices[0] << ']';
+		return json << ring.vertices.front() << ']';
 	}
 };
 
