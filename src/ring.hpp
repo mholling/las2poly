@@ -62,20 +62,15 @@ class Ring {
 		return winding;
 	}
 
-	auto update_signed_area() {
-		const auto &v = vertices.front();
-		double sum = 0.0;
-		for (const auto &[v0, v1, v2]: *this)
-			sum += (v1 - v) ^ (v2 - v);
-		signed_area = sum * 0.5;
-	}
-
 public:
 	template <typename Edges>
-	Ring(const Edges &edges) {
-		for (const auto &[p1, p2]: edges)
+	Ring(const Edges &edges) : signed_area(0) {
+		const auto &p = edges.begin()->first;
+		for (const auto &[p1, p2]: edges) {
 			vertices.push_back(p1);
-		update_signed_area();
+			signed_area += (p1 - p) ^ (p2 - p);
+		}
+		signed_area *= 0.5;
 	}
 
 	auto contains(const Ring &ring) const {
@@ -107,7 +102,6 @@ public:
 			corners.emplace(*new_prev, new_prev);
 			corners.emplace(*new_next, new_next);
 		}
-		update_signed_area();
 	}
 
 	void smooth(double tolerance, double angle) {
@@ -129,7 +123,6 @@ public:
 				}
 			}
 		}
-		update_signed_area();
 	}
 
 	friend auto operator<(const Ring &ring1, const Ring &ring2) {
