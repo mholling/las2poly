@@ -25,15 +25,15 @@ class Ring {
 	};
 
 	struct Iterator {
-		const Vertices *vertices;
+		const Vertices &vertices;
 		VertexIterator here;
 
-		Iterator(const Vertices *vertices, VertexIterator here) : vertices(vertices), here(here) { }
+		Iterator(const Vertices &vertices, VertexIterator here) : vertices(vertices), here(here) { }
 		auto &operator++() { ++here; return *this;}
 		auto &operator--() { --here; return *this;}
 		auto operator!=(Iterator other) const { return here != other.here; }
-		auto next() const { return here == --vertices->end() ? Iterator(vertices, vertices->begin()) : ++Iterator(vertices, here); }
-		auto prev() const { return here == vertices->begin() ? --Iterator(vertices, vertices->end()) : --Iterator(vertices, here); }
+		auto next() const { return here == --vertices.end() ? Iterator(vertices, vertices.begin()) : ++Iterator(vertices, here); }
+		auto prev() const { return here == vertices.begin() ? --Iterator(vertices, vertices.end()) : --Iterator(vertices, here); }
 		operator VertexIterator() const { return here; }
 		operator Vertex() const { return *here; }
 		auto operator*() const { return Corner(prev(), *here, next()); }
@@ -47,8 +47,8 @@ class Ring {
 		}
 	};
 
-	auto begin() const { return Iterator(&vertices, vertices.begin()); }
-	auto   end() const { return Iterator(&vertices, vertices.end()); }
+	auto begin() const { return Iterator(vertices, vertices.begin()); }
+	auto   end() const { return Iterator(vertices, vertices.end()); }
 
 	auto winding_number(const Vertex &v) const {
 		int winding = 0;
@@ -102,10 +102,10 @@ public:
 			corners.erase(this_corner);
 			corners.erase(prev_corner);
 			corners.erase(next_corner);
-			next = prev.next();
-			prev = next.prev();
-			corners.emplace(*prev, prev);
-			corners.emplace(*next, next);
+			auto new_next = prev.next();
+			auto new_prev = next.prev();
+			corners.emplace(*new_prev, new_prev);
+			corners.emplace(*new_next, new_next);
 		}
 		update_signed_area();
 	}
