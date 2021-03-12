@@ -6,7 +6,7 @@
 #include <list>
 #include <stdexcept>
 #include <cstddef>
-#include <map>
+#include <set>
 #include <cmath>
 #include <algorithm>
 #include <ostream>
@@ -40,9 +40,9 @@ class Ring {
 	};
 
 	struct CompareCornerAreas {
-		auto operator()(const Corner &u, const Corner &v) const {
-			const auto &[u0, u1, u2] = u;
-			const auto &[v0, v1, v2] = v;
+		auto operator()(const Iterator &u, const Iterator &v) const {
+			const auto &[u0, u1, u2] = *u;
+			const auto &[v0, v1, v2] = *v;
 			return std::abs((u1 - u0) ^ (u2 - u1)) < std::abs((v1 - v0) ^ (v2 - v1));
 		}
 	};
@@ -81,26 +81,22 @@ public:
 	}
 
 	void simplify(double tolerance) {
-		std::map<Corner, Iterator, CompareCornerAreas> corners;
-		for (auto iterator = begin(); iterator != end(); ++iterator)
-			corners.emplace(*iterator, iterator);
+		std::multiset<Iterator, CompareCornerAreas> corners;
+		for (auto corner = begin(); corner != end(); ++corner)
+			corners.insert(corner);
 		while (corners.size() > 3) {
-			const auto &[this_corner, iterator] = *corners.begin();
-			const auto &[v0, v1, v2] = this_corner;
+			const auto corner = *corners.begin();
+			const auto &[v0, v1, v2] = *corner;
 			if (std::abs((v1 - v0) ^ (v2 - v1)) > 2 * tolerance)
 				break;
-			auto prev = iterator.prev();
-			auto next = iterator.next();
-			auto prev_corner = *prev;
-			auto next_corner = *next;
-			vertices.erase(iterator);
-			corners.erase(this_corner);
-			corners.erase(prev_corner);
-			corners.erase(next_corner);
-			auto new_next = prev.next();
-			auto new_prev = next.prev();
-			corners.emplace(*new_prev, new_prev);
-			corners.emplace(*new_next, new_next);
+			auto prev = corner.prev();
+			auto next = corner.next();
+			corners.erase(corner);
+			corners.erase(prev);
+			corners.erase(next);
+			vertices.erase(corner);
+			corners.insert(next.prev());
+			corners.insert(prev.next());
 		}
 	}
 
