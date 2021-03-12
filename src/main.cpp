@@ -68,21 +68,21 @@ int main(int argc, char *argv[]) {
 		if (!classes)
 			classes.emplace();
 
-		if (width.value() <= 0.0)
+		if (width.value() <= 0)
 			throw std::runtime_error("width must be positive");
-		if (slope.value() <= 0.0)
+		if (slope.value() <= 0)
 			throw std::runtime_error("slope must be positive");
-		if (delta.value() <= 0.0)
+		if (delta.value() <= 0)
 			throw std::runtime_error("average height difference must be positive");
-		if (length.value() <= 0.0)
+		if (length.value() <= 0)
 			throw std::runtime_error("edge length must be positive");
 		if (length.value() > width.value())
 			throw std::runtime_error("edge length can't be more than width");
-		if (area.value() < 0.0)
+		if (area.value() < 0)
 			throw std::runtime_error("area can't be negative");
-		if (resolution.value() <= 0.0)
+		if (resolution.value() <= 0)
 			throw std::runtime_error("resolution must be positive");
-		if (smooth && smooth.value() <= 0.0)
+		if (smooth && smooth.value() <= 0)
 			throw std::runtime_error("smoothing tolerance must be positive");
 		for (auto klass: classes.value()) {
 			if (std::clamp(klass, 0, 255) != klass)

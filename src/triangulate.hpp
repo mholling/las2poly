@@ -46,7 +46,7 @@ class Triangulate {
 			while (true) {
 				const auto &candidate = edge.peek()->second;
 				auto cross_product = (point - opposite) ^ (candidate - opposite);
-				if (cross_product <= 0.0 == rhs)
+				if (cross_product <= 0 == rhs)
 					return std::optional<Point const *>();
 				if (mesh.dangling(point))
 					return std::optional<Point const *>(&candidate);
@@ -83,12 +83,12 @@ class Triangulate {
 				auto check_right = [&]() {
 					const auto &[p0, p1] = *right_edge;
 					const auto &p = left_edge->first;
-					return ((p0 - p) ^ (p1 - p)) >= 0.0;
+					return ((p0 - p) ^ (p1 - p)) >= 0;
 				};
 				auto check_left = [&]() {
 					const auto &[p0, p1] = *left_edge;
 					const auto &p = right_edge->first;
-					return ((p0 - p) ^ (p1 - p)) <= 0.0;
+					return ((p0 - p) ^ (p1 - p)) <= 0;
 				};
 				while (!check_right() || !check_left()) {
 					if (!check_right())
