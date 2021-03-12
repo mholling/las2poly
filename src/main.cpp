@@ -84,6 +84,8 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("resolution must be positive");
 		if (smooth && smooth.value() <= 0)
 			throw std::runtime_error("smoothing tolerance must be positive");
+		if (simplify && simplify.value() <= 0)
+			throw std::runtime_error("simplification tolerance must be positive");
 		for (auto klass: classes.value()) {
 			if (std::clamp(klass, 0, 255) != klass)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
