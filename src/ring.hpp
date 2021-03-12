@@ -13,7 +13,7 @@
 
 class Ring {
 	using Vertex = Vector<2>;
-	using Corner = std::tuple<Vertex, Vertex, Vertex>;
+	using Corner = std::tuple<const Vertex &, const Vertex &, const Vertex &>;
 	using Vertices = std::list<Vertex>;
 	using VertexIterator = typename Vertices::const_iterator;
 
@@ -35,7 +35,7 @@ class Ring {
 		auto next() const { return here == --vertices.end() ? Iterator(vertices, vertices.begin()) : ++Iterator(vertices, here); }
 		auto prev() const { return here == vertices.begin() ? --Iterator(vertices, vertices.end()) : --Iterator(vertices, here); }
 		operator VertexIterator() const { return here; }
-		operator Vertex() const { return *here; }
+		operator const Vertex &() const { return *here; }
 		auto operator*() const { return Corner(prev(), *here, next()); }
 	};
 
