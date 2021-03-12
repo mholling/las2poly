@@ -1,7 +1,7 @@
 #ifndef PLY_HPP
 #define PLY_HPP
 
-#include "raw_point.hpp"
+#include "record.hpp"
 #include <istream>
 #include <string>
 #include <stdexcept>
@@ -53,13 +53,13 @@ public:
 		expect("end_header");
 	}
 
-	auto point() const {
-		RawPoint point;
-		input.read(reinterpret_cast<char *>(&point.x), sizeof(point.x));
-		input.read(reinterpret_cast<char *>(&point.y), sizeof(point.y));
-		input.read(reinterpret_cast<char *>(&point.z), sizeof(point.z));
-		input.read(reinterpret_cast<char *>(&point.c), sizeof(point.c));
-		return point;
+	auto record() const {
+		Record record;
+		input.read(reinterpret_cast<char *>(&record.x), sizeof(record.x));
+		input.read(reinterpret_cast<char *>(&record.y), sizeof(record.y));
+		input.read(reinterpret_cast<char *>(&record.z), sizeof(record.z));
+		input.read(reinterpret_cast<char *>(&record.c), sizeof(record.c));
+		return record;
 	}
 };
 

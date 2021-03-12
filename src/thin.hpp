@@ -1,7 +1,7 @@
 #ifndef THIN_HPP
 #define THIN_HPP
 
-#include "raw_point.hpp"
+#include "record.hpp"
 #include "point.hpp"
 #include <utility>
 #include <cstdint>
@@ -16,7 +16,7 @@ class Thin {
 	using Indices = std::pair<std::uint32_t, std::uint32_t>;
 
 	struct Cell : Indices {
-		Cell(const RawPoint &point, double resolution) : Indices(std::floor(point.x / resolution), std::floor(point.y / resolution)) { }
+		Cell(const Record &record, double resolution) : Indices(std::floor(record.x / resolution), std::floor(record.y / resolution)) { }
 	};
 
 	struct Hash {
@@ -30,16 +30,16 @@ class Thin {
 		}
 	};
 
-	std::unordered_map<Cell, RawPoint, Hash> points;
+	std::unordered_map<Cell, Record, Hash> records;
 	std::unordered_set<unsigned char> classes;
 	double resolution;
 
-	auto &insert(const RawPoint &point) {
-		auto cell = Cell(point, resolution);
-		auto [existing, inserted] = points.emplace(cell, point);
-		if (!inserted && point < existing->second) {
-			points.erase(existing);
-			points.emplace(cell, point);
+	auto &insert(const Record &record) {
+		auto cell = Cell(record, resolution);
+		auto [existing, inserted] = records.emplace(cell, record);
+		if (!inserted && record < existing->second) {
+			records.erase(existing);
+			records.emplace(cell, record);
 		}
 		return *this;
 	}
@@ -52,19 +52,19 @@ public:
 
 	template <typename Tile>
 	auto &operator+=(Tile tile) {
-		for (const auto point: tile)
-			if (classes.count(point.c))
-				insert(point);
-		if (points.size() > UINT32_MAX)
+		for (const auto record: tile)
+			if (classes.count(record.c))
+				insert(record);
+		if (records.size() > UINT32_MAX)
 			throw std::runtime_error("too many points");
 		return *this;
 	}
 
 	auto operator()() {
 		std::vector<Point> result;
-		result.reserve(points.size());
+		result.reserve(records.size());
 		std::size_t index = 0;
-		for (auto pair: points)
+		for (auto pair: records)
 			result.emplace_back(pair.second, index++);
 		return result;
 	}

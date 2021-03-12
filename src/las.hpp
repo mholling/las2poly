@@ -1,7 +1,7 @@
 #ifndef LAS_HPP
 #define LAS_HPP
 
-#include "raw_point.hpp"
+#include "record.hpp"
 #include <istream>
 #include <cstddef>
 #include <stdexcept>
@@ -16,9 +16,9 @@ public:
 		throw std::runtime_error("LAS reader not implemented");
 	}
 
-	auto point() {
-		RawPoint point;
-		return point;
+	auto record() {
+		Record record;
+		return record;
 	}
 };
 

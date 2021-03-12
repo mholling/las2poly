@@ -28,9 +28,9 @@ class Tile {
 			throw std::runtime_error("unrecognised file format");
 	}
 
-	struct Point {
-		auto operator()(PLY &ply) { return ply.point(); }
-		auto operator()(LAS &las) { return las.point(); }
+	struct Record {
+		auto operator()(PLY &ply) { return ply.record(); }
+		auto operator()(LAS &las) { return las.record(); }
 	};
 
 	struct Count {
@@ -38,7 +38,7 @@ class Tile {
 		auto operator()(LAS &las) { return las.count; }
 	};
 
-	auto point() { return std::visit(Point(), tile_variant); }
+	auto record() { return std::visit(Record(), tile_variant); }
 	auto count() { return std::visit(Count(), tile_variant); }
 
 	std::istream &input;
@@ -51,7 +51,7 @@ class Tile {
 		Iterator(Tile &tile, std::size_t index) : tile(tile), index(index) { }
 		auto &operator++() { ++index; return *this;}
 		auto operator!=(Iterator other) const { return index != other.index; }
-		auto operator*() const { return tile.point(); }
+		auto operator*() const { return tile.record(); }
 	};
 
 public:

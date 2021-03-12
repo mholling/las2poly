@@ -1,7 +1,7 @@
 #ifndef POINT_HPP
 #define POINT_HPP
 
-#include "raw_point.hpp"
+#include "record.hpp"
 #include "vector.hpp"
 #include <cstdint>
 #include <functional>
@@ -11,7 +11,7 @@ struct Point : Vector<3> {
 	bool ground;
 	std::uint32_t index;
 
-	Point(const RawPoint &point, std::uint32_t index) : Vector<3>({point.x, point.y, point.z}), ground(2 == point.c || 3 == point.c), index(index) { }
+	Point(const Record &record, std::uint32_t index) : Vector<3>({record.x, record.y, record.z}), ground(2 == record.c || 3 == record.c), index(index) { }
 
 	friend auto operator==(const Point &point1, const Point &point2) {
 		return point1.index == point2.index;
