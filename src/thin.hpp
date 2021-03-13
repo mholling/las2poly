@@ -64,8 +64,8 @@ public:
 		std::vector<Point> result;
 		result.reserve(records.size());
 		std::size_t index = 0;
-		for (auto pair: records)
-			result.emplace_back(pair.second, index++);
+		for (auto &[cell, record]: records)
+			result.emplace_back(record, index++);
 		return result;
 	}
 };
