@@ -4,7 +4,6 @@
 #include "point.hpp"
 #include "mesh.hpp"
 #include <vector>
-#include <optional>
 #include <algorithm>
 #include <thread>
 #include <stdexcept>
@@ -41,17 +40,17 @@ class Triangulate {
 		}
 
 		template <bool rhs>
-		static auto find_candidate(Mesh &mesh, const Mesh::Iterator &edge, const Point &opposite) {
+		static Point const *find_candidate(Mesh &mesh, const Mesh::Iterator &edge, const Point &opposite) {
 			const auto &point = edge->second;
 			while (true) {
 				const auto &[candidate, next] = *edge.back().peek();
 				auto cross_product = (point - opposite) ^ (candidate - point);
 				if (cross_product <= 0 == rhs)
-					return std::optional<Point const *>();
+					return nullptr;
 				if (candidate == edge->first)
-					return std::optional<Point const *>(&candidate);
+					return &candidate;
 				if (!next.in_circle(rhs ? candidate : point, opposite, rhs ? point : candidate))
-					return std::optional<Point const *>(&candidate);
+					return &candidate;
 				mesh.disconnect(point, candidate);
 			}
 		}
@@ -102,13 +101,9 @@ class Triangulate {
 					mesh.connect(left_point, right_point);
 					auto left_candidate = find_candidate<false>(left_mesh, left_edge, right_point);
 					auto right_candidate = find_candidate<true>(right_mesh, right_edge, left_point);
-					if (left_candidate && right_candidate) {
-						if (left_candidate.value()->in_circle(left_point, right_point, *right_candidate.value()))
-							right_candidate.reset();
-						else
-							left_candidate.reset();
-					}
-					if (left_candidate)
+					if (left_candidate && right_candidate)
+						left_candidate->in_circle(left_point, right_point, *right_candidate) ? ++left_edge : ++right_edge;
+					else if (left_candidate)
 						++left_edge;
 					else if (right_candidate)
 						++right_edge;
