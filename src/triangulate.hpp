@@ -90,12 +90,13 @@ class Triangulate {
 					const auto &p = right_edge->first;
 					return ((p0 - p) ^ (p1 - p)) <= 0;
 				};
-				while (!check_right() || !check_left()) {
+				while (true)
 					if (!check_right())
 						++right_edge;
-					if (!check_left())
+					else if (!check_left())
 						++left_edge;
-				}
+					else
+						break;
 				left_edge.reverse();
 				right_edge.reverse();
 				while (true) {
