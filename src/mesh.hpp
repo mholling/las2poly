@@ -57,6 +57,7 @@ public:
 
 		Iterator(const Mesh &mesh, const EdgeIterator &edge, bool interior) : mesh(mesh), edge(edge), interior(interior) { }
 		auto peek() const { return interior ? mesh.next_interior(edge) : mesh.next_exterior(edge); }
+		auto back() const { return Iterator(mesh, peek(), !interior); }
 		auto &operator++() { edge = peek(); return *this; }
 		auto &reverse() { interior = !interior; edge = mesh.opposing(edge); return *this; }
 		auto operator*() const { return *edge; }
@@ -86,10 +87,6 @@ public:
 			return (edge1 ^ edge2) < 0;
 		});
 		return Iterator(*this, edge, false);
-	}
-
-	auto dangling(const Point &point) const {
-		return graph.count(point) < 2;
 	}
 
 	void connect(const Point &p1, const Point &p2) {
