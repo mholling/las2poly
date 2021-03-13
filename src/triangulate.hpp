@@ -80,20 +80,20 @@ class Triangulate {
 				left_right(left_mesh, right_mesh);
 				auto left_edge = left_mesh.rightmost_clockwise(less_than);
 				auto right_edge = right_mesh.leftmost_anticlockwise(less_than);
-				auto check_right = [&]() {
+				auto shift_right = [&]() {
 					const auto &[p0, p1] = *right_edge;
 					const auto &p = left_edge->first;
-					return ((p0 - p) ^ (p1 - p)) >= 0;
+					return ((p0 - p) ^ (p1 - p)) < 0;
 				};
-				auto check_left = [&]() {
+				auto shift_left = [&]() {
 					const auto &[p0, p1] = *left_edge;
 					const auto &p = right_edge->first;
-					return ((p0 - p) ^ (p1 - p)) <= 0;
+					return ((p0 - p) ^ (p1 - p)) > 0;
 				};
 				while (true)
-					if (!check_right())
+					if (shift_right())
 						++right_edge;
-					else if (!check_left())
+					else if (shift_left())
 						++left_edge;
 					else
 						break;
