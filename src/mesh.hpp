@@ -120,6 +120,8 @@ public:
 		while (!graph.empty()) {
 			auto edge = Iterator(*this, graph.begin(), true);
 			std::array edges = {edge, ++edge, ++edge};
+			if (edges[0]->first != edges[2]->second || (*edges[0] ^ *edges[1]) < 0 || (*edges[1] ^ *edges[2]) < 0 || (*edges[2] ^ *edges[0]) < 0)
+				throw std::runtime_error("corrupted edge graph (" + std::to_string(graph.size()) + " edges left)");
 			yield_triangle(Triangle({*edges[0], *edges[1], *edges[2]}));
 			graph.erase(edges[0]);
 			graph.erase(edges[1]);
