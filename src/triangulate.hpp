@@ -43,7 +43,7 @@ class Triangulate {
 		static Point const *find_candidate(Mesh &mesh, const Mesh::Iterator &edge, const Point &opposite) {
 			const auto &point = edge->second;
 			while (true) {
-				const auto &[candidate, next] = *edge.back().peek();
+				const auto &[candidate, next] = *edge.search();
 				auto cross_product = (point - opposite) ^ (candidate - point);
 				if (cross_product <= 0 == rhs)
 					return nullptr;

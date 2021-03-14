@@ -57,12 +57,12 @@ public:
 
 		Iterator(const Mesh &mesh, const EdgeIterator &edge, bool interior) : mesh(mesh), edge(edge), interior(interior) { }
 		auto peek() const { return interior ? mesh.next_interior(edge) : mesh.next_exterior(edge); }
-		auto back() const { return Iterator(mesh, peek(), !interior); }
 		auto &operator++() { edge = peek(); return *this; }
 		auto &reverse() { interior = !interior; edge = mesh.opposing(edge); return *this; }
 		auto operator*() const { return *edge; }
 		auto &operator->() const { return edge; }
 		operator EdgeIterator() const { return edge; }
+		auto search() const { return Iterator(mesh, peek(), !interior).peek(); }
 	};
 
 	template <typename LessThan>
