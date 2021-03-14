@@ -18,7 +18,7 @@ class Ring {
 	using VertexIterator = typename Vertices::const_iterator;
 
 	Vertices vertices;
-	double signed_area;
+	long double signed_area;
 
 	struct VertexOnRing : std::runtime_error {
 		VertexOnRing() : runtime_error("vertex on ring") { }
@@ -70,7 +70,7 @@ public:
 			vertices.push_back(p1);
 			signed_area += (p1 - p) ^ (p2 - p);
 		}
-		signed_area *= 0.5;
+		signed_area *= 0.5l;
 	}
 
 	auto contains(const Ring &ring) const {
@@ -101,7 +101,7 @@ public:
 	}
 
 	void smooth(double tolerance, double angle) {
-		auto cosine = std::cos(angle * 3.141592653589793 / 180.0);
+		auto cosine = std::cos(3.141592653589793l * angle / 180.0);
 		for (Vertices smoothed; smoothed.size() != vertices.size(); vertices.swap(smoothed)) {
 			smoothed.clear();
 			for (const auto &[v0, v1, v2]: *this) {
@@ -112,8 +112,8 @@ public:
 				if (d0 * d2 > cosine * n0 * n2)
 					smoothed.push_back(v1);
 				else {
-					auto f0 = std::min(0.25, tolerance / n0);
-					auto f2 = std::min(0.25, tolerance / n2);
+					double f0 = std::min(0.25l, tolerance / n0);
+					double f2 = std::min(0.25l, tolerance / n2);
 					smoothed.push_back(v0 * f0 + v1 * (1.0 - f0));
 					smoothed.push_back(v2 * f2 + v1 * (1.0 - f2));
 				}
