@@ -74,7 +74,7 @@ public:
 	}
 
 	auto contains(const Ring &ring) const {
-		for (const auto &vertex: vertices)
+		for (const auto &vertex: ring.vertices)
 			try { return winding_number(vertex) != 0; }
 			catch (VertexOnRing &) { }
 		return false; // ring == *this
