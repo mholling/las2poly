@@ -8,7 +8,7 @@
 #include <thread>
 #include <stdexcept>
 
-class Triangulate {
+class Triangulate : public Mesh {
 	using Points = std::vector<Point>;
 	using Iterator = typename Points::iterator;
 
@@ -113,12 +113,8 @@ class Triangulate {
 	};
 
 public:
-	Triangulate(std::vector<Point> &points, int threads) : points(points), threads(threads) { }
-
-	auto operator()() {
-		Mesh mesh;
-		Partition(points.begin(), points.end(), threads).triangulate(mesh);
-		return mesh;
+	Triangulate(std::vector<Point> &points, int threads) : points(points), threads(threads) {
+		Partition(points.begin(), points.end(), threads).triangulate(*this);
 	}
 };
 
