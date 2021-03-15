@@ -15,14 +15,17 @@ class Triangulate {
 	Points &points;
 	int threads;
 
-	template <int axis = 0>
+	template <bool horizontal = true>
 	class Partition {
-		using Child = Partition<1-axis>;
+		using Child = Partition<!horizontal>;
 		const Iterator first, middle, last;
 		int threads;
 
 		static auto less_than(const Point &p1, const Point &p2) {
-			return p1[axis] < p2[axis] ? true : p1[axis] > p2[axis] ? false : p1[1-axis] < p2[1-axis];
+			if constexpr (horizontal)
+				return p1[0] < p2[0] ? true : p1[0] > p2[0] ? false : p1[1] < p2[1];
+			else
+				return p1[1] < p2[1] ? true : p1[1] > p2[1] ? false : p1[0] > p2[0];
 		}
 
 		void left_right(Mesh &left_mesh, Mesh &right_mesh) {
