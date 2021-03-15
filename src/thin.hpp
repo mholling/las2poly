@@ -2,7 +2,6 @@
 #define THIN_HPP
 
 #include "record.hpp"
-#include "point.hpp"
 #include <utility>
 #include <cstdint>
 #include <cmath>
@@ -30,7 +29,10 @@ class Thin {
 		}
 	};
 
-	std::unordered_map<Cell, Record, Hash> records;
+	using Records = std::unordered_map<Cell, Record, Hash>;
+	using RecordIterator = typename Records::const_iterator;
+
+	Records records;
 	std::unordered_set<unsigned char> classes;
 	double resolution;
 
@@ -44,7 +46,22 @@ class Thin {
 		return *this;
 	}
 
+	struct Iterator {
+		const Thin &thin;
+		RecordIterator here;
+
+		Iterator(const Thin &thin, RecordIterator here) : thin(thin), here(here) { }
+		auto &operator++() { ++here; return *this;}
+		auto operator!=(Iterator other) const { return here != other.here; }
+		auto &operator*() const { return here->second; }
+	};
+
 public:
+	auto begin() const { return Iterator(*this, records.begin()); }
+	auto   end() const { return Iterator(*this, records.end()); }
+
+	auto size() const { return records.size(); }
+
 	template <typename Classes>
 	Thin(double resolution, Classes additional) : resolution(resolution), classes({2,3,4,5,6}) {
 		classes.insert(additional.begin(), additional.end());
@@ -58,15 +75,6 @@ public:
 		if (records.size() > UINT32_MAX)
 			throw std::runtime_error("too many points");
 		return *this;
-	}
-
-	auto operator()() {
-		std::vector<Point> result;
-		result.reserve(records.size());
-		std::size_t index = 0;
-		for (auto &[cell, record]: records)
-			result.emplace_back(record, index++);
-		return result;
 	}
 };
 

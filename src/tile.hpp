@@ -55,9 +55,7 @@ class Tile {
 	};
 
 public:
-	Tile(std::istream &input) : input(input), tile_variant(from(input)) {
-		input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-	}
+	Tile(std::istream &input) : input(input), tile_variant(from(input)) { }
 
 	auto begin() { return Iterator(*this, 0); }
 	auto   end() { return Iterator(*this, count()); }

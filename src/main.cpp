@@ -1,6 +1,5 @@
 #include "args.hpp"
-#include "thin.hpp"
-#include "tile.hpp"
+#include "points.hpp"
 #include "triangulate.hpp"
 #include "land.hpp"
 #include <optional>
@@ -102,13 +101,7 @@ int main(int argc, char *argv[]) {
 		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
 			throw std::runtime_error("can't read standard input more than once");
 
-		auto points = std::accumulate(tile_paths.begin(), tile_paths.end(), Thin(resolution.value(), classes.value()), [&](auto &thin, const auto &tile_path) {
-			if (tile_path == "-")
-				return thin += Tile(std::cin);
-			std::ifstream input(tile_path, std::ios::binary);
-			return thin += Tile(input);
-		})();
-
+		auto points = Points(tile_paths, resolution.value(), classes.value(), threads.value());
 		auto mesh = Triangulate(points, threads.value())();
 		auto land = Land(mesh, length.value(), width.value(), delta.value(), slope.value(), area.value(), (bool)permissive);
 
