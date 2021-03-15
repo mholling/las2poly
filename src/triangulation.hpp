@@ -1,5 +1,5 @@
-#ifndef TRIANGULATE_HPP
-#define TRIANGULATE_HPP
+#ifndef TRIANGULATION_HPP
+#define TRIANGULATION_HPP
 
 #include "point.hpp"
 #include "mesh.hpp"
@@ -8,7 +8,7 @@
 #include <thread>
 #include <stdexcept>
 
-class Triangulate : public Mesh {
+class Triangulation : public Mesh {
 	using Points = std::vector<Point>;
 	using Iterator = typename Points::iterator;
 
@@ -113,7 +113,7 @@ class Triangulate : public Mesh {
 	};
 
 public:
-	Triangulate(std::vector<Point> &points, int threads) : points(points), threads(threads) {
+	Triangulation(Points &points, int threads) : points(points), threads(threads) {
 		Partition(points.begin(), points.end(), threads).triangulate(*this);
 	}
 };
