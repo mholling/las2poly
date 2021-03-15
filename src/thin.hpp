@@ -72,8 +72,6 @@ public:
 		for (const auto record: tile)
 			if (classes.count(record.c))
 				insert(record);
-		if (records.size() > UINT32_MAX)
-			throw std::runtime_error("too many points");
 		return *this;
 	}
 };

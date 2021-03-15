@@ -10,6 +10,7 @@
 #include <thread>
 #include <mutex>
 #include <stdexcept>
+#include <cstdint>
 
 struct Points : std::vector<Point> {
 	Points(const std::vector<std::string> &tile_paths, double resolution, const std::vector<int> &classes, int thread_count) {
@@ -41,6 +42,8 @@ struct Points : std::vector<Point> {
 						if (exception)
 							break;
 						records += tile;
+						if (records.size() > UINT32_MAX)
+							throw std::runtime_error("too many points");
 					} catch (std::runtime_error &) {
 						std::lock_guard lock(mutex);
 						exception = std::current_exception();
