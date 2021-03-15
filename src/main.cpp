@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 		}
 		return EXIT_SUCCESS;
 	} catch (std::ios_base::failure &) {
-		std::cerr << "error: problem reading or writing file" << std::endl;
+		std::cerr << "error: problem writing file" << std::endl;
 		return EXIT_FAILURE;
 	} catch (std::runtime_error &error) {
 		std::cerr << "error: " << error.what() << std::endl;
