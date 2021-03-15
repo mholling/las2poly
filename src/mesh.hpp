@@ -94,6 +94,23 @@ public:
 		graph.emplace(p2, p1);
 	}
 
+	void connect(const Point &p1, const Point &p2, const Point &p3) {
+		if (((p3 - p2) ^ (p2 - p1)) != 0) {
+			connect(p1, p2);
+			connect(p2, p3);
+			connect(p3, p1);
+		} else if (p1 < p2 == p2 < p3) {
+			connect(p1, p2);
+			connect(p2, p3);
+		} else if (p2 < p1 == p1 < p3) {
+			connect(p3, p1);
+			connect(p1, p2);
+		} else {
+			connect(p2, p3);
+			connect(p3, p1);
+		}
+	}
+
 	void disconnect(const Point &p1, const Point &p2) {
 		auto [start1, stop1] = graph.equal_range(p1);
 		graph.erase(std::find(start1, stop1, Edge(p1, p2)));

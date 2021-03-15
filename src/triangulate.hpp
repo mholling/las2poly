@@ -48,7 +48,7 @@ class Triangulate {
 			while (true) {
 				const auto &[candidate, next] = *edge.search();
 				auto cross_product = (point - opposite) ^ (candidate - point);
-				if (cross_product <= 0 == rhs)
+				if (rhs ? cross_product <= 0 : cross_product >= 0)
 					return nullptr;
 				if (candidate == edge->first)
 					return &candidate;
@@ -69,8 +69,8 @@ class Triangulate {
 			case 1:
 				throw std::runtime_error("not enough points");
 			case 3:
-				mesh.connect(*(first+0), *(first+2));
-				mesh.connect(*(first+2), *(first+1));
+				mesh.connect(*(first+2), *(first+1), *(first+0));
+				break;
 			case 2:
 				mesh.connect(*(first+1), *(first+0));
 				break;
