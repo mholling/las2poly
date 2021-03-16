@@ -49,10 +49,6 @@ struct Vector : std::array<double, N> {
 	template <typename T>
 	friend auto operator/(const Vector &v, const T &t) { return Vector(v) /= t; }
 
-	friend auto operator+(const Vector &v) { return v; }
-
-	friend auto operator-(const Vector &v) { return v * -1; }
-
 	friend auto operator*(const Vector &v1, const Vector &v2) {
 		return std::inner_product(v1.begin(), v1.end(), v2.begin(), 0.0);
 	}

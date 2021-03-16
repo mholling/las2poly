@@ -25,6 +25,10 @@ struct Point : Vector<3> {
 		return {(*this)[0], (*this)[1]};
 	}
 
+	const Vector<3> &operator+() const {
+		return *this;
+	}
+
 	auto in_circle(const Point &a, const Point &b, const Point &c) const {
 		auto aa = a - *this, bb = b - *this, cc = c - *this;
 		return (aa * aa) * (bb ^ cc) + (bb * bb) * (cc ^ aa) + (cc * cc) * (aa ^ bb) > 0;
