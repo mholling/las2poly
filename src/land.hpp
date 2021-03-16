@@ -14,7 +14,7 @@
 
 struct Land : std::vector<Polygon> {
 	static auto is_water(const Triangles &triangles, double delta, double slope, bool permissive) {
-		static constexpr auto pi = 3.14159265358979323846264338327950288419716939937510l;
+		static constexpr auto pi = 3.14159265358979323846264338327950288419716939937510;
 		Vector<3> perp;
 		double sum_abs = 0.0;
 		std::size_t count = 0;

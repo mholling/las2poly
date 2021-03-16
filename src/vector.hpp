@@ -54,9 +54,7 @@ struct Vector : std::array<double, N> {
 	friend auto operator-(const Vector &v) { return v * -1; }
 
 	friend auto operator*(const Vector &v1, const Vector &v2) {
-		return std::inner_product(v1.begin(), v1.end(), v2.begin(), 0.0l, std::plus<long double>(), [](const auto &d1, const auto &d2) {
-			return static_cast<long double>(d1) * static_cast<long double>(d2);
-		});
+		return std::inner_product(v1.begin(), v1.end(), v2.begin(), 0.0);
 	}
 
 	auto sqnorm() const { return *this * *this;}
@@ -73,7 +71,7 @@ Vector<3> operator^(const Vector<3> &v1, const Vector<3> &v2) {
 }
 
 auto operator^(const Vector<2> &v1, const Vector<2> &v2) {
-	return static_cast<long double>(v1[0]) * static_cast<long double>(v2[1]) - static_cast<long double>(v1[1]) * static_cast<long double>(v2[0]);
+	return v1[0] * v2[1] - v1[1] * v2[0];
 }
 
 auto &operator<<(std::ostream &json, const Vector<2> &vector) {
