@@ -11,13 +11,41 @@
 #include <array>
 #include <cmath>
 
-class Triangles {
-	std::unordered_set<Triangle> triangles;
+struct Triangles : std::unordered_set<Triangle> {
+	Triangles() = default;
+
+	auto &operator+=(const Triangle &triangle) {
+		insert(triangle);
+		for (const auto edge: triangle)
+			neighbours.emplace(-edge, triangle);
+		return *this;
+	}
+
+	auto &operator-=(const Triangle &triangle) {
+		erase(triangle);
+		for (const auto edge: triangle)
+			neighbours.erase(-edge);
+		return *this;
+	}
+
+	template <typename Function>
+	void explode(Function function) {
+		while (!empty())
+			function(Triangles(this));
+	}
+
+	auto operator>(double length) const {
+		return std::any_of(begin(), end(), [=](const auto &triangle) {
+			return triangle > length;
+		});
+	}
+
+private:
 	std::unordered_map<Edge, Triangle> neighbours;
 
 	Triangles(Triangles *source) {
 		std::unordered_set<Triangle> pending;
-		for (pending.insert(*source->triangles.begin()); !pending.empty(); ) {
+		for (pending.insert(*source->begin()); !pending.empty(); ) {
 			const auto &triangle = *pending.begin();
 			*source -= triangle;
 			*this += triangle;
@@ -28,38 +56,6 @@ class Triangles {
 			}
 			pending.erase(triangle);
 		}
-	}
-
-public:
-	Triangles() { }
-
-	auto begin() const { return triangles.begin(); }
-	auto   end() const { return triangles.end(); }
-
-	Triangles &operator+=(const Triangle &triangle) {
-		triangles.insert(triangle);
-		for (const auto edge: triangle)
-			neighbours.emplace(-edge, triangle);
-		return *this;
-	}
-
-	Triangles &operator-=(const Triangle &triangle) {
-		triangles.erase(triangle);
-		for (const auto edge: triangle)
-			neighbours.erase(-edge);
-		return *this;
-	}
-
-	template <typename Function>
-	auto explode(Function function) {
-		while (!triangles.empty())
-			function(Triangles(this));
-	}
-
-	auto operator>(double length) const {
-		return std::any_of(triangles.begin(), triangles.end(), [=](const auto &triangle) {
-			return triangle > length;
-		});
 	}
 };
 
