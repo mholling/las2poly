@@ -3,7 +3,7 @@
 
 #include "point.hpp"
 #include "queue.hpp"
-#include "thin.hpp"
+#include "records.hpp"
 #include "tile.hpp"
 #include <vector>
 #include <string>
@@ -17,14 +17,14 @@ struct Points : std::vector<Point> {
 		auto paths = Queue<std::string>();
 		auto threads = std::vector<std::thread>();
 		auto mutex = std::mutex();
-		auto records = Thin(resolution, classes);
+		auto records = Records(resolution, classes);
 		auto exception = std::exception_ptr();
 
 		while (thread_count--)
 			threads.emplace_back([&]() {
 				for (std::string path; paths >> path; )
 					try {
-						auto tile = Thin(resolution, classes);
+						auto tile = Records(resolution, classes);
 						try {
 							if (path == "-")
 								tile += Tile(std::cin);
