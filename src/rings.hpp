@@ -10,10 +10,11 @@
 #include <cmath>
 
 template <bool outside = true>
-class Rings {
-	std::unordered_map<Edge, Edge> connections;
+class Rings : public std::vector<Ring> {
+	using PointsEdges = std::unordered_multimap<const Point &, Edge>;
+	using Connections = std::unordered_map<Edge, Edge>;
 
-	auto unwind() {
+	static auto unwind(Connections &connections) {
 		std::vector<Edge> edges;
 		for (auto connection = connections.begin(); connection != connections.end(); ) {
 			edges.push_back(connection->first);
@@ -26,7 +27,9 @@ class Rings {
 public:
 	template <typename Edges>
 	Rings(const Edges &edges) {
-		std::unordered_multimap<const Point &, Edge> points_edges;
+		PointsEdges points_edges;
+		Connections connections;
+
 		for (const auto &edge: edges)
 			points_edges.emplace(edge.first, edge);
 		auto ordering = [](const auto &pair1, const auto &pair2) {
@@ -49,17 +52,13 @@ public:
 				: *std::min_element(edges_angles.begin(), edges_angles.end(), ordering);
 			connections.emplace(incoming, outgoing);
 		}
-	}
 
-	std::vector<Ring> operator()() {
-		std::vector<Ring> results;
 		while (!connections.empty())
 			if constexpr (outside)
-				for (auto &ring: Rings<false>(unwind())())
-					results.push_back(ring);
+				for (auto &ring: Rings<!outside>(unwind(connections)))
+					push_back(ring);
 			else
-				results.emplace_back(unwind());
-		return results;
+				emplace_back(unwind(connections));
 	}
 };
 

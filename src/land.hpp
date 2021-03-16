@@ -53,7 +53,7 @@ struct Land : std::vector<Polygon> {
 					outside_edges -= triangle;
 		});
 
-		auto rings = Rings(outside_edges)();
+		auto rings = Rings(outside_edges);
 		auto rings_end = std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
 			return ring < area && ring > -area;
 		});
