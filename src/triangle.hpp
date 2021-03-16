@@ -4,6 +4,7 @@
 #include "edge.hpp"
 #include <array>
 #include <algorithm>
+#include <functional>
 #include <cstddef>
 
 using Triangle = std::array<Edge, 3>;
