@@ -106,14 +106,9 @@ int main(int argc, char *argv[]) {
 		auto land = Land(mesh, length.value(), width.value(), delta.value(), slope.value(), area.value(), (bool)permissive);
 
 		if (simplify)
-			for (auto &polygon: land)
-				for (auto &ring: polygon)
-					ring.simplify(simplify.value());
-
+			land.simplify(simplify.value());
 		if (smooth)
-			for (auto &polygon: land)
-				for (auto &ring: polygon)
-					ring.smooth(smooth.value(), 15.0);
+			land.smooth(smooth.value(), 15.0);
 
 		std::stringstream json;
 		json.precision(12);
