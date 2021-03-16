@@ -11,10 +11,8 @@
 #include <functional>
 #include <array>
 
-class Mesh {
-	using Graph = std::unordered_multimap<const Point &, const Point &>;
-	using EdgeIterator = typename Graph::const_iterator;
-	Graph graph;
+class Mesh : std::unordered_multimap<const Point &, const Point &> {
+	using EdgeIterator = const_iterator;
 
 	static auto less_than(const Edge &edge, const Edge &edge1, const Edge &edge2) {
 		auto cross1 = edge ^ edge1, dot1 = edge * edge1;
@@ -25,7 +23,7 @@ class Mesh {
 	}
 
 	auto next_interior(const EdgeIterator &edge) const {
-		const auto [start, stop] = graph.equal_range(edge->second);
+		const auto [start, stop] = equal_range(edge->second);
 		auto next = std::max_element(start, stop, [&](const auto &edge1, const auto &edge2) {
 			return edge1 || *edge ? true : edge2 || *edge ? false : less_than(*edge, edge1, edge2);
 		});
@@ -35,7 +33,7 @@ class Mesh {
 	}
 
 	auto next_exterior(const EdgeIterator &edge) const {
-		const auto [start, stop] = graph.equal_range(edge->second);
+		const auto [start, stop] = equal_range(edge->second);
 		auto next = std::min_element(start, stop, [&](const auto &edge1, const auto &edge2) {
 			return edge1 || *edge ? false : edge2 || *edge ? true : less_than(*edge, edge1, edge2);
 		});
@@ -45,7 +43,7 @@ class Mesh {
 	}
 
 	auto opposing(const EdgeIterator &edge) const {
-		const auto [start, stop] = graph.equal_range(edge->second);
+		const auto [start, stop] = equal_range(edge->second);
 		return std::find(start, stop, -*edge);
 	}
 
@@ -67,10 +65,10 @@ public:
 
 	template <typename LessThan>
 	auto rightmost_clockwise(LessThan less_than) const {
-		const auto &[p1, p2] = *std::max_element(graph.begin(), graph.end(), [&](const auto &edge1, const auto &edge2) {
+		const auto &[p1, p2] = *std::max_element(begin(), end(), [&](const auto &edge1, const auto &edge2) {
 			return less_than(edge1.first, edge2.first);
 		});
-		const auto [start, stop] = graph.equal_range(p1);
+		const auto [start, stop] = equal_range(p1);
 		const auto edge = std::min_element(start, stop, [](const auto &edge1, const auto &edge2) {
 			return (edge1 ^ edge2) < 0;
 		});
@@ -79,10 +77,10 @@ public:
 
 	template <typename LessThan>
 	auto leftmost_anticlockwise(LessThan less_than) const {
-		const auto &[p1, p2] = *std::min_element(graph.begin(), graph.end(), [&](const auto &edge1, const auto &edge2) {
+		const auto &[p1, p2] = *std::min_element(begin(), end(), [&](const auto &edge1, const auto &edge2) {
 			return less_than(edge1.first, edge2.first);
 		});
-		const auto [start, stop] = graph.equal_range(p1);
+		const auto [start, stop] = equal_range(p1);
 		const auto edge = std::max_element(start, stop, [](const auto &edge1, const auto &edge2) {
 			return (edge1 ^ edge2) < 0;
 		});
@@ -90,8 +88,8 @@ public:
 	}
 
 	void connect(const Point &p1, const Point &p2) {
-		graph.emplace(p1, p2);
-		graph.emplace(p2, p1);
+		emplace(p1, p2);
+		emplace(p2, p1);
 	}
 
 	void connect(const Point &p1, const Point &p2, const Point &p3) {
@@ -112,14 +110,14 @@ public:
 	}
 
 	void disconnect(const Point &p1, const Point &p2) {
-		auto [start1, stop1] = graph.equal_range(p1);
-		graph.erase(std::find(start1, stop1, Edge(p1, p2)));
-		auto [start2, stop2] = graph.equal_range(p2);
-		graph.erase(std::find(start2, stop2, Edge(p2, p1)));
+		auto [start1, stop1] = equal_range(p1);
+		erase(std::find(start1, stop1, Edge(p1, p2)));
+		auto [start2, stop2] = equal_range(p2);
+		erase(std::find(start2, stop2, Edge(p2, p1)));
 	}
 
 	auto &operator+=(Mesh &mesh) {
-		graph.merge(mesh.graph);
+		merge(mesh);
 		return *this;
 	}
 
@@ -129,20 +127,20 @@ public:
 		const auto &point = edge->first;
 		while (true) {
 			yield_edge(-*edge);
-			graph.erase(edge);
+			erase(edge);
 			if (edge->second == point)
 				break;
 			++edge;
 		}
-		while (!graph.empty()) {
-			auto edge = Iterator(*this, graph.begin(), true);
+		while (!empty()) {
+			auto edge = Iterator(*this, begin(), true);
 			std::array edges = {edge, ++edge, ++edge};
 			if (edges[0]->first != edges[2]->second || (*edges[0] ^ *edges[1]) < 0 || (*edges[1] ^ *edges[2]) < 0 || (*edges[2] ^ *edges[0]) < 0)
-				throw std::runtime_error("corrupted edge graph (" + std::to_string(graph.size()) + " edges left)");
+				throw std::runtime_error("corrupted edge graph (" + std::to_string(size()) + " edges left)");
 			yield_triangle(Triangle({*edges[0], *edges[1], *edges[2]}));
-			graph.erase(edges[0]);
-			graph.erase(edges[1]);
-			graph.erase(edges[2]);
+			erase(edges[0]);
+			erase(edges[1]);
+			erase(edges[2]);
 		}
 	}
 };
