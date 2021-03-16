@@ -101,7 +101,8 @@ public:
 	}
 
 	void smooth(double tolerance, double angle) {
-		auto cosine = std::cos(3.141592653589793l * angle / 180.0);
+		static constexpr auto pi = 3.14159265358979323846264338327950288419716939937510l;
+		auto cosine = std::cos(pi * angle / 180.0);
 		for (Vertices smoothed; smoothed.size() != vertices.size(); vertices.swap(smoothed)) {
 			smoothed.clear();
 			for (const auto &[v0, v1, v2]: *this) {
@@ -109,7 +110,7 @@ public:
 				auto d2 = v2 - v1;
 				auto n0 = d0.norm();
 				auto n2 = d2.norm();
-				if (d0 * d2 > cosine * n0 * n2)
+				if (d0 * d2 > n0 * n2 * cosine)
 					smoothed.push_back(v1);
 				else {
 					double f0 = std::min(0.25l, tolerance / n0);

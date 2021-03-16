@@ -14,6 +14,7 @@
 
 struct Land : std::vector<Polygon> {
 	static auto is_water(const Triangles &triangles, double delta, double slope, bool permissive) {
+		static constexpr auto pi = 3.14159265358979323846264338327950288419716939937510l;
 		Vector<3> perp;
 		double sum_abs = 0.0;
 		std::size_t count = 0;
@@ -32,7 +33,7 @@ struct Land : std::vector<Polygon> {
 				}
 		}
 
-		auto angle = std::acos(std::abs(perp.normalise()[2])) * 180.0 / M_PI;
+		auto angle = std::acos(std::abs(perp.normalise()[2])) * 180.0 / pi;
 		return angle > slope ? false : count < 3 ? permissive : sum_abs / count < delta;
 	}
 
