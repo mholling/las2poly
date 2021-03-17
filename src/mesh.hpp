@@ -109,6 +109,7 @@ public:
 	}
 
 	auto &operator+=(Mesh &mesh) {
+		reserve(size() + mesh.size());
 		merge(mesh);
 		return *this;
 	}
