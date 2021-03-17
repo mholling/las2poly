@@ -1,4 +1,4 @@
-AC_INIT([lidar2land], [0.1])
+AC_INIT([las2land], [0.1])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_FILES([Makefile])
 AC_PROG_CXX
