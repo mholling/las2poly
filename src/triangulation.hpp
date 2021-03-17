@@ -77,8 +77,10 @@ class Triangulation : public Mesh {
 			default:
 				Mesh left_mesh, right_mesh;
 				left_right(left_mesh, right_mesh);
-				auto left_edge = left_mesh.rightmost_clockwise(less_than);
-				auto right_edge = right_mesh.leftmost_anticlockwise(less_than);
+				const auto &rightmost = *std::max_element(first, middle, less_than);
+				const auto &leftmost = *std::min_element(middle, last, less_than);
+				auto left_edge = left_mesh.exterior_clockwise(rightmost);
+				auto right_edge = right_mesh.exterior_anticlockwise(leftmost);
 				while (true) {
 					const auto &[l0, l1] = *left_edge;
 					const auto &[r0, r1] = *right_edge;

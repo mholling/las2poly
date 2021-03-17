@@ -63,24 +63,16 @@ public:
 		auto search() const { return Iterator(mesh, peek(), !interior).peek(); }
 	};
 
-	template <typename LessThan>
-	auto rightmost_clockwise(LessThan less_than) const {
-		const auto &[p1, p2] = *std::max_element(begin(), end(), [&](const auto &edge1, const auto &edge2) {
-			return less_than(edge1.first, edge2.first);
-		});
-		const auto [start, stop] = equal_range(p1);
+	auto exterior_clockwise(const Point &point) const {
+		const auto [start, stop] = equal_range(point);
 		const auto edge = std::min_element(start, stop, [](const auto &edge1, const auto &edge2) {
 			return (edge1 ^ edge2) < 0;
 		});
 		return Iterator(*this, edge, true);
 	}
 
-	template <typename LessThan>
-	auto leftmost_anticlockwise(LessThan less_than) const {
-		const auto &[p1, p2] = *std::min_element(begin(), end(), [&](const auto &edge1, const auto &edge2) {
-			return less_than(edge1.first, edge2.first);
-		});
-		const auto [start, stop] = equal_range(p1);
+	auto exterior_anticlockwise(const Point &point) const {
+		const auto [start, stop] = equal_range(point);
 		const auto edge = std::max_element(start, stop, [](const auto &edge1, const auto &edge2) {
 			return (edge1 ^ edge2) < 0;
 		});
@@ -123,8 +115,10 @@ public:
 
 	template <typename TriangleFunction, typename EdgeFunction>
 	void deconstruct(TriangleFunction yield_triangle, EdgeFunction yield_edge) {
-		auto edge = rightmost_clockwise(std::less());
-		const auto &point = edge->first;
+		const auto &point = std::max_element(begin(), end(), [&](const auto &edge1, const auto &edge2) {
+			return edge1.first < edge2.first;
+		})->first;
+		auto edge = exterior_clockwise(point);
 		while (true) {
 			yield_edge(-*edge);
 			erase(edge);
