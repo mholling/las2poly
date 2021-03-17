@@ -55,11 +55,13 @@ int main(int argc, char *argv[]) {
 		args.position("<tile.las>", "LAS or PLY input path", tile_paths);
 		args.position("<land.json>", "GeoJSON output path", json_path);
 
-		if (!args.parse())
-			return EXIT_SUCCESS;
+		auto proceed = args.parse([&]() {
+			if (!length && !width)
+				throw std::runtime_error("no width or length specified");
+		});
 
-		if (!length && !width)
-			throw std::runtime_error("no width specified");
+		if (!proceed)
+			return EXIT_SUCCESS;
 
 		if (!width)
 			width = length.value();

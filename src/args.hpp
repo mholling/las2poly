@@ -136,7 +136,8 @@ public:
 		});
 	}
 
-	bool parse() {
+	template <typename Validate>
+	bool parse(Validate validate) {
 		options.emplace_back("-h", "--help", "", "show this help summary", [&](auto) {
 			std::cout << help();
 		});
@@ -184,7 +185,9 @@ public:
 
 			if (position != positions.end())
 				throw InvalidArgument("missing argument:", position->description);
-		} catch (InvalidArgument &error) {
+			else
+				validate();
+		} catch (std::runtime_error &error) {
 			std::cerr << help();
 			throw error;
 		}
