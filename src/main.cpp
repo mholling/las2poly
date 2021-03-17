@@ -20,9 +20,9 @@ int main(int argc, char *argv[]) {
 	try {
 		std::optional<double> width;
 		std::optional<double> slope = 10.0;
-		std::optional<double> delta = 5.0;
-		std::optional<double> length;
 		std::optional<double> area;
+		std::optional<double> length;
+		std::optional<double> delta = 2.0;
 		std::optional<double> resolution;
 		std::optional<double> simplify;
 		std::optional<double> smooth;
@@ -38,9 +38,9 @@ int main(int argc, char *argv[]) {
 		Args args(argc, argv, "extract land areas from lidar tiles");
 		args.option("-w", "--width",      "<metres>",    "minimum width for waterbodies",          width);
 		args.option("-s", "--slope",      "<degrees>",   "maximum slope for waterbodies",          slope);
-		args.option("-d", "--delta",      "<metres>",    "maximum average height difference",      delta);
-		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
+		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
+		args.option("-d", "--delta",      "<metres>",    "maximum average void height delta",      delta);
 		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
 		args.option("-i", "--simplify",   "<metres²>",   " tolerance for output simplification",   simplify);
 		args.option("-m", "--smooth",     "<metres>",    "tolerance for output smoothing",         smooth);
