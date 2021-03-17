@@ -18,7 +18,7 @@
 
 int main(int argc, char *argv[]) {
 	try {
-		std::optional<double> width = 10.0;
+		std::optional<double> width;
 		std::optional<double> slope = 10.0;
 		std::optional<double> delta = 5.0;
 		std::optional<double> length;
@@ -58,6 +58,11 @@ int main(int argc, char *argv[]) {
 		if (!args.parse())
 			return EXIT_SUCCESS;
 
+		if (!length && !width)
+			throw std::runtime_error("no width specified");
+
+		if (!width)
+			width = length.value();
 		if (!length)
 			length = width.value();
 		if (!area)
