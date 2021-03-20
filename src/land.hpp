@@ -27,8 +27,8 @@ struct Land : std::vector<Polygon> {
 			}));
 			perp += *edges[1] % *edges[2];
 			for (const auto &edge: {edges[1], edges[2]})
-				if (edge->first.ground && edge->second.ground) {
-					sum_abs += std::abs(edge->second[2] - edge->first[2]);
+				if (edge->first->ground && edge->second->ground) {
+					sum_abs += std::abs(edge->second->elevation - edge->first->elevation);
 					++count;
 				}
 		}
@@ -41,10 +41,10 @@ struct Land : std::vector<Polygon> {
 		Triangles large_triangles;
 		Edges outside_edges;
 
-		mesh.deconstruct([&](const auto &triangle) {
+		mesh.deconstruct([&](const auto triangle) {
 			if (triangle > length)
 				large_triangles += triangle;
-		}, [&](const auto &edge) {
+		}, [&](const auto edge) {
 			outside_edges.insert(edge);
 		});
 

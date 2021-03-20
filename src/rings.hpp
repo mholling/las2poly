@@ -1,7 +1,7 @@
 #ifndef RINGS_HPP
 #define RINGS_HPP
 
-#include "point.hpp"
+#include "points.hpp"
 #include "edge.hpp"
 #include "ring.hpp"
 #include <unordered_map>
@@ -11,7 +11,7 @@
 
 template <bool outside = true>
 class Rings : public std::vector<Ring> {
-	using PointsEdges = std::unordered_multimap<const Point &, Edge>;
+	using PointsEdges = std::unordered_multimap<PointIterator, Edge>;
 	using Connections = std::unordered_map<Edge, Edge>;
 
 	static auto unwind(Connections &connections) {

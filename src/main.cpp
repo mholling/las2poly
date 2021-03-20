@@ -1,6 +1,6 @@
 #include "args.hpp"
 #include "points.hpp"
-#include "triangulation.hpp"
+#include "mesh.hpp"
 #include "land.hpp"
 #include <optional>
 #include <vector>
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("can't read standard input more than once");
 
 		auto points = Points(tile_paths, resolution.value(), classes.value(), threads.value());
-		auto mesh = Triangulation(points, threads.value());
+		auto mesh = Mesh(points, threads.value());
 		auto land = Land(mesh, length.value(), width.value(), delta.value(), slope.value(), area.value(), (bool)permissive);
 
 		if (simplify)

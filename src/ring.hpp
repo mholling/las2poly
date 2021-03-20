@@ -2,6 +2,7 @@
 #define RING_HPP
 
 #include "vector.hpp"
+#include "edge.hpp"
 #include <utility>
 #include <list>
 #include <stdexcept>
@@ -70,10 +71,10 @@ public:
 	Ring(const Edges &edges) : signed_area(0) {
 		const auto &p = edges.begin()->first;
 		for (const auto &[p1, p2]: edges) {
-			push_back(p1);
-			signed_area += (p1 - p) ^ (p2 - p);
+			push_back(*p1);
+			signed_area += Edge(p, p1) ^ Edge(p, p2);
 		}
-		signed_area *= 0.5;
+		signed_area /= 2;
 	}
 
 	auto contains(const Ring &ring) const {

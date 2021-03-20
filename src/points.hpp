@@ -10,7 +10,10 @@
 #include <thread>
 #include <mutex>
 #include <stdexcept>
-#include <cstdint>
+#include <fstream>
+#include <iostream>
+#include <functional>
+#include <cstddef>
 
 struct Points : std::vector<Point> {
 	Points(const std::vector<std::string> &tile_paths, double resolution, const std::vector<int> &classes, int thread_count) {
@@ -42,8 +45,6 @@ struct Points : std::vector<Point> {
 						if (exception)
 							break;
 						records += tile;
-						if (records.size() > UINT32_MAX)
-							throw std::runtime_error("too many points");
 					} catch (std::runtime_error &) {
 						std::lock_guard lock(mutex);
 						exception = std::current_exception();
@@ -54,18 +55,20 @@ struct Points : std::vector<Point> {
 		for (const auto &path: tile_paths)
 			paths << path;
 		paths.close();
-
 		for (auto &thread: threads)
 			thread.join();
-
 		if (exception)
 			std::rethrow_exception(exception);
-
 		reserve(records.size());
-		std::size_t index = 0;
 		for (const auto &record: records)
-			emplace_back(record, index++);
+			emplace_back(record);
 	}
+};
+
+using PointIterator = Points::iterator;
+
+template <> struct std::hash<PointIterator> {
+	std::size_t operator()(const PointIterator &point) const { return std::hash<Point *>()(&*point); }
 };
 
 #endif
