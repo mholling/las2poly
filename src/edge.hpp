@@ -22,7 +22,7 @@ auto operator*(const Edge &edge1, const Edge &edge2) {
 }
 
 auto operator%(const Edge &edge1, const Edge &edge2) { // 3d cross product
-	return (+*edge1.first - +*edge1.second) ^ (+*edge1.first - +*edge1.second);
+	return (+*edge1.first - +*edge1.second) ^ (+*edge2.first - +*edge2.second);
 }
 
 auto operator>(const Edge &edge, double length) {
