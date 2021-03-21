@@ -31,7 +31,7 @@ struct Land : std::vector<Polygon> {
 				}
 		}
 
-		auto angle = std::acos(std::abs(perp.normalise()[2])) * 180.0 / pi;
+		auto angle = std::acos(std::abs(perp[2] / perp.norm())) * 180.0 / pi;
 		return angle > slope ? false : count < 3 ? permissive : sum_abs / count < delta;
 	}
 

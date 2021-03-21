@@ -44,7 +44,6 @@ struct Vector : std::array<double, N> {
 
 	auto sqnorm() const { return *this * *this;}
 	auto norm() const { return std::sqrt(sqnorm());}
-	auto normalise() { return *this /= norm(); }
 };
 
 Vector<3> operator^(const Vector<3> &v1, const Vector<3> &v2) {
