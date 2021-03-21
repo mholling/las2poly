@@ -185,7 +185,7 @@ public:
 	void deconstruct(TriangleFunction yield_triangle, EdgeFunction yield_edge) {
 		const auto rightmost = std::max_element(points_begin, points_begin + size());
 		for (auto edge = exterior_clockwise(rightmost); ; ++edge) {
-			yield_edge(-*edge);
+			yield_edge(*edge);
 			disconnect(*edge);
 			if (edge->second == rightmost)
 				break;
