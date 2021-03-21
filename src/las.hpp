@@ -17,8 +17,8 @@ public:
 	}
 
 	auto record() {
-		Record record;
-		return record;
+		input.sync();
+		return Record();
 	}
 };
 
