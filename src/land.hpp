@@ -7,8 +7,10 @@
 #include "edges.hpp"
 #include "rings.hpp"
 #include "ring.hpp"
-#include <algorithm>
 #include <vector>
+#include <cstddef>
+#include <algorithm>
+#include <cmath>
 #include <iterator>
 #include <ostream>
 
@@ -65,13 +67,13 @@ struct Land : std::vector<Polygon> {
 
 		auto remaining = holes_begin;
 		std::for_each(rings.begin(), holes_begin, [&](const auto &exterior) {
-			std::vector<Ring> rings = {exterior};
+			Polygon polygon = {exterior};
 			auto old_remaining = remaining;
 			remaining = std::partition(remaining, rings_end, [&](const auto &hole) {
 				return exterior.contains(hole);
 			});
-			std::copy(old_remaining, remaining, std::back_inserter(rings));
-			emplace_back(rings);
+			std::copy(old_remaining, remaining, std::back_inserter(polygon));
+			emplace_back(polygon);
 		});
 	}
 
