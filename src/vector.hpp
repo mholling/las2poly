@@ -13,6 +13,8 @@
 
 template <std::size_t N>
 struct Vector : std::array<double, N> {
+	Vector() = delete;
+
 	auto &operator+=(const Vector &v) {
 		std::transform(this->begin(), this->end(), v.begin(), this->begin(), std::plus<>());
 		return *this;
