@@ -22,7 +22,7 @@ struct Land : std::vector<Polygon> {
 		std::size_t count = 0;
 
 		for (auto edges: triangles) {
-			std::iter_swap(edges.begin(), std::min_element(edges.begin(), edges.end()));
+			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end()), edges.end());
 			perp += edges[1] % edges[2];
 			for (auto edge = edges.begin() + 1; edge != edges.end(); ++edge)
 				if (edge->first->ground && edge->second->ground) {
