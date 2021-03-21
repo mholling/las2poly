@@ -34,7 +34,7 @@ class Ring : std::list<Vector<2>> {
 		Iterator(const Ring &ring, VertexIterator here) : ring(ring), here(here) { }
 		auto &operator++() { ++here; return *this;}
 		auto &operator--() { --here; return *this;}
-		auto operator!=(Iterator other) const { return here != other.here; }
+		auto operator!=(const Iterator &other) const { return here != other.here; }
 		auto next() const { return *this != --ring.end() ? ++Iterator(ring, here) : ring.begin(); }
 		auto prev() const { return *this != ring.begin() ? --Iterator(ring, here) : --ring.end(); }
 		operator VertexIterator() const { return here; }

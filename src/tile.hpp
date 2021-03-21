@@ -50,7 +50,7 @@ class Tile {
 
 		Iterator(Tile &tile, std::size_t index) : tile(tile), index(index) { }
 		auto &operator++() { ++index; return *this;}
-		auto operator!=(Iterator other) const { return index != other.index; }
+		auto operator!=(const Iterator &other) const { return index != other.index; }
 		auto operator*() const { return tile.record(); }
 	};
 

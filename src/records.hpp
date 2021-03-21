@@ -25,7 +25,7 @@ class Records : std::unordered_map<Cell, Record> {
 
 		Iterator(const_iterator here) : here(here) { }
 		auto &operator++() { ++here; return *this;}
-		auto operator!=(Iterator other) const { return here != other.here; }
+		auto operator!=(const Iterator &other) const { return here != other.here; }
 		auto &operator*() const { return here->second; }
 	};
 
