@@ -48,7 +48,7 @@ struct Land : std::vector<Polygon> {
 			outside_edges.insert(edge);
 		});
 
-		large_triangles.explode([&](const auto &triangles) {
+		large_triangles.explode([&](const auto &&triangles) {
 			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope, permissive)))
 				for (const auto &triangle: triangles)
 					outside_edges -= triangle;
