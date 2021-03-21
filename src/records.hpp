@@ -8,8 +8,8 @@
 #include <unordered_set>
 
 class Records : std::unordered_map<Cell, Record> {
-	std::unordered_set<unsigned char> classes;
 	double resolution;
+	std::unordered_set<unsigned char> classes;
 
 	auto &insert(const Record &record) {
 		auto cell = Cell(record, resolution);
