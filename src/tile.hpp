@@ -41,7 +41,6 @@ class Tile {
 	auto record() { return std::visit(Record(), tile_variant); }
 	auto count() { return std::visit(Count(), tile_variant); }
 
-	std::istream &input;
 	TileVariant tile_variant;
 
 	struct Iterator {
@@ -55,7 +54,7 @@ class Tile {
 	};
 
 public:
-	Tile(std::istream &input) : input(input), tile_variant(from(input)) { }
+	Tile(std::istream &input) : tile_variant(from(input)) { }
 
 	auto begin() { return Iterator(*this, 0); }
 	auto   end() { return Iterator(*this, count()); }
