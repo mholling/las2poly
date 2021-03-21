@@ -21,14 +21,10 @@ struct Land : std::vector<Polygon> {
 		double sum_abs = 0.0;
 		std::size_t count = 0;
 
-		for (const auto &triangle: triangles) {
-			auto edge = triangle.begin();
-			std::array edges = {edge, ++edge, ++edge};
-			std::iter_swap(edges.begin(), std::min_element(edges.begin(), edges.end(), [](const auto &edge1, const auto *edge2) {
-				return *edge1 < *edge2;
-			}));
-			perp += *edges[1] % *edges[2];
-			for (const auto &edge: {edges[1], edges[2]})
+		for (auto edges: triangles) {
+			std::iter_swap(edges.begin(), std::min_element(edges.begin(), edges.end()));
+			perp += edges[1] % edges[2];
+			for (auto edge = edges.begin() + 1; edge != edges.end(); ++edge)
 				if (edge->first->ground && edge->second->ground) {
 					sum_abs += std::abs(edge->second->elevation - edge->first->elevation);
 					++count;
