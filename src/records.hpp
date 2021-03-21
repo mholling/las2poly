@@ -3,6 +3,7 @@
 
 #include "cell.hpp"
 #include "record.hpp"
+#include "tile.hpp"
 #include <unordered_map>
 #include <unordered_set>
 
@@ -39,9 +40,16 @@ public:
 		classes.insert(additional.begin(), additional.end());
 	}
 
-	template <typename Tile>
-	auto &operator+=(Tile tile) {
+	auto &operator+=(Tile &&tile) {
 		for (const auto record: tile)
+			if (classes.count(record.c))
+				insert(record);
+		return *this;
+	}
+
+	auto &operator+=(Records &records) {
+		merge(records);
+		for (const auto record: records)
 			if (classes.count(record.c))
 				insert(record);
 		return *this;
