@@ -15,7 +15,7 @@ class Queue {
 public:
 	Queue() : closed(false) { }
 
-	auto operator>>(T& element) {
+	auto operator>>(T &element) {
 		for (std::unique_lock lock(mutex); !(closed && queue.empty()); consumers.wait(lock))
 			if (!queue.empty()) {
 				element = queue.front();
@@ -25,7 +25,7 @@ public:
 		return false;
 	}
 
-	auto &operator<<(const T& element) {
+	auto &operator<<(const T &element) {
 		std::unique_lock lock(mutex);
 		// TODO: do something if the queue is closed
 		queue.push(element);
