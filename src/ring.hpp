@@ -56,7 +56,7 @@ class Ring : std::list<Vector<2>> {
 
 	auto winding_number(const Vertex &v) const {
 		int winding = 0;
-		for (const auto &[v0, v1, v2]: *this)
+		for (const auto [v0, v1, v2]: *this)
 			if (v1 == v || v2 == v)
 				throw VertexOnRing();
 			else if ((v1 < v) && !(v2 < v) && ((v1 - v) ^ (v2 - v)) > 0)
@@ -109,7 +109,7 @@ public:
 		auto cosine = std::cos(pi * angle / 180.0);
 		for (Vertices smoothed; smoothed.size() != size(); swap(smoothed)) {
 			smoothed.clear();
-			for (const auto &[v0, v1, v2]: *this) {
+			for (const auto [v0, v1, v2]: *this) {
 				auto d0 = v1 - v0;
 				auto d2 = v2 - v1;
 				auto n0 = d0.norm();
