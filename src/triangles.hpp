@@ -16,14 +16,14 @@ struct Triangles : std::unordered_set<Triangle> {
 
 	auto &operator+=(const Triangle &triangle) {
 		insert(triangle);
-		for (const auto edge: triangle)
+		for (const auto &edge: triangle)
 			neighbours.emplace(-edge, triangle);
 		return *this;
 	}
 
 	auto &operator-=(const Triangle &triangle) {
 		erase(triangle);
-		for (const auto edge: triangle)
+		for (const auto &edge: triangle)
 			neighbours.erase(-edge);
 		return *this;
 	}
@@ -49,7 +49,7 @@ private:
 			const auto &triangle = *pending.begin();
 			*source -= triangle;
 			*this += triangle;
-			for (const auto edge: triangle) {
+			for (const auto &edge: triangle) {
 				const auto pair = source->neighbours.find(edge);
 				if (pair != source->neighbours.end())
 					pending.insert(pair->second);
