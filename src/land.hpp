@@ -41,7 +41,7 @@ struct Land : std::vector<Polygon> {
 		Triangles large_triangles;
 		Edges outside_edges;
 
-		mesh.deconstruct([&](const auto triangle) {
+		mesh.deconstruct([&](const auto &triangle) {
 			if (triangle > length)
 				large_triangles += triangle;
 		}, [&](const auto edge) {

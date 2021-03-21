@@ -193,7 +193,7 @@ public:
 		for (auto point = points_begin, points_end = points_begin + size(); point < points_end; ++point)
 			for (auto &neighbours = adjacent(point); !neighbours.empty(); ) {
 				auto edge = Iterator(*this, Edge(point, neighbours.front()), true);
-				Triangle triangle = {*edge, *++edge, *++edge};
+				const Triangle triangle = {*edge, *++edge, *++edge};
 				if (!triangle)
 					throw std::runtime_error("corrupted mesh");
 				yield_triangle(triangle);
