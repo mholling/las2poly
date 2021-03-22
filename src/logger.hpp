@@ -35,13 +35,12 @@ public:
 	}
 
 	template <typename ...Args>
-	void info(std::size_t arg, const Args &...args) {
-		if (arg < 1000)
-			return info((int)arg, args...);
-		static constexpr auto suffixes = {'k','M','G'};
+	void info(std::size_t arg, char const *word, const Args &...args) {
+		static constexpr auto suffixes = {"","k","M","G"};
 		auto suffix = suffixes.begin();
-		for (; arg >= 999'950 & suffix + 1 < suffixes.end(); arg /= 1000, ++suffix) ;
-		info(std::fixed, std::setprecision(1), 0.001 * arg, *suffix, args...);
+		double decimal = arg;
+		for (; decimal >= 999.95 & suffix + 1 < suffixes.end(); decimal *= 0.001, ++suffix) ;
+		info(" ", std::fixed, std::setprecision(arg < 1000 ? 0 : 1), decimal, *suffix, " ", word, arg > 1 ? "s" : "", args...);
 	}
 
 	template <typename ...Args>

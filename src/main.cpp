@@ -132,10 +132,10 @@ int main(int argc, char *argv[]) {
 
 		auto logger = Logger((bool)progress);
 
-		logger.time("reading points from ", tile_paths.size(), tile_paths.size() == 1 ? " file" : " files");
+		logger.time("reading", tile_paths.size(), "file");
 		auto points = Points(tile_paths, resolution.value(), classes.value(), threads.value());
 
-		logger.time("triangulating ", points.size(), " points");
+		logger.time("triangulating", points.size(), "point");
 		auto mesh = Mesh(points, threads.value());
 
 		logger.time("extracting polygons");
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
 			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << epsg.value() << "\"}},";
 		json << "\"features\":" << land << "}" << std::endl;
 
-		logger.time("saving ", land.size(), land.size() == 1 ? " polygon" : " polygons");
+		logger.time("saving", land.size(), "polygon");
 		if (json_path == "-")
 			std::cout << json.str();
 		else {
