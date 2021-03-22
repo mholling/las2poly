@@ -1,4 +1,5 @@
 #include "args.hpp"
+#include "logger.hpp"
 #include "points.hpp"
 #include "mesh.hpp"
 #include "land.hpp"
@@ -32,6 +33,7 @@ int main(int argc, char *argv[]) {
 		std::optional<int> threads = std::max(1u, std::thread::hardware_concurrency());
 		std::optional<bool> permissive;
 		std::optional<bool> overwrite;
+		std::optional<bool> progress;
 
 		std::vector<std::string> tile_paths;
 		std::string json_path;
@@ -51,6 +53,7 @@ int main(int argc, char *argv[]) {
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
 		args.option("",   "--permissive",                "allow voids with no ground points",      permissive);
 		args.option("-o", "--overwrite",                 "overwrite existing output file",         overwrite);
+		args.option("-p", "--progress",                  "show progress",                          progress);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -123,8 +126,15 @@ int main(int argc, char *argv[]) {
 		if (simplify && !smooth)
 			smooth = 0.25 * std::sqrt(simplify.value()) / std::sin(angle.value());
 
+		auto logger = Logger((bool)progress);
+
+		logger.time("reading points");
 		auto points = Points(tile_paths, resolution.value(), classes.value(), threads.value());
+
+		logger.time("triangulating ", points.size(), " points");
 		auto mesh = Mesh(points, threads.value());
+
+		logger.time("extracting polygons");
 		auto land = Land(mesh, length.value(), width.value(), delta.value(), slope.value(), area.value(), (bool)permissive);
 
 		if (simplify && simplify.value() > 0)
@@ -139,6 +149,7 @@ int main(int argc, char *argv[]) {
 			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << epsg.value() << "\"}},";
 		json << "\"features\":" << land << "}" << std::endl;
 
+		logger.time("saving ", land.size(), land.size() == 1 ? " polygon" : " polygons");
 		if (json_path == "-")
 			std::cout << json.str();
 		else {
