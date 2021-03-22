@@ -19,13 +19,14 @@
 int main(int argc, char *argv[]) {
 	try {
 		std::optional<double> width;
-		std::optional<double> slope = 10.0;
+		std::optional<double> slope = 10;
 		std::optional<double> area;
 		std::optional<double> length;
-		std::optional<double> delta = 2.0;
+		std::optional<double> delta = 2;
 		std::optional<double> resolution;
 		std::optional<double> simplify;
 		std::optional<double> smooth;
+		std::optional<double> angle = 15;
 		std::optional<std::vector<int>> classes;
 		std::optional<int> epsg;
 		std::optional<int> threads = std::max(1u, std::thread::hardware_concurrency());
@@ -44,6 +45,7 @@ int main(int argc, char *argv[]) {
 		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
 		args.option("-i", "--simplify",   "<metres²>",   " tolerance for output simplification",   simplify);
 		args.option("-m", "--smooth",     "<metres>",    "tolerance for output smoothing",         smooth);
+		args.option("-g", "--angle",      "<degrees>",   "maximum angle for smoothing",            angle);
 		args.option("-c", "--classes",    "<class,...>", "additional lidar point classes",         classes);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
@@ -63,35 +65,33 @@ int main(int argc, char *argv[]) {
 		if (!proceed)
 			return EXIT_SUCCESS;
 
-		if (!width)
-			width = length.value();
-		if (!length)
-			length = width.value();
-		if (!area)
-			area = 4 * width.value() * width.value();
-		if (!resolution)
-			resolution = length.value() / std::sqrt(8.0);
 		if (!classes)
 			classes.emplace();
 
-		if (width.value() <= 0)
+		if (width && width.value() <= 0)
 			throw std::runtime_error("width must be positive");
 		if (slope.value() <= 0)
 			throw std::runtime_error("slope must be positive");
+		if (slope.value() >= 90)
+			throw std::runtime_error("slope must be less than 90");
 		if (delta.value() <= 0)
 			throw std::runtime_error("average height difference must be positive");
-		if (length.value() <= 0)
+		if (length && length.value() <= 0)
 			throw std::runtime_error("edge length must be positive");
-		if (length.value() > width.value())
+		if (length && width && length.value() > width.value())
 			throw std::runtime_error("edge length can't be more than width");
-		if (area.value() < 0)
+		if (area && area.value() < 0)
 			throw std::runtime_error("area can't be negative");
-		if (resolution.value() <= 0)
+		if (resolution && resolution.value() <= 0)
 			throw std::runtime_error("resolution must be positive");
-		if (smooth && smooth.value() <= 0)
-			throw std::runtime_error("smoothing tolerance must be positive");
-		if (simplify && simplify.value() <= 0)
-			throw std::runtime_error("simplification tolerance must be positive");
+		if (simplify && simplify.value() < 0)
+			throw std::runtime_error("simplification tolerance can't be negative");
+		if (smooth && smooth.value() < 0)
+			throw std::runtime_error("smoothing tolerance can't be negative");
+		if (angle.value() <= 0)
+			throw std::runtime_error("smoothing angle must be positive");
+		if (angle.value() >= 90)
+			throw std::runtime_error("smoothing angle must be less than 90");
 		for (auto klass: classes.value()) {
 			if (std::clamp(klass, 0, 255) != klass)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
@@ -108,14 +108,29 @@ int main(int argc, char *argv[]) {
 		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
 			throw std::runtime_error("can't read standard input more than once");
 
+		static constexpr auto pi = 3.14159265358979323846264338327950288419716939937510;
+		slope = slope.value() * pi / 180;
+		angle = angle.value() * pi / 180;
+
+		if (!width)
+			width = length.value();
+		if (!length)
+			length = width.value();
+		if (!area)
+			area = 4 * width.value() * width.value();
+		if (!resolution)
+			resolution = length.value() / std::sqrt(8.0);
+		if (simplify && !smooth)
+			smooth = 0.25 * std::sqrt(simplify.value()) / std::sin(angle.value());
+
 		auto points = Points(tile_paths, resolution.value(), classes.value(), threads.value());
 		auto mesh = Mesh(points, threads.value());
 		auto land = Land(mesh, length.value(), width.value(), delta.value(), slope.value(), area.value(), (bool)permissive);
 
-		if (simplify)
+		if (simplify && simplify.value() > 0)
 			land.simplify(simplify.value());
-		if (smooth)
-			land.smooth(smooth.value(), 15.0);
+		if (smooth && smooth.value() > 0)
+			land.smooth(smooth.value(), angle.value());
 
 		std::stringstream json;
 		json.precision(12);

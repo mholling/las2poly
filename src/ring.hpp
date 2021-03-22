@@ -105,8 +105,7 @@ public:
 	}
 
 	void smooth(double tolerance, double angle) {
-		static constexpr auto pi = 3.14159265358979323846264338327950288419716939937510;
-		auto cosine = std::cos(pi * angle / 180.0);
+		auto cosine = std::cos(angle);
 		for (Vertices smoothed; smoothed.size() != size(); swap(smoothed)) {
 			smoothed.clear();
 			for (const auto [v0, v1, v2]: *this) {
