@@ -68,7 +68,7 @@ class Args {
 		}
 		for (const auto &option: options)
 			help << "    " << std::left
-				<< std::setw(letter_width) << option.letter << ", "
+				<< std::setw(letter_width) << option.letter << (option.letter.empty() ? "  " : ", ")
 				<< std::setw(name_width + 1) << option.name
 				<< std::setw(format_width + 1) << option.format
 				<< option.description << std::endl;

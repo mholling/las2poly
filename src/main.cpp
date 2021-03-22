@@ -45,11 +45,11 @@ int main(int argc, char *argv[]) {
 		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
 		args.option("-i", "--simplify",   "<metres²>",   " tolerance for output simplification",   simplify);
 		args.option("-m", "--smooth",     "<metres>",    "tolerance for output smoothing",         smooth);
-		args.option("-g", "--angle",      "<degrees>",   "maximum angle for smoothing",            angle);
+		args.option("",   "--angle",      "<degrees>",   "threshold angle for smoothing",          angle);
 		args.option("-c", "--classes",    "<class,...>", "additional lidar point classes",         classes);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
-		args.option("-p", "--permissive",                "allow voids with no ground points",      permissive);
+		args.option("",   "--permissive",                "allow voids with no ground points",      permissive);
 		args.option("-o", "--overwrite",                 "overwrite existing output file",         overwrite);
 #ifdef VERSION
 		args.version(VERSION);
