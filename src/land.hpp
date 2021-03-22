@@ -24,10 +24,8 @@ struct Land : std::vector<Polygon> {
 			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end()), edges.end());
 			perp += edges[1] % edges[2];
 			for (auto edge = edges.begin() + 1; edge != edges.end(); ++edge)
-				if (edge->first->ground && edge->second->ground) {
-					sum_abs += std::abs(edge->second->elevation - edge->first->elevation);
-					++count;
-				}
+				if (edge->first->ground && edge->second->ground)
+					++count, sum_abs += std::abs(edge->second->elevation - edge->first->elevation);
 		}
 
 		auto angle = std::acos(std::abs(perp[2] / perp.norm()));
