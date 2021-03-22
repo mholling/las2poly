@@ -21,6 +21,10 @@ class Logger {
 		return std::chrono::system_clock::now();
 	};
 
+	auto elapsed() const {
+		return std::chrono::duration<double>(now() - start).count();
+	}
+
 public:
 	Logger(bool show) : null_stream(&null_buffer), output(show ? std::cerr : null_stream), start(now()) { }
 
@@ -45,7 +49,7 @@ public:
 
 	template <typename ...Args>
 	void time(const Args &...args) {
-		info(std::fixed, std::setprecision(1), std::chrono::duration<double>(now() - start).count(), "s: ", args...);
+		info(std::fixed, std::setprecision(1), elapsed(), "s: ", args...);
 	}
 };
 
