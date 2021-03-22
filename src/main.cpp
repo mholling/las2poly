@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 
 		auto logger = Logger((bool)progress);
 
-		logger.time("reading points");
+		logger.time("reading points from ", tile_paths.size(), tile_paths.size() == 1 ? " file" : " files");
 		auto points = Points(tile_paths, resolution.value(), classes.value(), threads.value());
 
 		logger.time("triangulating ", points.size(), " points");
