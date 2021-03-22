@@ -8,16 +8,16 @@
 #include "rings.hpp"
 #include "ring.hpp"
 #include <vector>
+#include <cmath>
 #include <cstddef>
 #include <algorithm>
-#include <cmath>
 #include <iterator>
 #include <ostream>
 
 struct Land : std::vector<Polygon> {
-	static auto is_water(const Triangles &triangles, double delta, double slope, bool permissive) {
+	static auto is_water(const Triangles &triangles, double delta, double slope) {
 		Vector<3> perp = {{0, 0, 0}};
-		double sum_abs = 0;
+		long double sum_abs = 0;
 		std::size_t count = 0;
 
 		for (auto edges: triangles) {
@@ -29,22 +29,23 @@ struct Land : std::vector<Polygon> {
 		}
 
 		auto angle = std::acos(std::abs(perp[2] / perp.norm()));
-		return angle > slope ? false : count < 3 ? permissive : sum_abs / count < delta;
+		return angle < slope && count > 0 && sum_abs < delta * count;
 	}
 
-	Land(Mesh &mesh, double length, double width, double delta, double slope, double area, bool permissive) {
+	Land(Mesh &mesh, double length, double width, double slope, double area) {
 		Triangles large_triangles;
 		Edges outside_edges;
+		auto delta = width * std::tan(slope);
 
-		mesh.deconstruct([&](const auto &triangle) {
+		mesh.deconstruct([&, length](const auto &triangle) {
 			if (triangle > length)
 				large_triangles += triangle;
 		}, [&](const auto &edge) {
 			outside_edges.insert(-edge);
 		});
 
-		large_triangles.explode([&](const auto &&triangles) {
-			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope, permissive)))
+		large_triangles.explode([=, &outside_edges](const auto &&triangles) {
+			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope)))
 				for (const auto &triangle: triangles)
 					outside_edges -= triangle;
 		});

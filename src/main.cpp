@@ -28,7 +28,6 @@ int main(int argc, char *argv[]) {
 		std::optional<double> slope = 10;
 		std::optional<double> area;
 		std::optional<double> length;
-		std::optional<double> delta = 2;
 		std::optional<double> resolution;
 		std::optional<double> simplify;
 		std::optional<double> smooth;
@@ -36,7 +35,6 @@ int main(int argc, char *argv[]) {
 		std::optional<std::vector<int>> classes;
 		std::optional<int> epsg;
 		std::optional<int> threads = std::max(1u, std::thread::hardware_concurrency());
-		std::optional<bool> permissive;
 		std::optional<bool> overwrite;
 		std::optional<bool> progress;
 
@@ -48,15 +46,13 @@ int main(int argc, char *argv[]) {
 		args.option("-s", "--slope",      "<degrees>",   "maximum slope for waterbodies",          slope);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
-		args.option("-d", "--delta",      "<metres>",    "maximum average void height delta",      delta);
 		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
 		args.option("-i", "--simplify",   "<metres²>",   " tolerance for output simplification",   simplify);
 		args.option("-m", "--smooth",     "<metres>",    "tolerance for output smoothing",         smooth);
-		args.option("",   "--angle",      "<degrees>",   "threshold angle for smoothing",          angle);
+		args.option("-g", "--angle",      "<degrees>",   "threshold angle for smoothing",          angle);
 		args.option("-c", "--classes",    "<class,...>", "additional lidar point classes",         classes);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
-		args.option("",   "--permissive",                "allow voids with no ground points",      permissive);
 		args.option("-o", "--overwrite",                 "overwrite existing output file",         overwrite);
 		args.option("-p", "--progress",                  "show progress",                          progress);
 #ifdef VERSION
@@ -82,8 +78,6 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("slope must be positive");
 		if (slope.value() >= 90)
 			throw std::runtime_error("slope must be less than 90");
-		if (delta.value() <= 0)
-			throw std::runtime_error("average height difference must be positive");
 		if (length && length.value() <= 0)
 			throw std::runtime_error("edge length must be positive");
 		if (length && width && length.value() > width.value())
@@ -139,7 +133,7 @@ int main(int argc, char *argv[]) {
 		auto mesh = Mesh(points, threads.value());
 
 		logger.time("extracting polygons");
-		auto land = Land(mesh, length.value(), width.value(), delta.value(), slope.value(), area.value(), (bool)permissive);
+		auto land = Land(mesh, length.value(), width.value(), slope.value(), area.value());
 
 		if (simplify && simplify.value() > 0)
 			land.simplify(simplify.value());
