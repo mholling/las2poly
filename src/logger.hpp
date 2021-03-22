@@ -5,6 +5,7 @@
 #include <ostream>
 #include <iostream>
 #include <chrono>
+#include <cstddef>
 
 class Logger {
 	struct NullBuffer : std::streambuf {
@@ -31,6 +32,16 @@ public:
 	void info(const Arg &arg, const Args &...args) {
 		output << arg;
 		info(args...);
+	}
+
+	template <typename ...Args>
+	void info(std::size_t arg, const Args &...args) {
+		if (arg < 1000)
+			return info((int)arg, args...);
+		static constexpr auto suffixes = {'k','M','G'};
+		auto suffix = suffixes.begin();
+		for (; arg >= 999'950 & suffix + 1 < suffixes.end(); arg /= 1000, ++suffix) ;
+		info(std::fixed, std::setprecision(1), 0.001 * arg, *suffix, args...);
 	}
 
 	template <typename ...Args>
