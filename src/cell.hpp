@@ -8,7 +8,7 @@
 #include <functional>
 #include <cstddef>
 
-struct Cell : std::pair<std::uint32_t, std::uint32_t> {
+struct Cell : std::pair<std::int32_t, std::int32_t> {
 	Cell(const Record &record, double resolution) : pair(std::floor(record.x / resolution), std::floor(record.y / resolution)) { }
 };
 

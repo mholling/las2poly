@@ -3,6 +3,7 @@
 #include "points.hpp"
 #include "mesh.hpp"
 #include "land.hpp"
+#include <cstdint>
 #include <optional>
 #include <vector>
 #include <thread>
@@ -18,6 +19,10 @@
 #include <cstdlib>
 
 int main(int argc, char *argv[]) {
+	static constexpr auto pi = 3.14159265358979323846264338327950288419716939937510;
+	static constexpr auto max_web_mercator = 20048966.10;
+	static constexpr auto min_resolution = max_web_mercator / INT32_MAX;
+
 	try {
 		std::optional<double> width;
 		std::optional<double> slope = 10;
@@ -85,8 +90,8 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("edge length can't be more than width");
 		if (area && area.value() < 0)
 			throw std::runtime_error("area can't be negative");
-		if (resolution && resolution.value() <= 0)
-			throw std::runtime_error("resolution must be positive");
+		if (resolution && resolution.value() < min_resolution)
+			throw std::runtime_error("resolution value too low");
 		if (simplify && simplify.value() < 0)
 			throw std::runtime_error("simplification tolerance can't be negative");
 		if (smooth && smooth.value() < 0)
@@ -111,7 +116,6 @@ int main(int argc, char *argv[]) {
 		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
 			throw std::runtime_error("can't read standard input more than once");
 
-		static constexpr auto pi = 3.14159265358979323846264338327950288419716939937510;
 		slope = slope.value() * pi / 180;
 		angle = angle.value() * pi / 180;
 
