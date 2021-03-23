@@ -42,14 +42,14 @@ int main(int argc, char *argv[]) {
 		std::string json_path;
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
-		args.option("-w", "--width",      "<metres>",    "minimum width for waterbodies",          width);
-		args.option("-s", "--slope",      "<degrees>",   "maximum slope for waterbodies",          slope);
+		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                width);
+		args.option("-s", "--slope",      "<degrees>",   "maximum waterbody slope",                slope);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
-		args.option("-r", "--resolution", "<metres>",    "resolution for point thinning",          resolution);
-		args.option("-i", "--simplify",   "<metres²>",   " tolerance for output simplification",   simplify);
-		args.option("-m", "--smooth",     "<metres>",    "tolerance for output smoothing",         smooth);
-		args.option("-g", "--angle",      "<degrees>",   "threshold angle for smoothing",          angle);
+		args.option("-r", "--resolution", "<metres>",    "point thinning resolution",              resolution);
+		args.option("-i", "--simplify",   "<metres²>",   " output simplification tolerance",       simplify);
+		args.option("-m", "--smooth",     "<metres>",    "output smoothing tolerance",             smooth);
+		args.option("-g", "--angle",      "<degrees>",   "threshold smoothing angle",              angle);
 		args.option("-c", "--classes",    "<class,...>", "additional lidar point classes",         classes);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
