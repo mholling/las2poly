@@ -121,7 +121,9 @@ int main(int argc, char *argv[]) {
 			area = 4 * width.value() * width.value();
 		if (!resolution)
 			resolution = length.value() / std::sqrt(8.0);
-		if (simplify && !smooth)
+		if (!simplify)
+			simplify = 4 * width.value() * width.value();
+		if (!smooth)
 			smooth = 0.25 * std::sqrt(simplify.value()) / std::sin(angle.value());
 
 		auto logger = Logger((bool)progress);
