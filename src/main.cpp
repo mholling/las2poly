@@ -92,8 +92,8 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("smoothing tolerance can't be negative");
 		if (angle.value() <= 0)
 			throw std::runtime_error("smoothing angle must be positive");
-		if (angle.value() >= 90)
-			throw std::runtime_error("smoothing angle must be less than 90");
+		if (angle.value() >= 180)
+			throw std::runtime_error("smoothing angle must be less than 180");
 		for (auto klass: classes.value()) {
 			if (std::clamp(klass, 0, 255) != klass)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
