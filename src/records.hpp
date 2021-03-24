@@ -42,7 +42,7 @@ public:
 
 	auto &operator+=(Tile &&tile) {
 		for (const auto record: tile)
-			if (classes.count(record.c))
+			if (!record.withheld && classes.count(record.classification))
 				insert(record);
 		return *this;
 	}
@@ -50,8 +50,7 @@ public:
 	auto &operator+=(Records &records) {
 		merge(records);
 		for (const auto record: records)
-			if (classes.count(record.c))
-				insert(record);
+			insert(record);
 		return *this;
 	}
 };

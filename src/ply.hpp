@@ -58,7 +58,9 @@ public:
 		input.read(reinterpret_cast<char *>(&record.x), sizeof(record.x));
 		input.read(reinterpret_cast<char *>(&record.y), sizeof(record.y));
 		input.read(reinterpret_cast<char *>(&record.z), sizeof(record.z));
-		input.read(reinterpret_cast<char *>(&record.c), sizeof(record.c));
+		input.read(reinterpret_cast<char *>(&record.classification), sizeof(record.classification));
+		record.overlap = 12 == record.classification;
+		record.withheld = record.key_point = false;
 		return record;
 	}
 };

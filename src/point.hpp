@@ -8,7 +8,7 @@ struct Point : Vector<2> {
 	float elevation;
 	bool ground;
 
-	Point(const Record &record) : Vector({{record.x, record.y}}), elevation(record.z), ground(2 == record.c || 3 == record.c) { }
+	Point(const Record &record) : Vector({{record.x, record.y}}), elevation(record.z), ground(2 == record.classification || 3 == record.classification) { }
 
 	const Vector<3> operator+() const {
 		return {{(*this)[0], (*this)[1], elevation}};
