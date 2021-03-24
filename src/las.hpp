@@ -9,6 +9,7 @@
 
 class LAS {
 	std::istream &input;
+	std::size_t position;
 	double x_scale, y_scale, z_scale;
 	double x_offset, y_offset, z_offset;
 	std::uint8_t point_data_record_format;
@@ -18,19 +19,21 @@ class LAS {
 	template <typename Arg, typename ...Args>
 	void read(Arg &arg, Args &...args) {
 		input.read(reinterpret_cast<char *>(&arg), sizeof(arg));
+		position += sizeof(arg);
 		read(args...);
 	}
 
 	template <typename ...Args>
-	void read_ahead(int pos, Args &...args) {
-		input.seekg(pos, std::ios_base::cur);
+	void read_ahead(std::size_t offset, Args &...args) {
+		input.ignore(offset);
+		position += offset;
 		read(args...);
 	}
 
 public:
 	std::size_t count;
 
-	LAS(std::istream &input) : input(input) {
+	LAS(std::istream &input) : input(input), position(4) {
 		std::uint8_t version_major, version_minor;
 		std::uint32_t offset_to_point_data;
 		std::uint32_t legacy_number_of_point_records;
@@ -56,7 +59,7 @@ public:
 			count = number_of_point_records;
 		}
 
-		input.seekg(offset_to_point_data, std::ios_base::beg);
+		read_ahead(offset_to_point_data - position);
 	}
 
 	auto record() {
