@@ -29,9 +29,10 @@ struct Points : std::vector<Point> {
 					try {
 						auto tile = Records(resolution, classes);
 						try {
-							if (path == "-")
+							if (path == "-") {
+								std::cin.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 								tile += Tile(std::cin);
-							else {
+							} else {
 								std::ifstream input(path, std::ios::binary);
 								input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 								tile += Tile(input);
