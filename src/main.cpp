@@ -95,12 +95,12 @@ int main(int argc, char *argv[]) {
 		if (angle.value() >= 180)
 			throw std::runtime_error("smoothing angle must be less than 180");
 		for (auto klass: classes.value()) {
-			if (std::clamp(klass, 0, 255) != klass)
+			if (klass < 0 || klass > 255)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
 			if (7 == klass || 9 == klass || 12 == klass || 18 == klass)
 				throw std::runtime_error("can't use lidar point class " + std::to_string(klass));
 		}
-		if (epsg && std::clamp(epsg.value(), 1024, 32767) != epsg.value())
+		if (epsg && (epsg.value() < 1024 || epsg.value() > 32767))
 			throw std::runtime_error("invalid EPSG code");
 		if (threads.value() < 1)
 			throw std::runtime_error("number of threads must be positive");
