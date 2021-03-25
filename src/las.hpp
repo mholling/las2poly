@@ -1,9 +1,12 @@
 #ifndef LAS_HPP
 #define LAS_HPP
 
+#include "endian.hpp"
 #include "record.hpp"
 #include <iostream>
 #include <cstddef>
+#include <cstdint>
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 
@@ -20,6 +23,8 @@ class LAS {
 	void read(Arg &arg, Args &...args) {
 		input.read(reinterpret_cast<char *>(&arg), sizeof(arg));
 		position += sizeof(arg);
+		if constexpr (Endian::big && sizeof(arg) > 1)
+			std::reverse(reinterpret_cast<char *>(&arg), reinterpret_cast<char *>(&arg) + sizeof(arg));
 		read(args...);
 	}
 
@@ -80,9 +85,15 @@ public:
 		case 10: input.read(buffer, 67); break;
 		}
 
+		if constexpr (Endian::big) {
+			std::reverse(buffer,     buffer + 4);
+			std::reverse(buffer + 4, buffer + 8);
+			std::reverse(buffer + 8, buffer + 12);
+		}
 		record.x = x_offset + x_scale * *reinterpret_cast<std::int32_t *>(buffer);
 		record.y = y_offset + y_scale * *reinterpret_cast<std::int32_t *>(buffer + 4);
 		record.z = z_offset + z_scale * *reinterpret_cast<std::int32_t *>(buffer + 8);
+
 		switch (point_data_record_format) {
 		case 0:
 		case 1:

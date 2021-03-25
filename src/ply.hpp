@@ -1,6 +1,7 @@
 #ifndef PLY_HPP
 #define PLY_HPP
 
+#include "endian.hpp"
 #include "record.hpp"
 #include <istream>
 #include <string>
@@ -10,14 +11,6 @@
 
 class PLY {
 	std::istream &input;
-
-	auto format_string() const {
-		union {
-			long value;
-			char bytes[sizeof(long)];
-		} test = {.value = 1};
-		return test.bytes[sizeof(long)-1] == 1 ? "format binary_big_endian 1.0" : "format binary_little_endian 1.0";
-	};
 
 	auto line() {
 		std::string string;
@@ -44,7 +37,10 @@ public:
 	std::size_t count;
 
 	PLY(std::istream &input) : input(input) {
-		expect(format_string());
+		if constexpr (Endian::big)
+			expect("format binary_big_endian 1.0");
+		else
+			expect("format binary_little_endian 1.0");
 		expect("element vertex", count);
 		expect("property float64 x");
 		expect("property float64 y");
