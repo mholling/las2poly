@@ -4,10 +4,10 @@
 #include "cell.hpp"
 #include "record.hpp"
 #include "tile.hpp"
-#include <unordered_map>
+#include <map>
 #include <unordered_set>
 
-class Records : std::unordered_map<Cell, Record> {
+class Records : std::map<Cell, Record> {
 	double resolution;
 	std::unordered_set<unsigned char> classes;
 
@@ -31,9 +31,9 @@ class Records : std::unordered_map<Cell, Record> {
 	};
 
 public:
-	auto begin() const { return Iterator(unordered_map::begin()); }
-	auto   end() const { return Iterator(unordered_map::end()); }
-	auto  size() const { return unordered_map::size(); }
+	auto begin() const { return Iterator(map::begin()); }
+	auto   end() const { return Iterator(map::end()); }
+	auto  size() const { return map::size(); }
 
 	template <typename Classes>
 	Records(double resolution, Classes additional) : resolution(resolution), classes({2,3,4,5,6}) {
