@@ -4,8 +4,8 @@
 #include "points.hpp"
 #include "edge.hpp"
 #include "ring.hpp"
-#include <unordered_map>
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
 #include <cmath>
 

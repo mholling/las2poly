@@ -3,12 +3,11 @@
 
 #include "vector.hpp"
 #include "edge.hpp"
-#include <utility>
 #include <list>
+#include <utility>
 #include <stdexcept>
-#include <cstddef>
-#include <set>
 #include <cmath>
+#include <set>
 #include <algorithm>
 #include <ostream>
 

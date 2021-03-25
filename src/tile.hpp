@@ -8,7 +8,6 @@
 #include <array>
 #include <stdexcept>
 #include <cstddef>
-#include <string>
 
 class Tile {
 	using TileVariant = std::variant<PLY, LAS>;

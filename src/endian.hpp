@@ -14,9 +14,9 @@ enum endian_type {
 	enum { byte_order = little_endian };
 #else
 	#ifdef BSD
-		#include <sys/endian.h>
+		#include <sys/endian>
 	#else
-		#include <endian.h>
+		#include <endian>
 	#endif
 	#if __BYTE_ORDER == __BIG_ENDIAN
 		enum { byte_order = big_endian };

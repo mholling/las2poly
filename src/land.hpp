@@ -8,11 +8,12 @@
 #include "rings.hpp"
 #include "ring.hpp"
 #include <vector>
-#include <cmath>
 #include <cstddef>
 #include <algorithm>
+#include <cmath>
 #include <iterator>
 #include <ostream>
+#include <utility>
 
 struct Land : std::vector<Polygon> {
 	static auto is_water(const Triangles &triangles, double delta, double slope) {

@@ -2,10 +2,10 @@
 #define LOGGER_HPP
 
 #include <streambuf>
-#include <ostream>
 #include <iostream>
 #include <chrono>
 #include <cstddef>
+#include <iomanip>
 
 class Logger {
 	struct NullBuffer : std::streambuf {

@@ -5,11 +5,8 @@
 #include "edge.hpp"
 #include "vector.hpp"
 #include <unordered_set>
-#include <unordered_map>
 #include <algorithm>
-#include <cstddef>
-#include <array>
-#include <cmath>
+#include <unordered_map>
 
 struct Triangles : std::unordered_set<Triangle> {
 	Triangles() = default;
