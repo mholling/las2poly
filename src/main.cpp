@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
 			land.smooth(smooth.value(), angle.value());
 
 		std::stringstream json;
-		json.precision(12);
+		json.precision(15);
 		json << "{\"type\":\"FeatureCollection\",";
 		if (epsg)
 			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << epsg.value() << "\"}},";
