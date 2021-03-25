@@ -14,7 +14,7 @@ class Records : std::unordered_map<Cell, Record> {
 	auto &insert(const Record &record) {
 		auto cell = Cell(record, resolution);
 		auto [existing, inserted] = emplace(cell, record);
-		if (!inserted && record < existing->second) {
+		if (!inserted && record > existing->second) {
 			erase(existing);
 			emplace(cell, record);
 		}
@@ -42,7 +42,7 @@ public:
 
 	auto &operator+=(Tile &&tile) {
 		for (const auto record: tile)
-			if (!record.withheld && classes.count(record.classification))
+			if (!record.withheld && (record.key_point || classes.count(record.classification)))
 				insert(record);
 		return *this;
 	}
