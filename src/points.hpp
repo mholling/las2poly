@@ -3,7 +3,7 @@
 
 #include "point.hpp"
 #include "queue.hpp"
-#include "records.hpp"
+#include "thinned.hpp"
 #include "tile.hpp"
 #include <vector>
 #include <string>
@@ -20,14 +20,14 @@ struct Points : std::vector<Point> {
 		auto paths = Queue<std::string>();
 		auto threads = std::vector<std::thread>();
 		auto mutex = std::mutex();
-		auto records = Records(resolution, classes);
+		auto thinned = Thinned(resolution, classes);
 		auto exception = std::exception_ptr();
 
 		while (thread_count--)
 			threads.emplace_back([&]() {
 				for (std::string path; paths >> path; )
 					try {
-						auto tile = Records(resolution, classes);
+						auto tile = Thinned(resolution, classes);
 						try {
 							if (path == "-") {
 								std::cin.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -45,7 +45,7 @@ struct Points : std::vector<Point> {
 						std::lock_guard lock(mutex);
 						if (exception)
 							break;
-						records += tile;
+						thinned += tile;
 					} catch (std::runtime_error &) {
 						std::lock_guard lock(mutex);
 						exception = std::current_exception();
@@ -60,8 +60,8 @@ struct Points : std::vector<Point> {
 			thread.join();
 		if (exception)
 			std::rethrow_exception(exception);
-		reserve(records.size());
-		for (const auto &point: records)
+		reserve(thinned.size());
+		for (const auto &point: thinned)
 			push_back(point);
 	}
 };
