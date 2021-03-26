@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <iostream>
+#include <utility>
 #include <functional>
 #include <cstddef>
 
@@ -61,8 +62,8 @@ struct Points : std::vector<Point> {
 		if (exception)
 			std::rethrow_exception(exception);
 		reserve(thinned.size());
-		for (const auto &[cell, point]: thinned)
-			push_back(point);
+		for (auto pair = thinned.begin(); pair != thinned.end(); )
+			push_back(std::move(thinned.extract(pair++).mapped()));
 	}
 };
 
