@@ -38,12 +38,7 @@ struct Land : std::vector<Polygon> {
 		Edges outside_edges;
 		auto delta = width * std::tan(slope);
 
-		mesh.deconstruct([&, length](const auto &triangle) {
-			if (triangle > length)
-				large_triangles.insert(triangle);
-		}, [&](const auto &edge) {
-			outside_edges.insert(-edge);
-		});
+		mesh.deconstruct(large_triangles, outside_edges, length);
 
 		large_triangles.explode([=, &outside_edges](const auto &&triangles) {
 			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope)))

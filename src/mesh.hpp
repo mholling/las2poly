@@ -4,7 +4,9 @@
 #include "point.hpp"
 #include "points.hpp"
 #include "edge.hpp"
+#include "edges.hpp"
 #include "triangle.hpp"
+#include "triangles.hpp"
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
@@ -181,11 +183,10 @@ public:
 		triangulate(points.begin(), points.end(), threads);
 	}
 
-	template <typename TriangleFunction, typename EdgeFunction>
-	void deconstruct(TriangleFunction yield_triangle, EdgeFunction yield_edge) {
+	void deconstruct(Triangles &large_triangles, Edges &outside_edges, double length) {
 		const auto rightmost = std::max_element(points_begin, points_begin + size());
 		for (auto edge = exterior_clockwise(rightmost); ; ++edge) {
-			yield_edge(*edge);
+			outside_edges.insert(-*edge);
 			disconnect(*edge);
 			if (edge->second == rightmost)
 				break;
@@ -196,7 +197,8 @@ public:
 				const Triangle triangle = {*edge, *++edge, *++edge};
 				if (!triangle)
 					throw std::runtime_error("corrupted mesh");
-				yield_triangle(triangle);
+				if (triangle > length)
+					large_triangles.insert(triangle);
 				for (const auto &edge: triangle)
 					disconnect(edge);
 			}
