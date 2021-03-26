@@ -30,13 +30,14 @@ public:
 		PointsEdges points_edges;
 		Connections connections;
 
-		for (const auto &edge: edges)
-			points_edges.emplace(edge.first, edge);
-		auto ordering = [](const auto &pair1, const auto &pair2) {
+		constexpr auto ordering = [](const auto &pair1, const auto &pair2) {
 			const auto &[edge1, angle1] = pair1;
 			const auto &[edge2, angle2] = pair2;
 			return angle1 < angle2;
 		};
+
+		for (const auto &edge: edges)
+			points_edges.emplace(edge.first, edge);
 		for (const auto &incoming: edges) {
 			std::unordered_map<Edge, double> edges_angles;
 			const auto &[start, stop] = points_edges.equal_range(incoming.second);

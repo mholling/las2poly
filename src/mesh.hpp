@@ -109,7 +109,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 
 	template <bool horizontal = true>
 	void triangulate(PointIterator begin, PointIterator end, int threads) {
-		auto less_than = [](const Point &p1, const Point &p2) {
+		constexpr auto less_than = [](const Point &p1, const Point &p2) {
 			if constexpr (horizontal)
 				return p1[0] < p2[0] ? true : p1[0] > p2[0] ? false : p1[1] < p2[1];
 			else
