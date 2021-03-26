@@ -2,7 +2,7 @@
 #define LAS_HPP
 
 #include "endian.hpp"
-#include "record.hpp"
+#include "point.hpp"
 #include <iostream>
 #include <cstddef>
 #include <cstdint>
@@ -68,7 +68,9 @@ public:
 	}
 
 	auto record() {
-		Record record;
+		double x, y, z;
+		unsigned char classification;
+		bool key_point, withheld, overlap;
 		char buffer[67];
 
 		switch (point_data_record_format) {
@@ -90,9 +92,9 @@ public:
 			std::reverse(buffer + 4, buffer + 8);
 			std::reverse(buffer + 8, buffer + 12);
 		}
-		record.x = x_offset + x_scale * *reinterpret_cast<std::int32_t *>(buffer);
-		record.y = y_offset + y_scale * *reinterpret_cast<std::int32_t *>(buffer + 4);
-		record.z = z_offset + z_scale * *reinterpret_cast<std::int32_t *>(buffer + 8);
+		x = x_offset + x_scale * *reinterpret_cast<std::int32_t *>(buffer);
+		y = y_offset + y_scale * *reinterpret_cast<std::int32_t *>(buffer + 4);
+		z = z_offset + z_scale * *reinterpret_cast<std::int32_t *>(buffer + 8);
 
 		switch (point_data_record_format) {
 		case 0:
@@ -101,23 +103,23 @@ public:
 		case 3:
 		case 4:
 		case 5:
-			record.key_point      = *reinterpret_cast<std::uint8_t *>(buffer + 15) & 0b01000000;
-			record.withheld       = *reinterpret_cast<std::uint8_t *>(buffer + 15) & 0b10000000;
-			record.classification = *reinterpret_cast<std::uint8_t *>(buffer + 15) & 0b00011111;
-			record.overlap        = 12 == record.classification;
+			key_point      = *reinterpret_cast<std::uint8_t *>(buffer + 15) & 0b01000000;
+			withheld       = *reinterpret_cast<std::uint8_t *>(buffer + 15) & 0b10000000;
+			classification = *reinterpret_cast<std::uint8_t *>(buffer + 15) & 0b00011111;
+			overlap        = 12 == classification;
 			break;
 		case 6:
 		case 7:
 		case 8:
 		case 9:
 		case 10:
-			record.key_point      = *reinterpret_cast<std::uint8_t *>(buffer + 16) & 0b00000010;
-			record.withheld       = *reinterpret_cast<std::uint8_t *>(buffer + 16) & 0b00000100;
-			record.overlap        = *reinterpret_cast<std::uint8_t *>(buffer + 16) & 0b00001000;
-			record.classification = *reinterpret_cast<std::uint8_t *>(buffer + 17);
+			key_point      = *reinterpret_cast<std::uint8_t *>(buffer + 16) & 0b00000010;
+			withheld       = *reinterpret_cast<std::uint8_t *>(buffer + 16) & 0b00000100;
+			overlap        = *reinterpret_cast<std::uint8_t *>(buffer + 16) & 0b00001000;
+			classification = *reinterpret_cast<std::uint8_t *>(buffer + 17);
 		}
 
-		return record;
+		return Point(x, y, z, classification, key_point, withheld, overlap);
 	}
 };
 

@@ -2,21 +2,21 @@
 #define RECORDS_HPP
 
 #include "cell.hpp"
-#include "record.hpp"
+#include "point.hpp"
 #include "tile.hpp"
 #include <map>
 #include <unordered_set>
 
-class Records : std::map<Cell, Record> {
+class Records : std::map<Cell, Point> {
 	double resolution;
 	std::unordered_set<unsigned char> classes;
 
-	auto &insert(const Record &record) {
-		auto cell = Cell(record, resolution);
-		auto [existing, inserted] = emplace(cell, record);
-		if (!inserted && record > existing->second) {
+	auto &insert(const Point &point) {
+		auto cell = Cell(point, resolution);
+		auto [existing, inserted] = emplace(cell, point);
+		if (!inserted && point > existing->second) {
 			erase(existing);
-			emplace(cell, record);
+			emplace(cell, point);
 		}
 		return *this;
 	}
@@ -41,16 +41,16 @@ public:
 	}
 
 	auto &operator+=(Tile &&tile) {
-		for (const auto record: tile)
-			if (!record.withheld && (record.key_point || classes.count(record.classification)))
-				insert(record);
+		for (const auto point: tile)
+			if (!point.withheld && (point.key_point || classes.count(point.classification)))
+				insert(point);
 		return *this;
 	}
 
 	auto &operator+=(Records &records) {
 		merge(records);
-		for (const auto record: records)
-			insert(record);
+		for (const auto &point: records)
+			insert(point);
 		return *this;
 	}
 };

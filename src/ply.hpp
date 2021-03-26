@@ -2,7 +2,7 @@
 #define PLY_HPP
 
 #include "endian.hpp"
-#include "record.hpp"
+#include "point.hpp"
 #include <istream>
 #include <string>
 #include <stdexcept>
@@ -50,14 +50,13 @@ public:
 	}
 
 	auto record() const {
-		Record record;
-		input.read(reinterpret_cast<char *>(&record.x), sizeof(record.x));
-		input.read(reinterpret_cast<char *>(&record.y), sizeof(record.y));
-		input.read(reinterpret_cast<char *>(&record.z), sizeof(record.z));
-		input.read(reinterpret_cast<char *>(&record.classification), sizeof(record.classification));
-		record.overlap = 12 == record.classification;
-		record.withheld = record.key_point = false;
-		return record;
+		double x, y, z;
+		unsigned char classification;
+		input.read(reinterpret_cast<char *>(&x), sizeof(x));
+		input.read(reinterpret_cast<char *>(&y), sizeof(y));
+		input.read(reinterpret_cast<char *>(&z), sizeof(z));
+		input.read(reinterpret_cast<char *>(&classification), sizeof(classification));
+		return Point(x, y, z, classification, false, false, 12 == classification);
 	}
 };
 

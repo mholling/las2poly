@@ -61,8 +61,8 @@ struct Points : std::vector<Point> {
 		if (exception)
 			std::rethrow_exception(exception);
 		reserve(records.size());
-		for (const auto &record: records)
-			emplace_back(record);
+		for (const auto &point: records)
+			push_back(point);
 	}
 };
 
