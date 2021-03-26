@@ -178,30 +178,54 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		}
 	}
 
+	void deconstruct(Triangles &triangles, PointIterator begin, PointIterator end, double length, int threads) {
+		if (threads > 1) {
+			const auto middle = begin + (end - begin) / 2;
+			Triangles left_triangles, right_triangles;
+			auto left_thread = std::thread([&]() {
+				deconstruct(left_triangles, begin, middle, length, threads/2);
+			}), right_thread = std::thread([&]() {
+				deconstruct(right_triangles, middle, end, length, threads - threads/2);
+			});
+			left_thread.join(), right_thread.join();
+			triangles.merge(left_triangles);
+			triangles.merge(right_triangles);
+		}
+		for (auto point = begin; point < end; ++point) {
+			const auto &neighbours = adjacent(point);
+			for (auto neighbour = neighbours.rbegin(); neighbour != neighbours.rend(); ) {
+				auto edge1 = Iterator(*this, Edge(point, *neighbour++), true);
+				if (edge1->second < begin || !(edge1->second < end))
+					continue;
+				auto edge2 = Iterator(*this, edge1.peek(), true);
+				if (edge2->second < begin || !(edge2->second < end))
+					continue;
+				auto edge3 = Iterator(*this, edge2.peek(), true);
+				if (edge3->second != point)
+					throw std::runtime_error("corrupted mesh");
+				const Triangle triangle = {*edge1, *edge2, *edge3};
+				if (triangle > length)
+					triangles.insert(triangle);
+				for (const auto &edge: triangle)
+					disconnect(edge);
+			}
+		}
+	}
+
 public:
 	Mesh(Points &points, int threads) : vector(points.size()), points_begin(points.begin()) {
 		triangulate(points.begin(), points.end(), threads);
 	}
 
-	void deconstruct(Triangles &large_triangles, Edges &outside_edges, double length) {
+	void deconstruct(Triangles &triangles, Edges &edges, double length, int threads) {
 		const auto rightmost = std::max_element(points_begin, points_begin + size());
 		for (auto edge = exterior_clockwise(rightmost); ; ++edge) {
-			outside_edges.insert(-*edge);
+			edges.insert(-*edge);
 			disconnect(*edge);
 			if (edge->second == rightmost)
 				break;
 		}
-		for (auto point = points_begin, points_end = points_begin + size(); point < points_end; ++point)
-			for (auto &neighbours = adjacent(point); !neighbours.empty(); ) {
-				auto edge = Iterator(*this, Edge(point, neighbours.front()), true);
-				const Triangle triangle = {*edge, *++edge, *++edge};
-				if (!triangle)
-					throw std::runtime_error("corrupted mesh");
-				if (triangle > length)
-					large_triangles.insert(triangle);
-				for (const auto &edge: triangle)
-					disconnect(edge);
-			}
+		deconstruct(triangles, points_begin, points_begin + size(), length, threads);
 	}
 };
 

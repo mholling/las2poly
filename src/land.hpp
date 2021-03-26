@@ -33,12 +33,12 @@ struct Land : std::vector<Polygon> {
 		return angle < slope && count > 0 && sum_abs < delta * count;
 	}
 
-	Land(Mesh &mesh, double length, double width, double slope, double area) {
+	Land(Mesh &mesh, double length, double width, double slope, double area, int threads) {
 		Triangles large_triangles;
 		Edges outside_edges;
 		auto delta = width * std::tan(slope);
 
-		mesh.deconstruct(large_triangles, outside_edges, length);
+		mesh.deconstruct(large_triangles, outside_edges, length, threads);
 
 		large_triangles.explode([=, &outside_edges](const auto &&triangles) {
 			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope)))

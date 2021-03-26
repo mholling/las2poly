@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
 		auto mesh = Mesh(points, threads.value());
 
 		logger.time("extracting polygons");
-		auto land = Land(mesh, length.value(), width.value(), slope.value(), area.value());
+		auto land = Land(mesh, length.value(), width.value(), slope.value(), area.value(), threads.value());
 
 		if (simplify && simplify.value() > 0)
 			land.simplify(simplify.value());

@@ -15,10 +15,6 @@ auto operator>(const Triangle &triangle, double length) {
 	});
 };
 
-auto operator!(const Triangle &triangle) {
-	return triangle[0].first != triangle[2].second;
-}
-
 template <> struct std::hash<Triangle> {
 	std::size_t operator()(const Triangle &triangle) const { return hash<Edge>()(triangle[0]); }
 };
