@@ -7,7 +7,7 @@
 #include <map>
 #include <unordered_set>
 
-class Thinned : std::map<Cell, Point> {
+class Thinned : public std::map<Cell, Point> {
 	double resolution;
 	std::unordered_set<unsigned char> classes;
 
@@ -21,20 +21,7 @@ class Thinned : std::map<Cell, Point> {
 		return *this;
 	}
 
-	struct Iterator {
-		const_iterator here;
-
-		Iterator(const_iterator here) : here(here) { }
-		auto &operator++() { ++here; return *this;}
-		auto operator!=(const Iterator &other) const { return here != other.here; }
-		auto &operator*() const { return here->second; }
-	};
-
 public:
-	auto begin() const { return Iterator(map::begin()); }
-	auto   end() const { return Iterator(map::end()); }
-	auto  size() const { return map::size(); }
-
 	template <typename Classes>
 	Thinned(double resolution, Classes additional) : resolution(resolution), classes({2,3,4,5,6}) {
 		classes.insert(additional.begin(), additional.end());
@@ -47,9 +34,9 @@ public:
 		return *this;
 	}
 
-	auto &operator+=(Thinned &points) {
-		merge(points);
-		for (const auto &point: points)
+	auto &operator+=(Thinned &thinned) {
+		merge(thinned);
+		for (const auto &[cell, point]: thinned)
 			insert(point);
 		return *this;
 	}

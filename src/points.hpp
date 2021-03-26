@@ -61,7 +61,7 @@ struct Points : std::vector<Point> {
 		if (exception)
 			std::rethrow_exception(exception);
 		reserve(thinned.size());
-		for (const auto &point: thinned)
+		for (const auto &[cell, point]: thinned)
 			push_back(point);
 	}
 };
