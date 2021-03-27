@@ -128,6 +128,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 			if ((Edge(begin+2, begin+1) ^ Edge(begin+1, begin)) != 0)
 				connect(begin, begin+2);
 			connect(begin+2, begin+1);
+			[[fallthrough]];
 		case 2:
 			connect(begin+1, begin);
 			break;
