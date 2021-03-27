@@ -39,13 +39,14 @@ class Ring : std::list<Vector<2>> {
 		operator VertexIterator() const { return here; }
 		operator const Vertex &() const { return *here; }
 		auto operator*() const { return Corner(prev(), *here, next()); }
+		auto cross() const { return (*here - prev()) ^ (next() - *here); }
+		auto   dot() const { return (*here - prev()) * (next() - *here); }
+		auto angle() const { return std::atan2(cross(), dot()); }
 	};
 
 	struct CompareCornerAreas {
 		auto operator()(const Iterator &u, const Iterator &v) const {
-			const auto &[u0, u1, u2] = *u;
-			const auto &[v0, v1, v2] = *v;
-			return std::abs((u1 - u0) ^ (u2 - u1)) < std::abs((v1 - v0) ^ (v2 - v1));
+			return std::abs(u.cross()) < std::abs(v.cross());
 		}
 	};
 
@@ -89,8 +90,7 @@ public:
 			corners.insert(corner);
 		while (corners.size() > 3) {
 			const auto corner = *corners.begin();
-			const auto &[v0, v1, v2] = *corner;
-			if (std::abs((v1 - v0) ^ (v2 - v1)) > 2 * tolerance)
+			if (std::abs(corner.cross()) > 2 * tolerance)
 				break;
 			auto prev = corner.prev();
 			auto next = corner.next();
