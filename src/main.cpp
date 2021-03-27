@@ -146,17 +146,17 @@ int main(int argc, char *argv[]) {
 		json << "{\"type\":\"FeatureCollection\",";
 		if (epsg)
 			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << epsg.value() << "\"}},";
-		json << "\"features\":" << land << "}" << std::endl;
+		json << "\"features\":" << land << "}";
 
 		logger.time("saving", land.size(), "polygon");
 		if (json_path == "-")
-			std::cout << json.str();
+			std::cout << json.str() << std::endl;
 		else {
 			std::ofstream file(json_path);
 			file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 			file << json.str();
 		}
-		return EXIT_SUCCESS;
+		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {
 		std::cerr << "error: problem writing file" << std::endl;
 		return EXIT_FAILURE;
