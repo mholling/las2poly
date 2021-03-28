@@ -50,6 +50,12 @@ class Ring : std::list<Vector<2>> {
 		}
 	};
 
+	struct CompareCornerAngles {
+		auto operator()(const Iterator &u, const Iterator &v) const {
+			return std::abs(u.angle()) > std::abs(v.angle());
+		}
+	};
+
 	const Vertices &vertices() const {
 		return *this;
 	}
@@ -92,8 +98,8 @@ public:
 			const auto corner = *corners.begin();
 			if (std::abs(corner.cross()) > 2 * tolerance)
 				break;
-			auto prev = corner.prev();
-			auto next = corner.next();
+			const auto prev = corner.prev();
+			const auto next = corner.next();
 			corners.erase(corner);
 			corners.erase(prev);
 			corners.erase(next);
@@ -104,23 +110,24 @@ public:
 	}
 
 	void smooth(double tolerance, double angle) {
-		auto cosine = std::cos(angle);
-		for (Vertices smoothed; smoothed.size() != size(); swap(smoothed)) {
-			smoothed.clear();
-			for (const auto [v0, v1, v2]: *this) {
-				auto d0 = v1 - v0;
-				auto d2 = v2 - v1;
-				auto n0 = d0.norm();
-				auto n2 = d2.norm();
-				if (d0 * d2 > n0 * n2 * cosine)
-					smoothed.push_back(v1);
-				else {
-					double f0 = std::min(0.25, tolerance / n0);
-					double f2 = std::min(0.25, tolerance / n2);
-					smoothed.push_back(v0 * f0 + v1 * (1.0 - f0));
-					smoothed.push_back(v2 * f2 + v1 * (1.0 - f2));
-				}
-			}
+		std::multiset<Iterator, CompareCornerAngles> corners;
+		for (auto corner = begin(); corner != end(); ++corner)
+			corners.insert(corner);
+		while (true) {
+			const auto corner = *corners.begin();
+			if (std::abs(corner.angle()) < angle)
+				break;
+			const auto &[v0, v1, v2] = *corner;
+			const auto f0 = std::min(0.25, tolerance / (v1 - v0).norm());
+			const auto f2 = std::min(0.25, tolerance / (v2 - v1).norm());
+			const auto v10 = v0 * f0 + v1 * (1.0 - f0);
+			const auto v11 = v2 * f2 + v1 * (1.0 - f2);
+			const auto prev = corner.prev();
+			const auto next = corner.next();
+			corners.erase(corner);
+			insert(insert(erase(corner), v11), v10);
+			corners.insert(next.prev());
+			corners.insert(prev.next());
 		}
 	}
 
