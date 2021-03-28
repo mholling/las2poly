@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 		else {
 			std::ofstream file(json_path);
 			file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-			file << json.str();
+			file << json.str() << std::endl;
 		}
 		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {
