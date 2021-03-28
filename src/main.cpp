@@ -111,9 +111,6 @@ int main(int argc, char *argv[]) {
 		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
 			throw std::runtime_error("can't read standard input more than once");
 
-		slope = slope.value() * pi / 180;
-		angle = angle.value() * pi / 180;
-
 		if (!width)
 			width = length.value();
 		if (!length)
@@ -129,6 +126,12 @@ int main(int argc, char *argv[]) {
 
 		auto logger = Logger((bool)progress);
 
+		if (automatic) {
+			logger.info("simplification tolerance: ", simplify.value(), "m²");
+			logger.info("smoothing tolerance: ", smooth.value(), "m");
+			logger.info("smoothing angle: ", angle.value(), "°");
+		}
+
 		logger.time("reading", tile_paths.size(), "file");
 		auto points = Points(tile_paths, resolution.value(), classes.value(), threads.value());
 
@@ -136,12 +139,12 @@ int main(int argc, char *argv[]) {
 		auto mesh = Mesh(points, threads.value());
 
 		logger.time("extracting polygons");
-		auto land = Land(mesh, length.value(), width.value(), slope.value(), area.value(), threads.value());
+		auto land = Land(mesh, length.value(), width.value(), slope.value() * pi / 180, area.value(), threads.value());
 
 		if (simplify && simplify.value() > 0)
 			land.simplify(simplify.value());
 		if (smooth && smooth.value() > 0)
-			land.smooth(smooth.value(), angle.value());
+			land.smooth(smooth.value(), angle.value() * pi / 180);
 
 		std::stringstream json;
 		json.precision(15);
