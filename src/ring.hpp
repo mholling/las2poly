@@ -44,18 +44,6 @@ class Ring : std::list<Vector<2>> {
 		auto angle() const { return std::atan2(cross(), dot()); }
 	};
 
-	struct CompareCornerAreas {
-		auto operator()(const Iterator &u, const Iterator &v) const {
-			return std::abs(u.cross()) < std::abs(v.cross());
-		}
-	};
-
-	struct CompareCornerAngles {
-		auto operator()(const Iterator &u, const Iterator &v) const {
-			return std::abs(u.angle()) > std::abs(v.angle());
-		}
-	};
-
 	const Vertices &vertices() const {
 		return *this;
 	}
@@ -70,6 +58,49 @@ class Ring : std::list<Vector<2>> {
 			else if ((v2 < v) && !(v1 < v) && ((v2 - v) ^ (v1 - v)) > 0)
 				--winding;
 		return winding;
+	}
+
+	template <bool erode>
+	struct CompareCornerAreas {
+		auto operator()(const Iterator &v) const {
+			const auto cross = v.cross();
+			return std::pair(erode == cross < 0, std::abs(cross));
+		}
+
+		auto operator()(double corner_area) const {
+			return std::pair(false, 2 * corner_area);
+		}
+
+		auto operator()(const Iterator &u, const Iterator &v) const {
+			return (*this)(u) < (*this)(v);
+		}
+	};
+
+	struct CompareCornerAngles {
+		auto operator()(const Iterator &u, const Iterator &v) const {
+			return std::abs(u.angle()) > std::abs(v.angle());
+		}
+	};
+
+	template <bool erode>
+	void simplify(double tolerance) {
+		using Compare = CompareCornerAreas<erode>;
+		const auto compare = Compare();
+		const auto limit = compare(tolerance);
+		std::multiset<Iterator, Compare> corners;
+		for (auto corner = begin(); corner != end(); ++corner)
+			corners.insert(corner);
+		while (corners.size() > 4 && compare(*corners.begin()) < limit) {
+			const auto corner = *corners.begin();
+			const auto prev = corner.prev();
+			const auto next = corner.next();
+			corners.erase(corner);
+			corners.erase(prev);
+			corners.erase(next);
+			erase(corner);
+			corners.insert(next.prev());
+			corners.insert(prev.next());
+		}
 	}
 
 public:
@@ -91,20 +122,8 @@ public:
 	}
 
 	void simplify(double tolerance) {
-		std::multiset<Iterator, CompareCornerAreas> corners;
-		for (auto corner = begin(); corner != end(); ++corner)
-			corners.insert(corner);
-		while (corners.size() > 4 && std::abs(corners.begin()->cross()) < 2 * tolerance) {
-			const auto corner = *corners.begin();
-			const auto prev = corner.prev();
-			const auto next = corner.next();
-			corners.erase(corner);
-			corners.erase(prev);
-			corners.erase(next);
-			erase(corner);
-			corners.insert(next.prev());
-			corners.insert(prev.next());
-		}
+		simplify<true>(tolerance);
+		simplify<false>(tolerance);
 	}
 
 	void smooth(double tolerance, double angle) {
