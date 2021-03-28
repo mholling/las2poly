@@ -94,7 +94,7 @@ public:
 		std::multiset<Iterator, CompareCornerAreas> corners;
 		for (auto corner = begin(); corner != end(); ++corner)
 			corners.insert(corner);
-		while (corners.size() > 3 && std::abs(corners.begin()->cross()) < 2 * tolerance) {
+		while (corners.size() > 4 && std::abs(corners.begin()->cross()) < 2 * tolerance) {
 			const auto corner = *corners.begin();
 			const auto prev = corner.prev();
 			const auto next = corner.next();
