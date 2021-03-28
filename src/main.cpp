@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
 		std::optional<double> resolution;
 		std::optional<double> simplify;
 		std::optional<double> smooth;
+		std::optional<bool> automatic;
 		std::optional<double> angle = 15;
 		std::optional<std::vector<int>> classes;
 		std::optional<int> epsg;
@@ -48,6 +49,7 @@ int main(int argc, char *argv[]) {
 		args.option("-r", "--resolution", "<metres>",    "point thinning resolution",              resolution);
 		args.option("-i", "--simplify",   "<metres²>",   " output simplification tolerance",       simplify);
 		args.option("-m", "--smooth",     "<metres>",    "output smoothing tolerance",             smooth);
+		args.option("-u", "--auto",                      "automatic simplification and smoothing", automatic);
 		args.option("-g", "--angle",      "<degrees>",   "threshold smoothing angle",              angle);
 		args.option("-c", "--classes",    "<class,...>", "additional lidar point classes",         classes);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
@@ -120,10 +122,10 @@ int main(int argc, char *argv[]) {
 			area = 4 * width.value() * width.value();
 		if (!resolution)
 			resolution = length.value() / std::sqrt(8.0);
-		if (!simplify)
+		if (automatic && !simplify)
 			simplify = 4 * width.value() * width.value();
-		if (!smooth)
-			smooth = 0.25 * std::sqrt(simplify.value()) / std::sin(angle.value());
+		if (automatic && !smooth)
+			smooth = 0.25 * std::sqrt(simplify.value()) / std::sin(angle.value() * pi / 180);
 
 		auto logger = Logger((bool)progress);
 
