@@ -1,5 +1,5 @@
-#ifndef THINNED_HPP
-#define THINNED_HPP
+#ifndef CELLS_HPP
+#define CELLS_HPP
 
 #include "cell.hpp"
 #include "tile.hpp"
@@ -10,9 +10,8 @@
 #include <cstddef>
 #include <algorithm>
 
-class Thinned : public std::vector<Cell> {
-	using Cells = std::vector<Cell>;
-	using CellIterator = Cells::const_iterator;
+class Cells : public std::vector<Cell> {
+	using CellIterator = const_iterator;
 	using Classes = std::unordered_set<unsigned char>;
 
 	struct ComparePointQuality {
@@ -64,23 +63,23 @@ class Thinned : public std::vector<Cell> {
 	};
 
 public:
-	auto begin() const { return Iterator(Cells::begin(), Cells::end()); }
-	auto   end() const { return Iterator(Cells::end(), Cells::end()); }
+	auto begin() const { return Iterator(vector::begin(), vector::end()); }
+	auto   end() const { return Iterator(vector::end(), vector::end()); }
 
-	Thinned() = default;
+	Cells() = default;
 
-	Thinned(Tile &&tile, double resolution, const Classes &classes) {
+	Cells(Tile &&tile, double resolution, const Classes &classes) {
 		for (const auto point: tile)
 			if (!point.withheld && (point.key_point || classes.count(point.classification)))
 				emplace_back(point, resolution);
-		std::sort(Cells::begin(), Cells::end());
+		std::sort(vector::begin(), vector::end());
 	}
 
-	friend auto operator+(const Thinned &thinned1, const Thinned &thinned2) {
-		auto thinned = Thinned();
-		thinned.reserve(thinned1.size() + thinned2.size());
-		std::merge(thinned1.begin(), thinned1.end(), thinned2.begin(), thinned2.end(), std::back_inserter(thinned));
-		return thinned;
+	friend auto operator+(const Cells &cells1, const Cells &cells2) {
+		auto cells = Cells();
+		cells.reserve(cells1.size() + cells2.size());
+		std::merge(cells1.begin(), cells1.end(), cells2.begin(), cells2.end(), std::back_inserter(cells));
+		return cells;
 	}
 };
 
