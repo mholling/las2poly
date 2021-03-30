@@ -69,6 +69,7 @@ public:
 	Cells() = default;
 
 	Cells(Tile &&tile, double resolution, const Classes &classes) {
+		reserve(tile.size());
 		for (const auto point: tile)
 			if (!point.withheld && (point.key_point || classes.count(point.classification)))
 				emplace_back(point, resolution);
