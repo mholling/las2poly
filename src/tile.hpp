@@ -33,8 +33,8 @@ class Tile {
 	};
 
 	struct Size {
-		auto operator()(PLY &ply) { return ply.size; }
-		auto operator()(LAS &las) { return las.size; }
+		auto operator()(const PLY &ply) { return ply.size; }
+		auto operator()(const LAS &las) { return las.size; }
 	};
 
 	auto read() { return std::visit(Read(), tile_variant); }
@@ -54,7 +54,7 @@ class Tile {
 public:
 	Tile(std::istream &input) : tile_variant(from(input)) { }
 
-	auto size() { return std::visit(Size(), tile_variant); }
+	auto size() const { return std::visit(Size(), tile_variant); }
 
 	auto begin() { return Iterator(*this, 0); }
 	auto   end() { return Iterator(*this, size()); }
