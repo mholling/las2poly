@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 		for (auto klass: classes.value()) {
 			if (klass < 0 || klass > 255)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
-			if (7 == klass || 9 == klass || 12 == klass || 18 == klass)
+			if (7 == klass || 9 == klass || 18 == klass)
 				throw std::runtime_error("can't use lidar point class " + std::to_string(klass));
 		}
 		if (epsg && (epsg.value() < 1024 || epsg.value() > 32767))
