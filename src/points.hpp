@@ -67,7 +67,7 @@ class Points : public std::vector<Point> {
 
 public:
 	template <typename Classes>
-	Points(const Paths &tile_paths, double resolution, const Classes &additional_classes, int threads) : resolution(resolution), classes({2,3,4,5,6}) {
+	Points(const Paths &tile_paths, double resolution, const Classes &additional_classes, int threads) : resolution(resolution), classes({2,3,4,5,6,10,11,17}) {
 		classes.insert(additional_classes.begin(), additional_classes.end());
 		auto cells = load_cells(tile_paths.begin(), tile_paths.end(), threads);
 		if (exception)
