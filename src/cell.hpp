@@ -4,6 +4,7 @@
 #include "point.hpp"
 #include <utility>
 #include <cstdint>
+#include <tuple>
 
 struct Cell : std::pair<std::pair<std::int32_t, std::int32_t>, Point> {
 	Cell(double resolution, const Point &point) : pair({{point[0] / resolution, point[1] / resolution}, point}) { }

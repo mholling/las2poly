@@ -4,9 +4,10 @@
 #include "vector.hpp"
 #include "edge.hpp"
 #include <list>
-#include <utility>
 #include <stdexcept>
+#include <tuple>
 #include <cmath>
+#include <utility>
 #include <set>
 #include <algorithm>
 #include <ostream>
@@ -15,7 +16,6 @@ class Ring : std::list<Vector<2>> {
 	using Vertex = Vector<2>;
 	using Vertices = std::list<Vertex>;
 	using VertexIterator = typename Vertices::const_iterator;
-	using Corner = std::tuple<const Vertex &, const Vertex &, const Vertex &>;
 
 	double signed_area;
 
@@ -38,7 +38,7 @@ class Ring : std::list<Vector<2>> {
 		auto prev() const { return *this != ring.begin() ? --Iterator(ring, here) : --ring.end(); }
 		operator VertexIterator() const { return here; }
 		operator const Vertex &() const { return *here; }
-		auto operator*() const { return Corner(prev(), *here, next()); }
+		auto operator*() const { return std::tuple<Vertex, Vertex, Vertex>(prev(), *here, next()); }
 		auto cross() const { return (*here - prev()) ^ (next() - *here); }
 		auto   dot() const { return (*here - prev()) * (next() - *here); }
 		auto angle() const { return std::atan2(cross(), dot()); }
