@@ -26,7 +26,7 @@ class Points : public std::vector<Point> {
 
 	auto load_cells(PathIterator begin, PathIterator end, int threads) {
 		for (auto lock = std::lock_guard(mutex); exception; )
-			return Cells();
+			return Cells(resolution);
 		const auto middle = begin + (end - begin) / 2;
 		if (begin + 1 == end)
 			try {
@@ -48,13 +48,13 @@ class Points : public std::vector<Point> {
 			} catch (std::runtime_error &) {
 				std::lock_guard lock(mutex);
 				exception = std::current_exception();
-				return Cells();
+				return Cells(resolution);
 			}
 		else if (1 == threads)
 			return load_cells(begin, middle, 1) + load_cells(middle, end, 1);
 		else {
-			auto cells1 = Cells();
-			auto cells2 = Cells();
+			auto cells1 = Cells(resolution);
+			auto cells2 = Cells(resolution);
 			auto thread1 = std::thread([&]() {
 				cells1 = load_cells(begin, middle, threads/2);
 			}), thread2 = std::thread([&]() {
@@ -72,9 +72,7 @@ public:
 		auto cells = load_cells(tile_paths.begin(), tile_paths.end(), threads);
 		if (exception)
 			std::rethrow_exception(exception);
-		reserve(cells.size());
-		for (const auto &[indices, point]: cells)
-			push_back(point);
+		swap(cells);
 	}
 };
 
