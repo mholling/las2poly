@@ -4,14 +4,14 @@
 #include "cell.hpp"
 #include "tile.hpp"
 #include <vector>
-#include <unordered_set>
 #include <algorithm>
 #include <functional>
 
 struct Cells : std::vector<Cell> {
 	Cells() = default;
 
-	Cells(Tile &&tile, double resolution, const std::unordered_set<unsigned char> &classes) {
+	template <typename Classes>
+	Cells(Tile &&tile, double resolution, const Classes &classes) {
 		reserve(tile.size());
 		for (const auto point: tile)
 			if (!point.withheld && (point.key_point || classes.count(point.classification)))

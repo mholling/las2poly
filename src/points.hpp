@@ -18,10 +18,9 @@
 class Points : public std::vector<Point> {
 	using Paths = std::vector<std::string>;
 	using PathIterator = Paths::const_iterator;
-	using Classes = std::unordered_set<unsigned char>;
 
 	double resolution;
-	Classes classes;
+	std::unordered_set<unsigned char> classes;
 	std::mutex mutex;
 	std::exception_ptr exception;
 
@@ -67,7 +66,8 @@ class Points : public std::vector<Point> {
 	}
 
 public:
-	Points(const Paths &tile_paths, double resolution, const std::vector<int> &additional_classes, int threads) : resolution(resolution), classes({2,3,4,5,6}) {
+	template <typename Classes>
+	Points(const Paths &tile_paths, double resolution, const Classes &additional_classes, int threads) : resolution(resolution), classes({2,3,4,5,6}) {
 		classes.insert(additional_classes.begin(), additional_classes.end());
 		auto cells = load_cells(tile_paths.begin(), tile_paths.end(), threads);
 		if (exception)
