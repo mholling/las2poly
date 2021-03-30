@@ -23,19 +23,19 @@ class Ring : std::list<Vector<2>> {
 		VertexOnRing() : runtime_error("vertex on ring") { }
 	};
 
-	auto begin() const { return Iterator(*this, Vertices::begin()); }
-	auto   end() const { return Iterator(*this, Vertices::end()); }
+	auto begin() const { return CornerIterator(*this, Vertices::begin()); }
+	auto   end() const { return CornerIterator(*this, Vertices::end()); }
 
-	struct Iterator {
+	struct CornerIterator {
 		const Ring &ring;
 		VertexIterator here;
 
-		Iterator(const Ring &ring, VertexIterator here) : ring(ring), here(here) { }
+		CornerIterator(const Ring &ring, VertexIterator here) : ring(ring), here(here) { }
 		auto &operator++() { ++here; return *this;}
 		auto &operator--() { --here; return *this;}
-		auto operator!=(const Iterator &other) const { return here != other.here; }
-		auto next() const { return *this != --ring.end() ? ++Iterator(ring, here) : ring.begin(); }
-		auto prev() const { return *this != ring.begin() ? --Iterator(ring, here) : --ring.end(); }
+		auto operator!=(const CornerIterator &other) const { return here != other.here; }
+		auto next() const { return *this != --ring.end() ? ++CornerIterator(ring, here) : ring.begin(); }
+		auto prev() const { return *this != ring.begin() ? --CornerIterator(ring, here) : --ring.end(); }
 		operator VertexIterator() const { return here; }
 		operator const Vertex &() const { return *here; }
 		auto operator*() const { return std::tuple<Vertex, Vertex, Vertex>(prev(), *here, next()); }
@@ -61,7 +61,7 @@ class Ring : std::list<Vector<2>> {
 
 	template <bool erode>
 	struct CompareCornerAreas {
-		auto operator()(const Iterator &v) const {
+		auto operator()(const CornerIterator &v) const {
 			const auto cross = v.cross();
 			return std::pair(erode == cross < 0, std::abs(cross));
 		}
@@ -70,13 +70,13 @@ class Ring : std::list<Vector<2>> {
 			return std::pair(false, 2 * corner_area);
 		}
 
-		auto operator()(const Iterator &u, const Iterator &v) const {
+		auto operator()(const CornerIterator &u, const CornerIterator &v) const {
 			return (*this)(u) < (*this)(v);
 		}
 	};
 
 	struct CompareCornerAngles {
-		auto operator()(const Iterator &u, const Iterator &v) const {
+		auto operator()(const CornerIterator &u, const CornerIterator &v) const {
 			return u.cosine() < v.cosine();
 		}
 	};
@@ -86,7 +86,7 @@ class Ring : std::list<Vector<2>> {
 		using Compare = CompareCornerAreas<erode>;
 		const auto compare = Compare();
 		const auto limit = compare(tolerance);
-		std::multiset<Iterator, Compare> corners;
+		std::multiset<CornerIterator, Compare> corners;
 		for (auto corner = begin(); corner != end(); ++corner)
 			corners.insert(corner);
 		while (corners.size() > 4 && compare(*corners.begin()) < limit) {
@@ -127,7 +127,7 @@ public:
 	}
 
 	void smooth(double tolerance, double angle) {
-		std::multiset<Iterator, CompareCornerAngles> corners;
+		std::multiset<CornerIterator, CompareCornerAngles> corners;
 		for (auto corner = begin(); corner != end(); ++corner)
 			corners.insert(corner);
 		for (const auto cosine = std::cos(angle); corners.begin()->cosine() < cosine; ) {
