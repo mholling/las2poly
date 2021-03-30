@@ -40,8 +40,7 @@ class Ring : std::list<Vector<2>> {
 		operator const Vertex &() const { return *here; }
 		auto operator*() const { return std::tuple<Vertex, Vertex, Vertex>(prev(), *here, next()); }
 		auto cross() const { return (*here - prev()) ^ (next() - *here); }
-		auto   dot() const { return (*here - prev()) * (next() - *here); }
-		auto angle() const { return std::atan2(cross(), dot()); }
+		auto cosine() const { return (*here - prev()).normalise() * (next() - *here).normalise(); }
 	};
 
 	const Vertices &vertices() const {
@@ -78,7 +77,7 @@ class Ring : std::list<Vector<2>> {
 
 	struct CompareCornerAngles {
 		auto operator()(const Iterator &u, const Iterator &v) const {
-			return std::abs(u.angle()) > std::abs(v.angle());
+			return u.cosine() < v.cosine();
 		}
 	};
 
@@ -91,13 +90,14 @@ class Ring : std::list<Vector<2>> {
 		for (auto corner = begin(); corner != end(); ++corner)
 			corners.insert(corner);
 		while (corners.size() > 4 && compare(*corners.begin()) < limit) {
-			const auto corner = *corners.begin();
-			const auto prev = corner.prev();
-			const auto next = corner.next();
+			const auto corner = corners.begin();
+			const auto vertex = *corner;
+			const auto prev = vertex.prev();
+			const auto next = vertex.next();
 			corners.erase(corner);
 			corners.erase(prev);
 			corners.erase(next);
-			erase(corner);
+			erase(vertex);
 			corners.insert(next.prev());
 			corners.insert(prev.next());
 		}
@@ -130,17 +130,18 @@ public:
 		std::multiset<Iterator, CompareCornerAngles> corners;
 		for (auto corner = begin(); corner != end(); ++corner)
 			corners.insert(corner);
-		while (std::abs(corners.begin()->angle()) > angle) {
-			const auto corner = *corners.begin();
-			const auto &[v0, v1, v2] = *corner;
+		for (const auto cosine = std::cos(angle); corners.begin()->cosine() < cosine; ) {
+			const auto corner = corners.begin();
+			const auto vertex = *corner;
+			const auto prev = vertex.prev();
+			const auto next = vertex.next();
+			const auto [v0, v1, v2] = **corner;
 			const auto f0 = std::min(0.25, tolerance / (v1 - v0).norm());
 			const auto f2 = std::min(0.25, tolerance / (v2 - v1).norm());
 			const auto v10 = v0 * f0 + v1 * (1.0 - f0);
 			const auto v11 = v2 * f2 + v1 * (1.0 - f2);
-			const auto prev = corner.prev();
-			const auto next = corner.next();
 			corners.erase(corner);
-			insert(insert(erase(corner), v11), v10);
+			insert(insert(erase(vertex), v11), v10);
 			corners.insert(next.prev());
 			corners.insert(prev.next());
 		}
