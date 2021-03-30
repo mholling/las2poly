@@ -2,7 +2,7 @@
 #define POINTS_HPP
 
 #include "point.hpp"
-#include "cells.hpp"
+#include "thin.hpp"
 #include "tile.hpp"
 #include <vector>
 #include <string>
@@ -19,14 +19,14 @@ class Points : public std::vector<Point> {
 	using Paths = std::vector<std::string>;
 	using PathIterator = Paths::const_iterator;
 
-	double resolution;
+	Thin thin;
 	std::unordered_set<unsigned char> classes;
 	std::mutex mutex;
 	std::exception_ptr exception;
 
-	auto load_cells(PathIterator begin, PathIterator end, int threads) {
+	auto load(PathIterator begin, PathIterator end, int threads) {
 		for (auto lock = std::lock_guard(mutex); exception; )
-			return Cells(resolution);
+			return thin();
 		const auto middle = begin + (end - begin) / 2;
 		if (begin + 1 == end)
 			try {
@@ -34,11 +34,11 @@ class Points : public std::vector<Point> {
 				try {
 					if (path == "-") {
 						std::cin.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-						return Cells(Tile(std::cin), resolution, classes);
+						return thin(Tile(std::cin), classes);
 					} else {
 						std::ifstream input(path, std::ios::binary);
 						input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-						return Cells(Tile(input), resolution, classes);
+						return thin(Tile(input), classes);
 					}
 				} catch (std::ios_base::failure &) {
 					throw std::runtime_error(path + ": problem reading file");
@@ -48,31 +48,31 @@ class Points : public std::vector<Point> {
 			} catch (std::runtime_error &) {
 				std::lock_guard lock(mutex);
 				exception = std::current_exception();
-				return Cells(resolution);
+				return thin();
 			}
 		else if (1 == threads)
-			return load_cells(begin, middle, 1) + load_cells(middle, end, 1);
+			return thin(load(begin, middle, 1), load(middle, end, 1));
 		else {
-			auto cells1 = Cells(resolution);
-			auto cells2 = Cells(resolution);
+			auto points1 = thin();
+			auto points2 = thin();
 			auto thread1 = std::thread([&]() {
-				cells1 = load_cells(begin, middle, threads/2);
+				points1 = load(begin, middle, threads/2);
 			}), thread2 = std::thread([&]() {
-				cells2 = load_cells(middle, end, threads - threads/2);
+				points2 = load(middle, end, threads - threads/2);
 			});
 			thread1.join(), thread2.join();
-			return cells1 + cells2;
+			return thin(points1, points2);
 		}
 	}
 
 public:
 	template <typename Classes>
-	Points(const Paths &tile_paths, double resolution, const Classes &additional_classes, int threads) : resolution(resolution), classes({2,3,4,5,6,10,11,17}) {
+	Points(const Paths &tile_paths, double resolution, const Classes &additional_classes, int threads) : thin(resolution), classes({2,3,4,5,6,10,11,17}) {
 		classes.insert(additional_classes.begin(), additional_classes.end());
-		auto cells = load_cells(tile_paths.begin(), tile_paths.end(), threads);
+		auto points = load(tile_paths.begin(), tile_paths.end(), threads);
 		if (exception)
 			std::rethrow_exception(exception);
-		swap(cells);
+		swap(points);
 	}
 };
 
