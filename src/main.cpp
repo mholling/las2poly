@@ -18,9 +18,7 @@
 #include <cstdlib>
 
 int main(int argc, char *argv[]) {
-	static constexpr auto pi = 3.14159265358979323846264338327950288419716939937510;
-	static constexpr auto max_web_mercator = 20048966.10;
-	static constexpr auto min_resolution = max_web_mercator / INT32_MAX;
+	static constexpr auto pi = 3.14159265358979324;
 	static constexpr auto smoothing_angle = 15.0;
 
 	try {
@@ -28,7 +26,6 @@ int main(int argc, char *argv[]) {
 		std::optional<double> slope = 10;
 		std::optional<double> area;
 		std::optional<double> length;
-		std::optional<double> resolution;
 		std::optional<bool> simplify;
 		std::optional<bool> smooth;
 		std::optional<std::vector<int>> classes;
@@ -45,7 +42,6 @@ int main(int argc, char *argv[]) {
 		args.option("-s", "--slope",      "<degrees>",   "maximum waterbody slope",                slope);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
-		args.option("-r", "--resolution", "<metres>",    "point thinning resolution",              resolution);
 		args.option("-i", "--simplify",                  "apply output simplification",            simplify);
 		args.option("-m", "--smooth",                    "apply output smoothing",                 smooth);
 		args.option("-c", "--classes",    "<class,...>", "additional lidar point classes",         classes);
@@ -82,8 +78,6 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("edge length can't be more than width");
 		if (area && area.value() < 0)
 			throw std::runtime_error("area can't be negative");
-		if (resolution && resolution.value() < min_resolution)
-			throw std::runtime_error("resolution value too low");
 		for (auto klass: classes.value()) {
 			if (klass < 0 || klass > 255)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
@@ -106,13 +100,11 @@ int main(int argc, char *argv[]) {
 			length = width.value();
 		if (!area)
 			area = 4 * width.value() * width.value();
-		if (!resolution)
-			resolution = length.value() / std::sqrt(8.0);
 
 		auto logger = Logger((bool)progress);
 
 		logger.time("reading", tile_paths.size(), "file");
-		auto points = Points(tile_paths, resolution.value(), classes.value(), threads.value());
+		auto points = Points(tile_paths, length.value() / std::sqrt(8.0), classes.value(), threads.value());
 
 		logger.time("triangulating", points.size(), "point");
 		auto mesh = Mesh(points, threads.value());
