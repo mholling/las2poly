@@ -27,18 +27,17 @@ class Tile {
 			throw std::runtime_error("unrecognised file format");
 	}
 
-	struct Record {
-		auto operator()(PLY &ply) { return ply.record(); }
-		auto operator()(LAS &las) { return las.record(); }
+	struct Read {
+		auto operator()(PLY &ply) { return ply.read(); }
+		auto operator()(LAS &las) { return las.read(); }
 	};
 
-	struct Count {
-		auto operator()(PLY &ply) { return ply.count; }
-		auto operator()(LAS &las) { return las.count; }
+	struct Size {
+		auto operator()(PLY &ply) { return ply.size; }
+		auto operator()(LAS &las) { return las.size; }
 	};
 
-	auto record() { return std::visit(Record(), tile_variant); }
-	auto count() { return std::visit(Count(), tile_variant); }
+	auto read() { return std::visit(Read(), tile_variant); }
 
 	TileVariant tile_variant;
 
@@ -49,14 +48,16 @@ class Tile {
 		Iterator(Tile &tile, std::size_t index) : tile(tile), index(index) { }
 		auto &operator++() { ++index; return *this;}
 		auto operator!=(const Iterator &other) const { return index != other.index; }
-		auto operator*() const { return tile.record(); }
+		auto operator*() const { return tile.read(); }
 	};
 
 public:
 	Tile(std::istream &input) : tile_variant(from(input)) { }
 
+	auto size() { return std::visit(Size(), tile_variant); }
+
 	auto begin() { return Iterator(*this, 0); }
-	auto   end() { return Iterator(*this, count()); }
+	auto   end() { return Iterator(*this, size()); }
 };
 
 #endif

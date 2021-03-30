@@ -34,14 +34,14 @@ class PLY {
 	}
 
 public:
-	std::size_t count;
+	std::size_t size;
 
 	PLY(std::istream &input) : input(input) {
 		if constexpr (Endian::big)
 			expect("format binary_big_endian 1.0");
 		else
 			expect("format binary_little_endian 1.0");
-		expect("element vertex", count);
+		expect("element vertex", size);
 		expect("property float64 x");
 		expect("property float64 y");
 		expect("property float64 z");
@@ -49,7 +49,7 @@ public:
 		expect("end_header");
 	}
 
-	auto record() const {
+	auto read() const {
 		double x, y, z;
 		unsigned char classification;
 		input.read(reinterpret_cast<char *>(&x), sizeof(x));

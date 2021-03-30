@@ -17,26 +17,26 @@ class LAS {
 	double x_offset, y_offset, z_offset;
 	std::uint8_t point_data_record_format;
 
-	void read() { }
+	void read_values() { }
 
 	template <typename Arg, typename ...Args>
-	void read(Arg &arg, Args &...args) {
+	void read_values(Arg &arg, Args &...args) {
 		input.read(reinterpret_cast<char *>(&arg), sizeof(arg));
 		position += sizeof(arg);
 		if constexpr (Endian::big && sizeof(arg) > 1)
 			std::reverse(reinterpret_cast<char *>(&arg), reinterpret_cast<char *>(&arg) + sizeof(arg));
-		read(args...);
+		read_values(args...);
 	}
 
 	template <typename ...Args>
 	void read_ahead(std::size_t offset, Args &...args) {
 		input.ignore(offset);
 		position += offset;
-		read(args...);
+		read_values(args...);
 	}
 
 public:
-	std::size_t count;
+	std::size_t size;
 
 	LAS(std::istream &input) : input(input), position(4) {
 		std::uint8_t version_major, version_minor;
@@ -58,16 +58,16 @@ public:
 			throw std::runtime_error("unsupported LAS version " + std::to_string(version_major) + "." + std::to_string(version_minor));
 
 		if (version_minor < 4)
-			count = legacy_number_of_point_records;
+			size = legacy_number_of_point_records;
 		else {
 			read_ahead(68, number_of_point_records);
-			count = number_of_point_records;
+			size = number_of_point_records;
 		}
 
 		read_ahead(offset_to_point_data - position);
 	}
 
-	auto record() {
+	auto read() {
 		double x, y, z;
 		unsigned char classification;
 		bool key_point, withheld, overlap;
