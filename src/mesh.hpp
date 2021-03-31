@@ -110,7 +110,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 	template <bool horizontal = true>
-	void triangulate(PointIterator begin, PointIterator end, int threads) {
+	void triangulate(PointIterator begin, PointIterator end, unsigned threads) {
 		constexpr auto less_than = [](const Point &p1, const Point &p2) {
 			if constexpr (horizontal)
 				return p1[0] < p2[0] ? true : p1[0] > p2[0] ? false : p1[1] < p2[1];
@@ -179,7 +179,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		}
 	}
 
-	void deconstruct(Triangles &triangles, PointIterator begin, PointIterator end, double length, int threads) {
+	void deconstruct(Triangles &triangles, PointIterator begin, PointIterator end, double length, unsigned threads) {
 		if (threads > 1) {
 			const auto middle = begin + (end - begin) / 2;
 			Triangles left_triangles, right_triangles;
@@ -214,11 +214,11 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 public:
-	Mesh(Points &points, int threads) : vector(points.size()), points_begin(points.begin()) {
+	Mesh(Points &points, unsigned threads) : vector(points.size()), points_begin(points.begin()) {
 		triangulate(points.begin(), points.end(), threads);
 	}
 
-	void deconstruct(Triangles &triangles, Edges &edges, double length, int threads) {
+	void deconstruct(Triangles &triangles, Edges &edges, double length, unsigned threads) {
 		const auto rightmost = std::max_element(points_begin, points_begin + size());
 		for (auto edge = exterior_clockwise(rightmost); ; ++edge) {
 			edges.insert(-*edge);

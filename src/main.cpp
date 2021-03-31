@@ -20,6 +20,7 @@
 int main(int argc, char *argv[]) {
 	static constexpr auto pi = 3.14159265358979324;
 	static constexpr auto smoothing_angle = 15.0;
+	static const int default_threads = std::max(1u, std::thread::hardware_concurrency());
 
 	try {
 		std::optional<double> width;
@@ -30,7 +31,7 @@ int main(int argc, char *argv[]) {
 		std::optional<bool> smooth;
 		std::optional<std::vector<int>> classes;
 		std::optional<int> epsg;
-		std::optional<int> threads = std::max(1u, std::thread::hardware_concurrency());
+		std::optional<std::vector<int>> threads = {{default_threads}};
 		std::optional<bool> overwrite;
 		std::optional<bool> progress;
 
@@ -86,8 +87,11 @@ int main(int argc, char *argv[]) {
 		}
 		if (epsg && (epsg.value() < 1024 || epsg.value() > 32767))
 			throw std::runtime_error("invalid EPSG code");
-		if (threads.value() < 1)
-			throw std::runtime_error("number of threads must be positive");
+		if (threads.value().size() > 2)
+			throw std::runtime_error("at most two thread counts allowed");
+		for (auto count: threads.value())
+			if (count < 1)
+				throw std::runtime_error("number of threads must be positive");
 		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
 			throw std::runtime_error("output file already exists");
 
@@ -104,13 +108,13 @@ int main(int argc, char *argv[]) {
 		auto logger = Logger((bool)progress);
 
 		logger.time("reading", tile_paths.size(), "file");
-		auto points = Points(tile_paths, length.value() / std::sqrt(8.0), classes.value(), threads.value());
+		auto points = Points(tile_paths, length.value() / std::sqrt(8.0), classes.value(), threads.value().back());
 
 		logger.time("triangulating", points.size(), "point");
-		auto mesh = Mesh(points, threads.value());
+		auto mesh = Mesh(points, threads.value().front());
 
 		logger.time("extracting polygons");
-		auto land = Land(mesh, length.value(), width.value(), slope.value() * pi / 180, area.value(), threads.value());
+		auto land = Land(mesh, length.value(), width.value(), slope.value() * pi / 180, area.value(), threads.value().front());
 
 		if (simplify) {
 			auto tolerance = 4 * width.value() * width.value();

@@ -80,7 +80,7 @@ class Points : public std::vector<Point> {
 		std::mutex mutex;
 		std::exception_ptr exception;
 
-		auto operator()(PathIterator begin, PathIterator end, int threads) {
+		auto operator()(PathIterator begin, PathIterator end, unsigned threads) {
 			for (auto lock = std::lock_guard(mutex); exception; )
 				return Points();
 			const auto middle = begin + (end - begin) / 2;
@@ -124,7 +124,7 @@ class Points : public std::vector<Point> {
 		}
 
 	public:
-		auto operator()(const Paths &paths, int threads) {
+		auto operator()(const Paths &paths, unsigned threads) {
 			auto points = (*this)(paths.begin(), paths.end(), threads);
 			if (exception)
 				std::rethrow_exception(exception);
@@ -136,7 +136,7 @@ class Points : public std::vector<Point> {
 
 public:
 	template <typename AdditionalClasses>
-	Points(const Paths &tile_paths, double resolution, const AdditionalClasses &additional_classes, int threads) {
+	Points(const Paths &tile_paths, double resolution, const AdditionalClasses &additional_classes, unsigned threads) {
 		Classes classes = {2,3,4,5,6,10,11,17};
 		classes.insert(additional_classes.begin(), additional_classes.end());
 		Load(resolution, classes)(tile_paths, threads).swap(*this);

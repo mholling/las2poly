@@ -33,7 +33,7 @@ struct Land : std::vector<Polygon> {
 		return angle < slope && count > 0 && sum_abs < delta * count;
 	}
 
-	Land(Mesh &mesh, double length, double width, double slope, double area, int threads) {
+	Land(Mesh &mesh, double length, double width, double slope, double area, unsigned threads) {
 		Triangles large_triangles;
 		Edges outside_edges;
 		auto delta = width * std::tan(slope);
