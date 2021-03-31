@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <optional>
 #include <filesystem>
+#include <utility>
 
 class Args {
 	struct InvalidArgument : std::runtime_error {
@@ -98,7 +99,15 @@ public:
 
 	template <typename Value>
 	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<std::vector<Value>> &optional) {
-		options.emplace_back(letter, name, format, description, [&](auto arg) {
+		std::stringstream description_with_default;
+		description_with_default << description;
+		if (optional) {
+			auto before = " (default: ";
+			for (const auto &value: optional.value())
+				description_with_default << std::exchange(before, ",") << value;
+			description_with_default << ")";
+		}
+		options.emplace_back(letter, name, format, description_with_default.str(), [&](auto arg) {
 			optional.emplace();
 			auto list = std::stringstream(arg);
 			for (std::string arg; std::getline(list, arg, ','); ) {
