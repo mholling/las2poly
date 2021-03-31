@@ -59,6 +59,8 @@ int main(int argc, char *argv[]) {
 		auto proceed = args.parse([&]() {
 			if (!length && !width)
 				throw std::runtime_error("no width or length specified");
+			if (threads.value().size() > 2)
+				throw std::runtime_error("at most two thread counts allowed");
 		});
 
 		if (!proceed)
@@ -87,8 +89,6 @@ int main(int argc, char *argv[]) {
 		}
 		if (epsg && (epsg.value() < 1024 || epsg.value() > 32767))
 			throw std::runtime_error("invalid EPSG code");
-		if (threads.value().size() > 2)
-			throw std::runtime_error("at most two thread counts allowed");
 		for (auto count: threads.value())
 			if (count < 1)
 				throw std::runtime_error("number of threads must be positive");
