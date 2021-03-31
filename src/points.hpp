@@ -7,7 +7,6 @@
 #include <string>
 #include <unordered_set>
 #include <utility>
-#include <cstdint>
 #include <algorithm>
 #include <functional>
 #include <mutex>
@@ -29,8 +28,8 @@ class Points : public std::vector<Point> {
 
 		auto operator()(const Point &p1, const Point &p2) const {
 			return
-				std::pair<std::int32_t, std::int32_t>(p1[0] / resolution, p1[1] / resolution) <
-				std::pair<std::int32_t, std::int32_t>(p2[0] / resolution, p2[1] / resolution);
+				std::pair<int, int>(p1[0] / resolution, p1[1] / resolution) <
+				std::pair<int, int>(p2[0] / resolution, p2[1] / resolution);
 		}
 
 		auto operator()(Tile &&tile, const Classes &classes) const {
