@@ -182,20 +182,23 @@ public:
 			}
 
 			auto position = positions.begin();
-			for (auto arg = position_args.begin(); arg != position_args.end(); ++arg)
+			for (auto arg = position_args.begin(); arg != position_args.end(); )
 				if (position == positions.end())
 					throw InvalidArgument("invalid argument:", *arg);
 				else if (!position->variadic)
-					(position++)->callback(*arg);
+					(position++)->callback(*arg++);
 				else if (position_args.end() - arg > positions.end() - position)
-					position->callback(*arg);
+					position->callback(*arg++);
+				else if (position_args.end() - arg == positions.end() - position)
+					(position++)->callback(*arg++);
 				else
-					(position++)->callback(*arg);
+					++position;
 
+			if (position != positions.end() && position->variadic)
+				++position;
 			if (position != positions.end())
 				throw InvalidArgument("missing argument:", position->description);
-			else
-				validate();
+			validate();
 		} catch (std::runtime_error &error) {
 			std::cerr << help();
 			throw error;

@@ -10,11 +10,11 @@
 #include <string>
 #include <stdexcept>
 #include <filesystem>
+#include <fstream>
 #include <algorithm>
 #include <cmath>
 #include <sstream>
 #include <iostream>
-#include <fstream>
 #include <cstdlib>
 
 int main(int argc, char *argv[]) {
@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
 		std::optional<std::vector<int>> classes;
 		std::optional<int> epsg;
 		std::optional<std::vector<int>> threads = {{default_threads}};
+		std::optional<std::string> tiles_path;
 		std::optional<bool> overwrite;
 		std::optional<bool> progress;
 
@@ -48,19 +49,28 @@ int main(int argc, char *argv[]) {
 		args.option("-c", "--classes",    "<class,...>", "additional lidar point classes",         classes);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
+		args.option("",   "--tiles",      "<tiles.txt>", "list of input tiles as a text file",     tiles_path);
 		args.option("-o", "--overwrite",                 "overwrite existing output file",         overwrite);
 		args.option("-p", "--progress",                  "show progress",                          progress);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
-		args.position("<tile.las>", "LAS or PLY input path", tile_paths);
+		args.position("<tile.las>", "LAS input path", tile_paths);
 		args.position("<land.json>", "GeoJSON output path", json_path);
 
 		auto proceed = args.parse([&]() {
 			if (!length && !width)
 				throw std::runtime_error("no width or length specified");
-			if (threads.value().size() > 2)
-				throw std::runtime_error("at most two thread counts allowed");
+			if (tiles_path && !tile_paths.empty())
+				throw std::runtime_error("can't specify tiles as arguments and also in a file");
+			if (tiles_path) {
+				auto input = std::ifstream(tiles_path.value());
+				input.exceptions(std::ifstream::badbit);
+				for (std::string line; std::getline(input, line); )
+					tile_paths.push_back(line);
+			}
+			if (tile_paths.empty())
+				throw std::runtime_error("missing argument: LAS input path");
 		});
 
 		if (!proceed)
@@ -89,6 +99,8 @@ int main(int argc, char *argv[]) {
 		}
 		if (epsg && (epsg.value() < 1024 || epsg.value() > 32767))
 			throw std::runtime_error("invalid EPSG code");
+		if (threads.value().size() > 2)
+			throw std::runtime_error("at most two thread count values allowed");
 		for (auto count: threads.value())
 			if (count < 1)
 				throw std::runtime_error("number of threads must be positive");
@@ -144,7 +156,7 @@ int main(int argc, char *argv[]) {
 		}
 		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {
-		std::cerr << "error: problem writing file" << std::endl;
+		std::cerr << "error: problem reading or writing file" << std::endl;
 		return EXIT_FAILURE;
 	} catch (std::runtime_error &error) {
 		std::cerr << "error: " << error.what() << std::endl;
