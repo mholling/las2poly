@@ -6,11 +6,12 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
+#include <limits>
+#include <stdexcept>
 #include <utility>
 #include <algorithm>
 #include <functional>
 #include <mutex>
-#include <stdexcept>
 #include <iostream>
 #include <fstream>
 #include <thread>
@@ -24,7 +25,11 @@ class Points : public std::vector<Point> {
 
 	struct Thin {
 		double resolution;
-		Thin(double resolution) : resolution(resolution) { }
+		Thin(double resolution) : resolution(resolution) {
+			auto constexpr web_mercator_max = 20048966.10;
+			if (web_mercator_max / resolution > std::numeric_limits<int>::max())
+				throw std::runtime_error("resolution value too small");
+		}
 
 		auto operator()(const Point &p1, const Point &p2) const {
 			return
