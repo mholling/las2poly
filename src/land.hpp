@@ -2,8 +2,9 @@
 #define LAND_HPP
 
 #include "polygon.hpp"
-#include "mesh.hpp"
 #include "triangles.hpp"
+#include "summation.hpp"
+#include "mesh.hpp"
 #include "edges.hpp"
 #include "rings.hpp"
 #include "ring.hpp"
@@ -17,20 +18,28 @@
 
 struct Land : std::vector<Polygon> {
 	static auto is_water(const Triangles &triangles, double delta, double slope) {
-		Vector<3> perp = {{0, 0, 0}};
-		long double sum_abs = 0;
+		Vector<3> perp_sum = {{0, 0, 0}};
+		double delta_sum = 0;
 		std::size_t count = 0;
+
+		Summation perp_sum_z{perp_sum[2]};
+		Summation abs_sum{delta_sum};
 
 		for (auto edges: triangles) {
 			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end()), edges.end());
-			perp += edges[1] % edges[2];
+
+			auto perp = edges[1] % edges[2];
+			perp_sum[0] += perp[0];
+			perp_sum[1] += perp[1];
+			perp_sum_z  += perp[2];
+
 			for (auto edge = edges.begin() + 1; edge != edges.end(); ++edge)
 				if (edge->first->ground() && edge->second->ground())
-					++count, sum_abs += std::abs(edge->second->elevation - edge->first->elevation);
+					++count, abs_sum += std::abs(edge->second->elevation - edge->first->elevation);
 		}
 
-		auto angle = std::acos(std::abs(perp[2] / perp.norm()));
-		return angle < slope && count > 0 && sum_abs < delta * count;
+		auto angle = std::acos(std::abs(perp_sum[2] / perp_sum.norm()));
+		return angle < slope && count > 0 && delta_sum < delta * count;
 	}
 
 	Land(Mesh &mesh, double length, double width, double slope, double area, unsigned threads) {
