@@ -25,8 +25,9 @@ class Points : public std::vector<Point> {
 
 	struct Thin {
 		double resolution;
+
 		Thin(double resolution) : resolution(resolution) {
-			auto constexpr web_mercator_max = 20048966.10;
+			constexpr auto web_mercator_max = 20048966.10;
 			if (web_mercator_max / resolution > std::numeric_limits<int>::max())
 				throw std::runtime_error("resolution value too small");
 		}

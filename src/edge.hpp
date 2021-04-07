@@ -35,7 +35,7 @@ auto operator-(const Edge &edge) {
 
 template <> struct std::hash<Edge> {
 	std::size_t operator()(const Edge &edge) const {
-		auto constexpr hash = std::hash<PointIterator>();
+		constexpr auto hash = std::hash<PointIterator>();
 		auto seed = hash(edge.first);
 		return seed ^ (hash(edge.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 	}
