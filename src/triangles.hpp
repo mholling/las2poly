@@ -23,7 +23,7 @@ class Triangles : public std::unordered_set<Triangle> {
 	};
 
 	Triangles(Triangles &source, Neighbours &neighbours) {
-		std::unordered_set<Triangle> pending;
+		auto pending = std::unordered_set<Triangle>();
 		for (pending.insert(*source.begin()); !pending.empty(); ) {
 			const auto &triangle = *pending.begin();
 			source.erase(triangle);

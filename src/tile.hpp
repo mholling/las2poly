@@ -16,7 +16,7 @@ class Tile {
 		constexpr std::array<char, 4> las_magic = {'L','A','S','F'};
 		constexpr std::array<char, 4> ply_magic = {'p','l','y','\n'};
 
-		std::array<char, 4> magic;
+		auto magic = std::array<char, 4>();
 		input.read(magic.data(), sizeof(magic));
 
 		if (magic == ply_magic)

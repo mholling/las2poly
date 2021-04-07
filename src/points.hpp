@@ -97,7 +97,7 @@ class Points : public std::vector<Point> {
 							std::cin.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 							return thin(Tile(std::cin), classes);
 						} else {
-							std::ifstream input(path, std::ios::binary);
+							auto input = std::ifstream(path, std::ios::binary);
 							input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 							return thin(Tile(input), classes);
 						}
@@ -107,7 +107,7 @@ class Points : public std::vector<Point> {
 						throw std::runtime_error(path + ": " + error.what());
 					}
 				} catch (std::runtime_error &) {
-					std::lock_guard lock(mutex);
+					auto lock = std::lock_guard(mutex);
 					exception = std::current_exception();
 					return Points();
 				}
@@ -142,7 +142,7 @@ class Points : public std::vector<Point> {
 public:
 	template <typename AdditionalClasses>
 	Points(const Paths &tile_paths, double resolution, const AdditionalClasses &additional_classes, unsigned threads) {
-		Classes classes = {2,3,4,5,6,10,11,17};
+		auto classes = Classes({2,3,4,5,6,10,11,17});
 		classes.insert(additional_classes.begin(), additional_classes.end());
 		Load(resolution, classes)(tile_paths, threads).swap(*this);
 	}

@@ -20,24 +20,24 @@
 int main(int argc, char *argv[]) {
 	static constexpr auto pi = 3.14159265358979324;
 	static constexpr auto smoothing_angle = 15.0;
-	static const int default_threads = std::max(1u, std::thread::hardware_concurrency());
+	static const auto default_threads = std::max<int>(1, std::thread::hardware_concurrency());
 
 	try {
-		std::optional<double> width;
-		std::optional<double> slope = 10;
-		std::optional<double> area;
-		std::optional<double> length;
-		std::optional<bool> simplify;
-		std::optional<bool> smooth;
-		std::optional<std::vector<int>> classes;
-		std::optional<int> epsg;
-		std::optional<std::vector<int>> threads = {{default_threads}};
-		std::optional<std::string> tiles_path;
-		std::optional<bool> overwrite;
-		std::optional<bool> progress;
+		auto width      = std::optional<double>();
+		auto slope      = std::optional<double>(10.0);
+		auto area       = std::optional<double>();
+		auto length     = std::optional<double>();
+		auto simplify   = std::optional<bool>();
+		auto smooth     = std::optional<bool>();
+		auto classes    = std::optional<std::vector<int>>();
+		auto epsg       = std::optional<int>();
+		auto threads    = std::optional<std::vector<int>>({default_threads});
+		auto tiles_path = std::optional<std::string>();
+		auto overwrite  = std::optional<bool>();
+		auto progress   = std::optional<bool>();
 
-		std::vector<std::string> tile_paths;
-		std::string json_path;
+		auto tile_paths = std::vector<std::string>();
+		auto json_path = std::string();
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
 		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                width);
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
 			land.smooth(tolerance, angle);
 		}
 
-		std::stringstream json;
+		auto json = std::stringstream();
 		json.precision(15);
 		json << "{\"type\":\"FeatureCollection\",";
 		if (epsg)
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 		if (json_path == "-")
 			std::cout << json.str() << std::endl;
 		else {
-			std::ofstream file(json_path);
+			auto file = std::ofstream(json_path);
 			file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 			file << json.str() << std::endl;
 		}

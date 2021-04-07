@@ -182,7 +182,8 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	void deconstruct(Triangles &triangles, PointIterator begin, PointIterator end, double length, unsigned threads) {
 		if (threads > 1) {
 			const auto middle = begin + (end - begin) / 2;
-			Triangles left_triangles, right_triangles;
+			auto left_triangles = Triangles();
+			auto right_triangles = Triangles();
 			auto left_thread = std::thread([&]() {
 				deconstruct(left_triangles, begin, middle, length, threads/2);
 			}), right_thread = std::thread([&]() {

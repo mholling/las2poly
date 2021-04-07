@@ -13,7 +13,7 @@ class PLY {
 	std::istream &input;
 
 	auto line() {
-		std::string string;
+		auto string = std::string();
 		string.reserve(1000);
 		for (std::getline(input, string); string.rfind("comment", 0) == 0;)
 			std::getline(input, string);

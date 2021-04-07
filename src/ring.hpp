@@ -48,7 +48,7 @@ class Ring : std::list<Vector<2>> {
 	}
 
 	auto winding_number(const Vertex &v) const {
-		int winding = 0;
+		auto winding = 0;
 		for (const auto [v0, v1, v2]: *this)
 			if (v1 == v || v2 == v)
 				throw VertexOnRing();
@@ -86,7 +86,7 @@ class Ring : std::list<Vector<2>> {
 		using Compare = CompareCornerAreas<erode>;
 		const auto compare = Compare();
 		const auto limit = compare(tolerance);
-		std::multiset<CornerIterator, Compare> corners;
+		auto corners = std::multiset<CornerIterator, Compare>();
 		for (auto corner = begin(); corner != end(); ++corner)
 			corners.insert(corner);
 		while (corners.size() > 4 && compare(*corners.begin()) < limit) {
@@ -127,7 +127,7 @@ public:
 	}
 
 	void smooth(double tolerance, double angle) {
-		std::multiset<CornerIterator, CompareCornerAngles> corners;
+		auto corners = std::multiset<CornerIterator, CompareCornerAngles>();
 		for (auto corner = begin(); corner != end(); ++corner)
 			corners.insert(corner);
 		for (const auto cosine = std::cos(angle); corners.begin()->cosine() < cosine; ) {

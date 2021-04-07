@@ -15,7 +15,7 @@ class Rings : public std::vector<Ring> {
 	using Connections = std::unordered_map<Edge, Edge>;
 
 	static auto unwind(Connections &connections) {
-		std::vector<Edge> edges;
+		auto edges = std::vector<Edge>();
 		for (auto connection = connections.begin(); connection != connections.end(); ) {
 			edges.push_back(connection->first);
 			connections.erase(connection);
@@ -27,8 +27,8 @@ class Rings : public std::vector<Ring> {
 public:
 	template <typename Edges>
 	Rings(const Edges &edges) {
-		PointsEdges points_edges;
-		Connections connections;
+		auto points_edges = PointsEdges();
+		auto connections = Connections();
 
 		constexpr auto ordering = [](const auto &pair1, const auto &pair2) {
 			const auto &[edge1, angle1] = pair1;
@@ -39,7 +39,7 @@ public:
 		for (const auto &edge: edges)
 			points_edges.emplace(edge.first, edge);
 		for (const auto &incoming: edges) {
-			std::unordered_map<Edge, double> edges_angles;
+			auto edges_angles = std::unordered_map<Edge, double>();
 			const auto &[start, stop] = points_edges.equal_range(incoming.second);
 			std::for_each(start, stop, [&](const auto &point_edge) {
 				const auto &[point, outgoing] = point_edge;

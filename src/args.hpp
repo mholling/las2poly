@@ -50,7 +50,7 @@ class Args {
 	std::vector<Position> positions;
 
 	auto help() const {
-		std::stringstream help;
+		auto help = std::stringstream();
 		help << command << " - " << banner << std::endl;
 		help << "  usage: " << command;
 		if (!options.empty())
@@ -61,11 +61,11 @@ class Args {
 			else
 				help << " " << position.format;
 		help << std::endl << "  options:" << std::endl;
-		std::size_t letter_width = 0, name_width = 0, format_width = 0;
+		auto letter_width = 0u, name_width = 0u, format_width = 0u;
 		for (const auto &option: options) {
-			letter_width = std::max(letter_width, option.letter.length());
-			name_width = std::max(name_width, option.name.length());
-			format_width = std::max(format_width, option.format.length());
+			letter_width = std::max<unsigned>(letter_width, option.letter.length());
+			name_width = std::max<unsigned>(name_width, option.name.length());
+			format_width = std::max<unsigned>(format_width, option.format.length());
 		}
 		for (const auto &option: options)
 			help << "    " << std::left
@@ -85,7 +85,7 @@ public:
 
 	template <typename Value>
 	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<Value> &optional) {
-		std::stringstream description_with_default;
+		auto description_with_default = std::stringstream();
 		if (optional)
 			description_with_default << description << " (default: " << optional.value() << ")";
 		else
@@ -99,7 +99,7 @@ public:
 
 	template <typename Value>
 	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<std::vector<Value>> &optional) {
-		std::stringstream description_with_default;
+		auto description_with_default = std::stringstream();
 		description_with_default << description;
 		if (optional) {
 			auto before = " (default: ";
@@ -151,7 +151,8 @@ public:
 			std::cout << help();
 		});
 
-		std::vector<std::string> position_args, option_args;
+		auto position_args = std::vector<std::string>();
+		auto option_args = std::vector<std::string>();
 
 		try {
 			for (auto arg = args.begin(); arg != args.end(); ) {

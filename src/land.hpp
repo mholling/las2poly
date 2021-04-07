@@ -18,12 +18,12 @@
 
 struct Land : std::vector<Polygon> {
 	static auto is_water(const Triangles &triangles, double delta, double slope) {
-		Vector<3> perp_sum = {{0, 0, 0}};
-		double delta_sum = 0;
-		std::size_t count = 0;
+		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
+		auto delta_sum = 0.0;
+		auto count = 0ul;
 
-		Summation perp_sum_z{perp_sum[2]};
-		Summation abs_sum{delta_sum};
+		auto perp_sum_z = Summation(perp_sum[2]);
+		auto abs_sum = Summation(delta_sum);
 
 		for (auto edges: triangles) {
 			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end()), edges.end());
@@ -43,8 +43,8 @@ struct Land : std::vector<Polygon> {
 	}
 
 	Land(Mesh &mesh, double length, double width, double slope, double area, unsigned threads) {
-		Triangles large_triangles;
-		Edges outside_edges;
+		auto large_triangles = Triangles();
+		auto outside_edges = Edges();
 		auto delta = width * std::tan(slope);
 
 		mesh.deconstruct(large_triangles, outside_edges, length, threads);
@@ -66,7 +66,7 @@ struct Land : std::vector<Polygon> {
 
 		auto remaining = holes_begin;
 		std::for_each(rings.begin(), holes_begin, [&](const auto &exterior) {
-			Polygon polygon = {exterior};
+			auto polygon = Polygon{{exterior}};
 			auto old_remaining = remaining;
 			remaining = std::partition(remaining, rings_end, [&](const auto &hole) {
 				return exterior.contains(hole);
