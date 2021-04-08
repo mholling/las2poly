@@ -28,7 +28,7 @@ struct Land : std::vector<Polygon> {
 		for (auto edges: triangles) {
 			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end()), edges.end());
 
-			auto perp = edges[1] % edges[2];
+			const auto perp = edges[1] % edges[2];
 			perp_sum[0] += perp[0];
 			perp_sum[1] += perp[1];
 			perp_sum_z  += perp[2];
@@ -38,14 +38,14 @@ struct Land : std::vector<Polygon> {
 					++count, abs_sum += std::abs(edge->second->elevation - edge->first->elevation);
 		}
 
-		auto angle = std::acos(std::abs(perp_sum[2] / perp_sum.norm()));
+		const auto angle = std::acos(std::abs(perp_sum[2] / perp_sum.norm()));
 		return angle < slope && count > 0 && delta_sum < delta * count;
 	}
 
 	Land(Mesh &mesh, double length, double width, double slope, double area, unsigned threads) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
-		auto delta = width * std::tan(slope);
+		const auto delta = width * std::tan(slope);
 
 		mesh.deconstruct(large_triangles, outside_edges, length, threads);
 

@@ -27,7 +27,7 @@ struct Point : Vector<2> {
 	}
 
 	auto in_circle(const Point &a, const Point &b, const Point &c) const {
-		auto aa = a - *this, bb = b - *this, cc = c - *this;
+		const auto aa = a - *this, bb = b - *this, cc = c - *this;
 		return (aa * aa) * (bb ^ cc) + (bb * bb) * (cc ^ aa) + (cc * cc) * (aa ^ bb) > 0;
 	}
 };

@@ -28,13 +28,13 @@ class Tile {
 	}
 
 	struct Read {
-		auto operator()(PLY &ply) { return ply.read(); }
-		auto operator()(LAS &las) { return las.read(); }
+		auto operator()(PLY &ply) const { return ply.read(); }
+		auto operator()(LAS &las) const { return las.read(); }
 	};
 
 	struct Size {
-		auto operator()(const PLY &ply) { return ply.size; }
-		auto operator()(const LAS &las) { return las.size; }
+		auto operator()(const PLY &ply) const { return ply.size; }
+		auto operator()(const LAS &las) const { return las.size; }
 	};
 
 	auto read() { return std::visit(Read(), tile_variant); }

@@ -47,9 +47,10 @@ class Points : public std::vector<Point> {
 					points.push_back(point);
 			std::sort(points.begin(), points.end(), *this);
 
-			auto here = points.begin(), points_end = points.end();
+			auto here = points.begin();
+			const auto points_end = points.end();
 			for (auto range_begin = points.begin(); range_begin != points_end; ++here) {
-				auto range_end = std::upper_bound(range_begin, points_end, *range_begin, *this);
+				const auto range_end = std::upper_bound(range_begin, points_end, *range_begin, *this);
 				*here = *std::min_element(range_begin, range_end, std::greater());
 				range_begin = range_end;
 			}

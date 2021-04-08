@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 		args.position("<tile.las>", "LAS input path", tile_paths);
 		args.position("<land.json>", "GeoJSON output path", json_path);
 
-		auto proceed = args.parse([&]() {
+		const auto proceed = args.parse([&]() {
 			if (!length && !width)
 				throw std::runtime_error("no width or length specified");
 			if (tiles_path && !tile_paths.empty())
@@ -129,13 +129,13 @@ int main(int argc, char *argv[]) {
 		auto land = Land(mesh, length.value(), width.value(), slope.value() * pi / 180, area.value(), threads.value().front());
 
 		if (simplify) {
-			auto tolerance = 4 * width.value() * width.value();
+			const auto tolerance = 4 * width.value() * width.value();
 			land.simplify(tolerance);
 		}
 
 		if (smooth) {
-			auto angle = smoothing_angle * pi / 180;
-			auto tolerance = 0.5 * width.value() / std::sin(angle);
+			const auto angle = smoothing_angle * pi / 180;
+			const auto tolerance = 0.5 * width.value() / std::sin(angle);
 			land.smooth(tolerance, angle);
 		}
 

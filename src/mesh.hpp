@@ -196,13 +196,13 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		for (auto point = begin; point < end; ++point) {
 			const auto &neighbours = adjacent(point);
 			for (auto neighbour = neighbours.rbegin(); neighbour != neighbours.rend(); ) {
-				auto edge1 = Iterator(*this, Edge(point, *neighbour++), true);
+				const auto edge1 = Iterator(*this, Edge(point, *neighbour++), true);
 				if (edge1->second < begin || !(edge1->second < end))
 					continue;
-				auto edge2 = Iterator(*this, edge1.peek(), true);
+				const auto edge2 = Iterator(*this, edge1.peek(), true);
 				if (edge2->second < begin || !(edge2->second < end))
 					continue;
-				auto edge3 = Iterator(*this, edge2.peek(), true);
+				const auto edge3 = Iterator(*this, edge2.peek(), true);
 				if (edge3->second != point)
 					throw std::runtime_error("corrupted mesh");
 				const Triangle triangle = {*edge1, *edge2, *edge3};
