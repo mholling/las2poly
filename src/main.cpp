@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 		auto smooth     = std::optional<bool>();
 		auto classes    = std::optional<std::vector<int>>();
 		auto epsg       = std::optional<int>();
-		auto threads    = std::optional<std::vector<int>>({default_threads});
+		auto threads    = std::optional<std::vector<int>>{{default_threads}};
 		auto tiles_path = std::optional<std::string>();
 		auto overwrite  = std::optional<bool>();
 		auto progress   = std::optional<bool>();

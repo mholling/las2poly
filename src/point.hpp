@@ -10,7 +10,7 @@ struct Point : Vector<2> {
 	bool key_point, withheld, overlap;
 
 	Point(double x, double y, double z, unsigned char classification, bool key_point, bool withheld, bool overlap) :
-		Vector({{x, y}}),
+		Vector{{x, y}},
 		elevation(z),
 		classification(classification),
 		key_point(key_point),
