@@ -35,12 +35,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 	static auto less_than(const Edge &edge, const Edge &edge1, const Edge &edge2) {
-		const auto cross1 = edge ^ edge1, dot1 = edge * edge1;
-		const auto cross2 = edge ^ edge2, dot2 = edge * edge2;
-		// return std::atan2(cross1, dot1) < std::atan2(cross2, dot2);
-		return cross1 < 0
-			? cross2 > 0 || (dot1 < 0 ? dot2 > 0 || cross1 * dot2 < cross2 * dot1 : dot2 > 0 && cross1 * dot2 < cross2 * dot1)
-			: cross2 > 0 && (dot1 < 0 ? dot2 < 0 && cross1 * dot2 < cross2 * dot1 : dot2 < 0 || cross1 * dot2 < cross2 * dot1);
+		return (edge ^ edge1) < 0
+			? (edge ^ edge2) > 0 || (edge1 ^ edge2) > 0
+			: (edge ^ edge2) > 0 && (edge1 ^ edge2) > 0;
 	}
 
 	auto next_interior(const Edge &edge) {

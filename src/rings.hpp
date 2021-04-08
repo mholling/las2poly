@@ -1,13 +1,12 @@
 #ifndef RINGS_HPP
 #define RINGS_HPP
 
+#include "ring.hpp"
 #include "points.hpp"
 #include "edge.hpp"
-#include "ring.hpp"
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
-#include <cmath>
 
 template <bool outside = true>
 class Rings : public std::vector<Ring> {
@@ -30,27 +29,22 @@ public:
 		auto points_edges = PointsEdges();
 		auto connections = Connections();
 
-		constexpr auto ordering = [](const auto &pair1, const auto &pair2) {
-			const auto &[edge1, angle1] = pair1;
-			const auto &[edge2, angle2] = pair2;
-			return angle1 < angle2;
-		};
-
 		for (const auto &edge: edges)
 			points_edges.emplace(edge.first, edge);
 		for (const auto &incoming: edges) {
-			auto edges_angles = std::unordered_map<Edge, double>();
+			auto edges = std::vector<Edge>();
 			const auto &[start, stop] = points_edges.equal_range(incoming.second);
 			std::for_each(start, stop, [&](const auto &point_edge) {
-				const auto &[point, outgoing] = point_edge;
-				const auto cross = incoming ^ outgoing;
-				const auto   dot = incoming * outgoing;
-				const auto angle = std::atan2(cross, dot);
-				edges_angles.emplace(outgoing, angle);
+				edges.push_back(point_edge.second);
 			});
-			const auto &[outgoing, angle] = outside
-				? *std::max_element(edges_angles.begin(), edges_angles.end(), ordering)
-				: *std::min_element(edges_angles.begin(), edges_angles.end(), ordering);
+			const auto ordering = [&](const Edge &edge1, const Edge &edge2) {
+				return (incoming ^ edge1) < 0
+					? (incoming ^ edge2) > 0 || (edge1 ^ edge2) > 0
+					: (incoming ^ edge2) > 0 && (edge1 ^ edge2) > 0;
+			};
+			const auto &outgoing = outside
+				? *std::max_element(edges.begin(), edges.end(), ordering)
+				: *std::min_element(edges.begin(), edges.end(), ordering);
 			connections.emplace(incoming, outgoing);
 		}
 
