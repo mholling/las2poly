@@ -95,8 +95,8 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		const auto &[prev, point] = *edge;
 		while (true) {
 			const auto [candidate, next] = edge.search();
-			const auto cross_product = Edge(opposite, point) ^ Edge(point, candidate);
-			if (rhs ? cross_product <= 0 : cross_product >= 0)
+			const auto orientation = Edge(opposite, point) ^ Edge(point, candidate);
+			if (rhs ? orientation <= 0 : orientation >= 0)
 				return nullptr;
 			if (candidate == prev)
 				return &*candidate;
