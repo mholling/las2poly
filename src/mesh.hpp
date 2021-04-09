@@ -5,11 +5,13 @@
 #include "points.hpp"
 #include "edge.hpp"
 #include "edges.hpp"
+#include "circle.hpp"
 #include "triangle.hpp"
 #include "triangles.hpp"
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
+#include <optional>
 #include <thread>
 
 class Mesh : std::vector<std::vector<PointIterator>> {
@@ -91,17 +93,17 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 	template <bool rhs>
-	Point const *find_candidate(const Iterator &edge, const PointIterator &opposite) {
+	auto find_candidate(const Iterator &edge, const PointIterator &opposite) {
 		const auto &[prev, point] = *edge;
 		while (true) {
 			const auto [candidate, next] = edge.search();
 			const auto orientation = Edge(opposite, point) ^ Edge(point, candidate);
 			if (rhs ? orientation <= 0 : orientation >= 0)
-				return nullptr;
+				return std::optional<PointIterator>();
 			if (candidate == prev)
-				return &*candidate;
-			if (!next->in_circle(rhs ? *candidate : *point, *opposite, rhs ? *point : *candidate))
-				return &*candidate;
+				return std::optional<PointIterator>(candidate);
+			if (!Circle(rhs ? candidate : point, opposite, rhs ? point : candidate).contains(next))
+				return std::optional<PointIterator>(candidate);
 			disconnect(point, candidate);
 		}
 	}
@@ -163,7 +165,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 				const auto left_candidate = find_candidate<false>(left, right_point);
 				const auto right_candidate = find_candidate<true>(right, left_point);
 				if (left_candidate && right_candidate)
-					left_candidate->in_circle(*left_point, *right_point, *right_candidate) ? ++left : ++right;
+					Circle(left_point, right_point, *right_candidate).contains(*left_candidate) ? ++left : ++right;
 				else if (left_candidate)
 					++left;
 				else if (right_candidate)

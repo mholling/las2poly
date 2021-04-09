@@ -25,11 +25,6 @@ struct Point : Vector<2> {
 	const Vector<3> operator+() const {
 		return {{(*this)[0], (*this)[1], elevation}};
 	}
-
-	auto in_circle(const Point &a, const Point &b, const Point &c) const {
-		const auto aa = a - *this, bb = b - *this, cc = c - *this;
-		return (aa * aa) * (bb ^ cc) + (bb * bb) * (cc ^ aa) + (cc * cc) * (aa ^ bb) > 0;
-	}
 };
 
 auto operator>(const Point &p1, const Point &p2) {
