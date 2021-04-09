@@ -2,7 +2,6 @@
 #define RING_HPP
 
 #include "vector.hpp"
-#include "edge.hpp"
 #include <list>
 #include <stdexcept>
 #include <tuple>
@@ -109,7 +108,7 @@ public:
 		const auto &p = edges.begin()->first;
 		for (const auto &[p1, p2]: edges) {
 			push_back(*p1);
-			signed_area += Edge(p, p1) ^ Edge(p, p2);
+			signed_area += (*p1 - *p) ^ (*p2 - *p);
 		}
 		signed_area /= 2;
 	}
