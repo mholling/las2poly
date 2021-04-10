@@ -15,23 +15,17 @@ auto operator<(const Edge &edge1, const Edge &edge2) {
 }
 
 auto operator^(const Edge &edge1, const Edge &edge2) {
-	static constexpr auto epsilon = IEEE754::epsilon();
-	static constexpr auto error_bound = (3 + 16 * epsilon) * epsilon;
-
 	const auto v1 = *edge1.second - *edge1.first;
 	const auto v2 = *edge2.second - *edge2.first;
+	// return v1 ^ v2;
+	return Exact(v1[0]) * Exact(v2[1]) + Exact(-v1[1]) * Exact(v2[0]);
+}
 
-	const auto det1 = v1[0] * v2[1];
-	const auto det2 = v1[1] * v2[0];
-	if (det1 < 0 && det2 >= 0) return -1;
-	if (det1 >= 0 && det2 < 0) return 1;
-	const auto det = det1 - det2;
-	const auto threshold = error_bound * std::abs(det1 + det2);
-	if (det > threshold) return 1;
-	if (-det > threshold) return -1;
-
-	auto exact = Exact(v1[0]) * Exact(v2[1]) + Exact(-v1[1]) * Exact(v2[0]);
-	return exact < 0 ? -1 : exact > 0 ? 1 : 0;
+auto operator*(const Edge &edge1, const Edge &edge2) {
+	const auto v1 = *edge1.second - *edge1.first;
+	const auto v2 = *edge2.second - *edge2.first;
+	// return v1 * v2;
+	return Exact(v1[0]) * Exact(v2[0]) + Exact(v1[1]) * Exact(v2[1]);
 }
 
 auto operator%(const Edge &edge1, const Edge &edge2) { // 3d cross product
