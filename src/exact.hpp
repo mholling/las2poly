@@ -24,8 +24,6 @@ class Exact : std::array<double, N> {
 		return std::pair(al, ah);
 	};
 
-	Exact() = default;
-
 	auto partition() const {
 		auto here = this->begin();
 		const auto middle = here + N/2, end = here + N;
@@ -37,6 +35,9 @@ class Exact : std::array<double, N> {
 			*e++ = *here++;
 		return std::pair(e1, e2);
 	}
+
+	Exact() = default;
+	Exact(double d1, double d2) : Array{{d1, d2}} { }
 
 public:
 	Exact(double d) : Array{{d}} { }
@@ -71,7 +72,6 @@ public:
 	template <std::size_t M>
 	auto operator*(const Exact<M> &other) const {
 		if constexpr (N == 1 && M == 1) {
-			auto result = Exact<M+N>();
 			const auto &a = this->front();
 			const auto &b = other.front();
 			const auto [al, ah] = split(a);
@@ -80,9 +80,8 @@ public:
 			const auto err1 = h - (ah * bh);
 			const auto err2 = err1 - (al * bh);
 			const auto err3 = err2 - (ah * bl);
-			result[0] = (al * bl) - err3;
-			result[1] = h;
-			return result;
+			const auto l = (al * bl) - err3;
+			return Exact<M+N>(l, h);
 		} else if constexpr(N > 1 && M > 1) {
 			auto [a1, a2] = this->partition();
 			auto [b1, b2] = other.partition();
