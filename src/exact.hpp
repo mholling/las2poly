@@ -36,6 +36,15 @@ class Exact : std::array<double, N> {
 		return std::pair(e1, e2);
 	}
 
+	static void two_sum(double &l, double &h) {
+		const auto x = l + h;
+		const auto hv = x - l;
+		const auto lv = x - hv;
+		const auto hr = h - hv;
+		const auto lr = l - lv;
+		l = lr + hr, h = x;
+	};
+
 	Exact() = default;
 	Exact(double d1, double d2) : Array{{d1, d2}} { }
 
@@ -51,21 +60,14 @@ public:
 	template <std::size_t M>
 	auto operator+(const Exact<M> &other) const {
 		auto result = Exact<M+N>();
-		auto begin = result.begin(), end = std::copy(this->begin(), this->end(), begin);
-		for (auto q: other) {
-			auto here = begin;
-			while (here < end) {
-				auto &e = *here++;
-				const auto x = e + q;
-				const auto qv = x - e;
-				const auto ev = x - qv;
-				const auto qr = q - qv;
-				const auto er = e - ev;
-				e = er + qr, q = x;
-			}
-			*here = q;
-			++begin, ++end;
-		}
+		auto h = result.begin();
+		for (const auto &e: *this)
+			*h++ = e;
+		for (const auto &f: other)
+			*h++ = f;
+		for (std::size_t m = 0; m < M; ++m)
+			for (std::size_t n = 0; n < N; ++n)
+				two_sum(result[m+n], result[m+N]);
 		return result;
 	}
 
