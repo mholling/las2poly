@@ -4,9 +4,8 @@
 #include "ieee754.hpp"
 #include <cstddef>
 #include <array>
-#include <type_traits>
-#include <algorithm>
 #include <utility>
+#include <algorithm>
 
 template <std::size_t N = 1>
 class Exact : std::array<double, N> {
@@ -25,40 +24,55 @@ class Exact : std::array<double, N> {
 		return std::pair(al, ah);
 	};
 
-	template <typename Initialise>
-	Exact(Initialise initialise) { initialise(*this); }
+	Exact() = default;
+
+	auto partition() const {
+		auto here = this->begin();
+		const auto middle = here + N/2, end = here + N;
+		auto e1 = Exact<N/2>();
+		auto e2 = Exact<N-N/2>();
+		for (auto e = e1.begin(); here < middle; )
+			*e++ = *here++;
+		for (auto e = e2.begin(); here < end; )
+			*e++ = *here++;
+		return std::pair(e1, e2);
+	}
 
 public:
 	Exact(double d) : Array{{d}} { }
 
-	auto operator>(const int &zero) const { return Array::back() > zero; }
-	auto operator<(const int &zero) const { return Array::back() < zero; }
+	auto operator>(const int &zero) const { return this->back() > zero; }
+	auto operator<(const int &zero) const { return this->back() < zero; }
+	auto operator>=(const int &zero) const { return this->back() >= zero; }
+	auto operator<=(const int &zero) const { return this->back() <= zero; }
+	auto operator!=(const int &zero) const { return this->back() != zero; }
 
 	template <std::size_t M>
 	auto operator+(const Exact<M> &other) const {
-		return Exact<M+N>([&](auto &result) {
-			auto begin = result.begin(), end = std::copy(Array::begin(), Array::end(), begin);
-			for (auto q: other) {
-				auto here = begin;
-				while (here < end) {
-					auto &e = *here++;
-					const auto x = e + q;
-					const auto qv = x - e;
-					const auto ev = x - qv;
-					const auto qr = q - qv;
-					const auto er = e - ev;
-					e = er + qr, q = x;
-				}
-				*here = q;
-				++begin, ++end;
+		auto result = Exact<M+N>();
+		auto begin = result.begin(), end = std::copy(this->begin(), this->end(), begin);
+		for (auto q: other) {
+			auto here = begin;
+			while (here < end) {
+				auto &e = *here++;
+				const auto x = e + q;
+				const auto qv = x - e;
+				const auto ev = x - qv;
+				const auto qr = q - qv;
+				const auto er = e - ev;
+				e = er + qr, q = x;
 			}
-		});
+			*here = q;
+			++begin, ++end;
+		}
+		return result;
 	}
 
-	template <std::size_t M, typename = std::enable_if_t<M == 1 && N == 1>>
+	template <std::size_t M>
 	auto operator*(const Exact<M> &other) const {
-		return Exact<2>([&](auto &result) {
-			const auto &a = Array::front();
+		if constexpr (N == 1 && M == 1) {
+			auto result = Exact<M+N>();
+			const auto &a = this->front();
 			const auto &b = other.front();
 			const auto [al, ah] = split(a);
 			const auto [bl, bh] = split(b);
@@ -68,7 +82,12 @@ public:
 			const auto err3 = err2 - (ah * bl);
 			result[0] = (al * bl) - err3;
 			result[1] = h;
-		});
+			return result;
+		} else if constexpr(N > 1 && M > 1) {
+			auto [a1, a2] = this->partition();
+			auto [b1, b2] = other.partition();
+			return (a1 * b1 + a1 * b2) + (a2 * b1 + a2 * b2);
+		}
 	}
 };
 
