@@ -4,8 +4,6 @@
 #include "ieee754.hpp"
 #include <cstddef>
 #include <array>
-#include <utility>
-#include <algorithm>
 
 template <std::size_t N = 1>
 class Exact : std::array<double, N> {
@@ -14,26 +12,22 @@ class Exact : std::array<double, N> {
 	template <std::size_t M>
 	friend class Exact;
 
-	static auto split(double a) {
+	auto split(double &l, double &h) const {
 		static constexpr auto bits = IEEE754::bits();
 		static constexpr auto s = 1ul + (1ul << (bits + 1u) / 2u);
+		const auto &a = this->back();
 		const auto c = s * a;
 		const auto aa = c - a;
-		const auto ah = c - aa;
-		const auto al = a - ah;
-		return std::pair(al, ah);
+		h = c - aa, l = a - h;
 	};
 
-	auto partition() const {
+	template <std::size_t M>
+	auto partition(Exact<M> &e1, Exact<N-M> &e2) const {
 		auto here = this->begin();
-		const auto middle = here + N/2, end = here + N;
-		auto e1 = Exact<N/2>();
-		auto e2 = Exact<N-N/2>();
-		for (auto e = e1.begin(); here < middle; )
-			*e++ = *here++;
-		for (auto e = e2.begin(); here < end; )
-			*e++ = *here++;
-		return std::pair(e1, e2);
+		for (auto &e: e1)
+			e = *here++;
+		for (auto &e: e2)
+			e = *here++;
 	}
 
 	static void two_sum(double &l, double &h) {
@@ -46,7 +40,7 @@ class Exact : std::array<double, N> {
 	};
 
 	Exact() = default;
-	Exact(double d1, double d2) : Array{{d1, d2}} { }
+	Exact(double l, double h) : Array{{l, h}} { }
 
 public:
 	Exact(double d) : Array{{d}} { }
@@ -74,19 +68,23 @@ public:
 	template <std::size_t M>
 	auto operator*(const Exact<M> &other) const {
 		if constexpr (N == 1 && M == 1) {
-			const auto &a = this->front();
-			const auto &b = other.front();
-			const auto [al, ah] = split(a);
-			const auto [bl, bh] = split(b);
-			const auto h = a * b;
+			double al, ah, bl, bh;
+			this->split(al, ah);
+			other.split(bl, bh);
+			const auto h = this->back() * other.back();
 			const auto err1 = h - (ah * bh);
 			const auto err2 = err1 - (al * bh);
 			const auto err3 = err2 - (ah * bl);
 			const auto l = (al * bl) - err3;
 			return Exact<M+N>(l, h);
 		} else if constexpr(N > 1 && M > 1) {
-			auto [a1, a2] = this->partition();
-			auto [b1, b2] = other.partition();
+			constexpr auto N1 = N / 2, N2 = N - N1, M1 = M / 2, M2 = M - M1;
+			Exact<N1> a1;
+			Exact<N2> a2;
+			Exact<M1> b1;
+			Exact<M2> b2;
+			this->partition(a1, a2);
+			other.partition(b1, b2);
 			return (a1 * b1 + a1 * b2) + (a2 * b1 + a2 * b2);
 		}
 	}
