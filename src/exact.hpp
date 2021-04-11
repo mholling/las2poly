@@ -4,6 +4,7 @@
 #include "ieee754.hpp"
 #include <cstddef>
 #include <array>
+#include <compare>
 
 // partial implementation of:
 //     Shewchuk, J. 'Adaptive Precision Floating-Point
@@ -56,11 +57,9 @@ class Exact : std::array<double, N> {
 public:
 	Exact(double d) : Array{{d}} { }
 
-	auto operator>(const int &zero) const { return this->back() > zero; }
-	auto operator<(const int &zero) const { return this->back() < zero; }
-	auto operator>=(const int &zero) const { return this->back() >= zero; }
-	auto operator<=(const int &zero) const { return this->back() <= zero; }
-	auto operator!=(const int &zero) const { return this->back() != zero; }
+	auto operator<=>(const int &zero) const {
+		return this->back() <=> zero;
+	}
 
 	template <std::size_t M>
 	auto operator+(const Exact<M> &other) const {

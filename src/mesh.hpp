@@ -37,9 +37,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 	static auto less_than(const Edge &edge, const Edge &edge1, const Edge &edge2) {
-		return (edge ^ edge1) < 0
-			? (edge ^ edge2) > 0 || (edge1 ^ edge2) > 0
-			: (edge ^ edge2) > 0 && (edge1 ^ edge2) > 0;
+		return edge <=> edge1 < 0
+			? edge <=> edge2 > 0 || edge1 <=> edge2 > 0
+			: edge <=> edge2 > 0 && edge1 <=> edge2 > 0;
 	}
 
 	auto next_interior(const Edge &edge) {
@@ -79,7 +79,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	auto exterior_clockwise(const PointIterator &rightmost) {
 		const auto &neighbours = adjacent(rightmost);
 		const auto next = std::min_element(neighbours.begin(), neighbours.end(), [&](const auto &p1, const auto &p2) {
-			return (Edge(rightmost, p1) ^ Edge(rightmost, p2)) < 0;
+			return Edge(rightmost, p1) <=> Edge(rightmost, p2) < 0;
 		});
 		return Iterator(*this, Edge(rightmost, *next), true);
 	}
@@ -97,7 +97,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		const auto &[prev, point] = *edge;
 		while (true) {
 			const auto [candidate, next] = edge.search();
-			const auto orientation = Edge(opposite, point) ^ Edge(point, candidate);
+			const auto orientation = Edge(opposite, point) <=> Edge(point, candidate);
 			if (rhs ? orientation <= 0 : orientation >= 0)
 				return std::optional<PointIterator>();
 			if (candidate == prev)
@@ -124,7 +124,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		case 1:
 			throw std::runtime_error("not enough points");
 		case 3:
-			if ((Edge(begin+2, begin+1) ^ Edge(begin+1, begin)) != 0)
+			if (Edge(begin+2, begin+1) <=> Edge(begin+1, begin) != 0)
 				connect(begin, begin+2);
 			connect(begin+2, begin+1);
 			[[fallthrough]];
@@ -149,9 +149,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 			auto right = exterior_anticlockwise(leftmost);
 			while (true) {
 				const auto tangent = Edge(left->first, right->first);
-				if ((tangent ^ *right) < 0)
+				if (tangent <=> *right < 0)
 					++right;
-				else if ((tangent ^ *left) < 0)
+				else if (tangent <=> *left < 0)
 					++left;
 				else
 					break;

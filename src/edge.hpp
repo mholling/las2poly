@@ -17,15 +17,17 @@ auto operator<(const Edge &edge1, const Edge &edge2) {
 auto operator^(const Edge &edge1, const Edge &edge2) {
 	const auto v1 = *edge1.second - *edge1.first;
 	const auto v2 = *edge2.second - *edge2.first;
-	// return v1 ^ v2;
 	return Exact(v1[0]) * Exact(v2[1]) + Exact(-v1[1]) * Exact(v2[0]);
 }
 
 auto operator*(const Edge &edge1, const Edge &edge2) {
 	const auto v1 = *edge1.second - *edge1.first;
 	const auto v2 = *edge2.second - *edge2.first;
-	// return v1 * v2;
 	return Exact(v1[0]) * Exact(v2[0]) + Exact(v1[1]) * Exact(v2[1]);
+}
+
+auto operator<=>(const Edge &edge1, const Edge &edge2) {
+	return (edge1 ^ edge2) <=> 0;
 }
 
 auto operator%(const Edge &edge1, const Edge &edge2) { // 3d cross product
