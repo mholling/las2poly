@@ -5,6 +5,10 @@
 #include <cstddef>
 #include <array>
 
+// partial implementation of:
+//     Shewchuk, J. 'Adaptive Precision Floating-Point
+//     Arithmetic and Fast Robust Geometric Predicates'
+
 template <std::size_t N = 1>
 class Exact : std::array<double, N> {
 	using Array = std::array<double, N>;
@@ -32,12 +36,19 @@ class Exact : std::array<double, N> {
 
 	static void two_sum(double &l, double &h) {
 		const auto x = l + h;
-		const auto hv = x - l;
-		const auto lv = x - hv;
-		const auto hr = h - hv;
+		const auto lv = x - h;
+		const auto hv = x - lv;
 		const auto lr = l - lv;
+		const auto hr = h - hv;
 		l = lr + hr, h = x;
 	};
+
+	static void fast_two_sum(double &l, double &h) {
+		const auto x = l + h;
+		const auto lv = x - h;
+		const auto lr = l - lv;
+		l = lr, h = x;
+	}
 
 	Exact() = default;
 	Exact(double l, double h) : Array{{l, h}} { }
@@ -54,20 +65,32 @@ public:
 	template <std::size_t M>
 	auto operator+(const Exact<M> &other) const {
 		auto result = Exact<M+N>();
-		auto h = result.begin();
-		for (const auto &e: *this)
-			*h++ = e;
-		for (const auto &f: other)
-			*h++ = f;
-		for (std::size_t m = 0; m < M; ++m)
-			for (std::size_t n = 0; n < N; ++n)
-				two_sum(result[m+n], result[m+N]);
+		if constexpr (N == 2 && M == 2) { // EXPANSION-SUM
+			auto h = result.begin();
+			for (const auto &e: *this)
+				*h++ = e;
+			for (const auto &f: other)
+				*h++ = f;
+			for (std::size_t m = 0; m < M; ++m)
+				for (std::size_t n = 0; n < N; ++n)
+					two_sum(result[m+n], result[m+N]);
+		} else { // FAST-EXPANSION-SUM
+			auto e = this->begin(), e_end = this->end();
+			auto f = other.begin(), f_end = other.end();
+			for (auto &h: result)
+				h = e == e_end ? *f++ : f == f_end ? *e++ : *e == 0 ? *e++ : *f == 0 ? *f++ : std::abs(*e) < std::abs(*f) ? *e++ : *f++;
+			fast_two_sum(result[0], result[1]);
+			for (std::size_t n = 1; n+1 < M + N; ++n) {
+				// fast_two_sum(result[n-1], result[n+1]); // add for LINEAR-EXPANSION-SUM
+				two_sum(result[n], result[n+1]);
+			}
+		}
 		return result;
 	}
 
 	template <std::size_t M>
 	auto operator*(const Exact<M> &other) const {
-		if constexpr (N == 1 && M == 1) {
+		if constexpr (N == 1 && M == 1) { // TWO-PRODUCT
 			double al, ah, bl, bh;
 			this->split(al, ah);
 			other.split(bl, bh);
