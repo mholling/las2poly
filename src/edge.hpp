@@ -29,7 +29,7 @@ auto operator*(const Edge &edge1, const Edge &edge2) {
 
 auto operator<=>(const Edge &edge1, const Edge &edge2) {
 	using std::abs, IEEE754::epsilon;
-	static constexpr auto error_scale = epsilon() * (1 + 2 * epsilon());
+	constexpr auto error_scale = epsilon() * (1 + 2 * epsilon());
 
 	const auto [x1, y1] = *edge1.second - *edge1.first;
 	const auto [x2, y2] = *edge2.second - *edge2.first;

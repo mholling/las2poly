@@ -18,8 +18,7 @@ class Exact : std::array<double, N> {
 	friend class Exact;
 
 	auto split(double &l, double &h) const {
-		static constexpr auto bits = IEEE754::bits();
-		static constexpr auto s = 1ul + (1ul << (bits + 1u) / 2u);
+		constexpr auto s = 1ul + (1ul << (IEEE754::bits() + 1u) / 2u);
 		const auto &a = this->back();
 		const auto c = s * a;
 		const auto aa = c - a;

@@ -18,8 +18,8 @@
 #include <cstdlib>
 
 int main(int argc, char *argv[]) {
-	static constexpr auto pi = 3.14159265358979324;
-	static constexpr auto smoothing_angle = 15.0;
+	constexpr auto pi = 3.14159265358979324;
+	constexpr auto smoothing_angle = 15.0;
 	static const auto default_threads = std::max<int>(1, std::thread::hardware_concurrency());
 
 	try {
