@@ -66,8 +66,8 @@ class Exact : std::array<double, N> {
 public:
 	Exact(double d) : Array{{d}} { }
 
-	auto operator<=>(const int &zero) const {
-		return this->back() <=> zero;
+	friend auto operator<=>(const Exact &e1, const Exact &e2) {
+		return (e1 - e2).back() <=> 0;
 	}
 
 	template <std::size_t M>
