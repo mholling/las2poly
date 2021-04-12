@@ -16,30 +16,30 @@ auto operator<(const Edge &edge1, const Edge &edge2) {
 }
 
 auto operator^(const Edge &edge1, const Edge &edge2) {
-	const auto v1 = *edge1.second - *edge1.first;
-	const auto v2 = *edge2.second - *edge2.first;
-	return Exact(v1[0]) * Exact(v2[1]) - Exact(v1[1]) * Exact(v2[0]);
+	const auto [x1, y1] = *edge1.second - *edge1.first;
+	const auto [x2, y2] = *edge2.second - *edge2.first;
+	return Exact(x1) * Exact(y2) - Exact(y1) * Exact(x2);
 }
 
 auto operator*(const Edge &edge1, const Edge &edge2) {
-	const auto v1 = *edge1.second - *edge1.first;
-	const auto v2 = *edge2.second - *edge2.first;
-	return Exact(v1[0]) * Exact(v2[0]) + Exact(v1[1]) * Exact(v2[1]);
+	const auto [x1, y1] = *edge1.second - *edge1.first;
+	const auto [x2, y2] = *edge2.second - *edge2.first;
+	return Exact(x1) * Exact(y2) + Exact(y1) * Exact(x2);
 }
 
 auto operator<=>(const Edge &edge1, const Edge &edge2) {
 	using std::abs, IEEE754::epsilon;
 	static constexpr auto error_scale = epsilon() * (1 + 2 * epsilon());
 
-	const auto v1 = *edge1.second - *edge1.first;
-	const auto v2 = *edge2.second - *edge2.first;
-	const auto det1 = v1[0] * v2[1], det2 = v1[1] * v2[0];
+	const auto [x1, y1] = *edge1.second - *edge1.first;
+	const auto [x2, y2] = *edge2.second - *edge2.first;
+	const auto det1 = x1 * y2, det2 = y1 * x2;
 	const auto det = det1 - det2;
 
 	if (abs(det) > error_scale * (abs(det1) + abs(det2)))
 		return det <=> 0;
 	else
-		return Exact(v1[0]) * Exact(v2[1]) <=> Exact(v1[1]) * Exact(v2[0]);
+		return Exact(x1) * Exact(y2) <=> Exact(y1) * Exact(x2);
 }
 
 auto operator%(const Edge &edge1, const Edge &edge2) { // 3d cross product

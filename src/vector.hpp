@@ -9,6 +9,8 @@
 #include <cmath>
 #include <ostream>
 #include <utility>
+#include <tuple>
+#include <type_traits>
 
 template <std::size_t N>
 struct Vector : std::array<double, N> {
@@ -64,5 +66,11 @@ auto &operator<<(std::ostream &json, const Vector<2> &vector) {
 		json << std::exchange(separator, ',') << coord;
 	return json << ']';
 }
+
+template <std::size_t N>
+struct std::tuple_size<Vector<N>> : std::integral_constant<std::size_t, N> { };
+
+template <std::size_t N, std::size_t M>
+struct std::tuple_element<M, Vector<N>> { using type = double; };
 
 #endif
