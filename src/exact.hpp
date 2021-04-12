@@ -4,6 +4,7 @@
 #include "ieee754.hpp"
 #include <cstddef>
 #include <array>
+#include <utility>
 #include <compare>
 
 // partial implementation of:
@@ -17,12 +18,13 @@ class Exact : std::array<double, N> {
 	template <std::size_t M>
 	friend class Exact;
 
-	auto split(double &l, double &h) const {
+	auto split() const {
 		constexpr auto s = 1ul + (1ul << (IEEE754::bits() + 1u) / 2u);
 		const auto &a = this->back();
 		const auto c = s * a;
 		const auto aa = c - a;
-		h = c - aa, l = a - h;
+		const auto h = c - aa;
+		return std::pair(a - h, h);
 	};
 
 	template <std::size_t M>
@@ -118,9 +120,8 @@ public:
 	template <std::size_t M>
 	auto operator*(const Exact<M> &other) const {
 		if constexpr (N == 1 && M == 1) { // TWO-PRODUCT
-			double al, ah, bl, bh;
-			this->split(al, ah);
-			other.split(bl, bh);
+			auto [al, ah] = this->split();
+			auto [bl, bh] = other.split();
 			const auto h = this->back() * other.back();
 			const auto err1 = h - (ah * bh);
 			const auto err2 = err1 - (al * bh);
@@ -129,10 +130,10 @@ public:
 			return Exact<M+N>(l, h);
 		} else if constexpr(N > 1 && M > 1) {
 			constexpr auto N1 = N / 2, N2 = N - N1, M1 = M / 2, M2 = M - M1;
-			Exact<N1> a1;
-			Exact<N2> a2;
-			Exact<M1> b1;
-			Exact<M2> b2;
+			auto a1 = Exact<N1>();
+			auto a2 = Exact<N2>();
+			auto b1 = Exact<M1>();
+			auto b2 = Exact<M2>();
 			this->partition(a1, a2);
 			other.partition(b1, b2);
 			return (a1 * b1 + a1 * b2) + (a2 * b1 + a2 * b2);
