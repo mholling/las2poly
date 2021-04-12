@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 			if (tiles_path && !tile_paths.empty())
 				throw std::runtime_error("can't specify tiles as arguments and also in a file");
 			if (tiles_path) {
-				auto input = std::ifstream(tiles_path.value());
+				auto input = std::ifstream(*tiles_path);
 				input.exceptions(std::ifstream::badbit);
 				for (std::string line; std::getline(input, line); )
 					tile_paths.push_back(line);
@@ -79,29 +79,29 @@ int main(int argc, char *argv[]) {
 		if (!classes)
 			classes.emplace();
 
-		if (width && width.value() <= 0)
+		if (width && *width <= 0)
 			throw std::runtime_error("width must be positive");
-		if (slope.value() <= 0)
+		if (*slope <= 0)
 			throw std::runtime_error("slope must be positive");
-		if (slope.value() >= 90)
+		if (*slope >= 90)
 			throw std::runtime_error("slope must be less than 90");
-		if (length && length.value() <= 0)
+		if (length && *length <= 0)
 			throw std::runtime_error("edge length must be positive");
-		if (length && width && length.value() > width.value())
+		if (length && width && *length > *width)
 			throw std::runtime_error("edge length can't be more than width");
-		if (area && area.value() < 0)
+		if (area && *area < 0)
 			throw std::runtime_error("area can't be negative");
-		for (auto klass: classes.value()) {
+		for (auto klass: *classes) {
 			if (klass < 0 || klass > 255)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
 			if (7 == klass || 9 == klass || 18 == klass)
 				throw std::runtime_error("can't use lidar point class " + std::to_string(klass));
 		}
-		if (epsg && (epsg.value() < 1024 || epsg.value() > 32767))
+		if (epsg && (*epsg < 1024 || *epsg > 32767))
 			throw std::runtime_error("invalid EPSG code");
-		if (threads.value().size() > 2)
+		if (threads->size() > 2)
 			throw std::runtime_error("at most two thread count values allowed");
-		for (auto count: threads.value())
+		for (auto count: *threads)
 			if (count < 1)
 				throw std::runtime_error("number of threads must be positive");
 		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
@@ -111,31 +111,31 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("can't read standard input more than once");
 
 		if (!width)
-			width = length.value();
+			width = *length;
 		if (!length)
-			length = width.value();
+			length = *width;
 		if (!area)
-			area = 4 * width.value() * width.value();
+			area = 4 * *width * *width;
 
 		auto logger = Logger((bool)progress);
 
 		logger.time("reading", tile_paths.size(), "file");
-		auto points = Points(tile_paths, length.value() / std::sqrt(8.0), classes.value(), threads.value().back());
+		auto points = Points(tile_paths, *length / std::sqrt(8.0), *classes, threads->back());
 
 		logger.time("triangulating", points.size(), "point");
-		auto mesh = Mesh(points, threads.value().front());
+		auto mesh = Mesh(points, threads->front());
 
 		logger.time("extracting polygons");
-		auto land = Land(mesh, length.value(), width.value(), slope.value() * pi / 180, area.value(), threads.value().front());
+		auto land = Land(mesh, *length, *width, *slope * pi / 180, *area, threads->front());
 
 		if (simplify) {
-			const auto tolerance = 4 * width.value() * width.value();
+			const auto tolerance = 4 * *width * *width;
 			land.simplify(tolerance);
 		}
 
 		if (smooth) {
 			const auto angle = smoothing_angle * pi / 180;
-			const auto tolerance = 0.5 * width.value() / std::sin(angle);
+			const auto tolerance = 0.5 * *width / std::sin(angle);
 			land.smooth(tolerance, angle);
 		}
 
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
 		json.precision(15);
 		json << "{\"type\":\"FeatureCollection\",";
 		if (epsg)
-			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << epsg.value() << "\"}},";
+			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << *epsg << "\"}},";
 		json << "\"features\":" << land << "}";
 
 		logger.time("saving", land.size(), "polygon");

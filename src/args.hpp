@@ -87,7 +87,7 @@ public:
 	void option(std::string letter, std::string name, std::string format, std::string description, std::optional<Value> &optional) {
 		auto description_with_default = std::stringstream();
 		if (optional)
-			description_with_default << description << " (default: " << optional.value() << ")";
+			description_with_default << description << " (default: " << *optional << ")";
 		else
 			description_with_default << description;
 		options.emplace_back(letter, name, format, description_with_default.str(), [&](auto arg) {
@@ -103,7 +103,7 @@ public:
 		description_with_default << description;
 		if (optional) {
 			auto before = " (default: ";
-			for (const auto &value: optional.value())
+			for (const auto &value: *optional)
 				description_with_default << std::exchange(before, ",") << value;
 			description_with_default << ")";
 		}
@@ -112,7 +112,7 @@ public:
 			auto list = std::stringstream(arg);
 			for (std::string arg; std::getline(list, arg, ','); ) {
 				auto parser = std::stringstream(arg);
-				if (!(parser >> optional.value().emplace_back()) || !parser.eof())
+				if (!(parser >> optional->emplace_back()) || !parser.eof())
 					throw std::runtime_error("invalid argument: " + arg);
 			}
 		});
