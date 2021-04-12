@@ -44,6 +44,15 @@ class Exact : std::array<double, N> {
 		l = lr + hr, h = x;
 	};
 
+	static void two_diff(double &l, double &h) {
+		const auto x = l - h;
+		const auto hv = l - x;
+		const auto lv = x + hv;
+		const auto hr = h - hv;
+		const auto lr = l - lv;
+		l = lr - hr, h = x;
+	};
+
 	static void fast_two_sum(double &l, double &h) {
 		const auto x = l + h;
 		const auto lv = x - h;
@@ -83,6 +92,22 @@ public:
 				// fast_two_sum(result[n-1], result[n+1]); // add for LINEAR-EXPANSION-SUM
 				two_sum(result[n], result[n+1]);
 			}
+		}
+		return result;
+	}
+
+	template <std::size_t M>
+	auto operator-(const Exact<M> &other) const { // EXPANSION-DIFF
+		auto result = Exact<M+N>();
+		auto h = result.begin();
+		for (const auto &e: *this)
+			*h++ = e;
+		for (const auto &f: other)
+			*h++ = f;
+		for (std::size_t m = 0; m < M; ++m) {
+			two_diff(result[m], result[m+N]);
+			for (std::size_t n = 1; n < N; ++n)
+				two_sum(result[m+n], result[m+N]);
 		}
 		return result;
 	}
