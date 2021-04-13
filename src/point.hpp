@@ -22,12 +22,12 @@ struct Point : Vector<2> {
 		return 2 == classification || 3 == classification;
 	}
 
-	const Vector<3> operator+() const {
+	Vector<3> const operator+() const {
 		return {{(*this)[0], (*this)[1], elevation}};
 	}
 };
 
-auto operator>(const Point &p1, const Point &p2) {
+auto operator>(Point const &p1, Point const &p2) {
 	return
 		std::tuple(p1.key_point, 2 == p1.classification ? 2 : 8 == p1.classification ? 2 : 3 == p1.classification ? 1 : 0, p2.elevation) <
 		std::tuple(p2.key_point, 2 == p2.classification ? 2 : 8 == p2.classification ? 2 : 3 == p2.classification ? 1 : 0, p1.elevation);

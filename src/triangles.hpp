@@ -10,14 +10,14 @@
 
 class Triangles : public std::unordered_set<Triangle> {
 	struct Neighbours : std::unordered_map<Edge, Triangle> {
-		Neighbours(const Triangles &triangles) {
-			for (const auto &triangle: triangles)
-				for (const auto &edge: triangle)
+		Neighbours(Triangles const &triangles) {
+			for (auto const &triangle: triangles)
+				for (auto const &edge: triangle)
 					emplace(-edge, triangle);
 		}
 
-		void erase(const Triangle &triangle) {
-			for (const auto &edge: triangle)
+		void erase(Triangle const &triangle) {
+			for (auto const &edge: triangle)
 				unordered_map::erase(-edge);
 		}
 	};
@@ -25,12 +25,12 @@ class Triangles : public std::unordered_set<Triangle> {
 	Triangles(Triangles &source, Neighbours &neighbours) {
 		auto pending = std::unordered_set<Triangle>();
 		for (pending.insert(*source.begin()); !pending.empty(); ) {
-			const auto &triangle = *pending.begin();
+			auto const &triangle = *pending.begin();
 			source.erase(triangle);
 			neighbours.erase(triangle);
 			insert(triangle);
-			for (const auto &edge: triangle)
-				if (const auto pair = neighbours.find(edge); pair != neighbours.end())
+			for (auto const &edge: triangle)
+				if (auto const pair = neighbours.find(edge); pair != neighbours.end())
 					pending.insert(pair->second);
 			pending.erase(triangle);
 		}
@@ -47,7 +47,7 @@ public:
 	}
 
 	auto operator>(double length) const {
-		return std::any_of(begin(), end(), [=](const auto &triangle) {
+		return std::any_of(begin(), end(), [=](auto const &triangle) {
 			return triangle > length;
 		});
 	}

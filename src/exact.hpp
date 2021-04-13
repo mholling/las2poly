@@ -19,11 +19,11 @@ class Exact : std::array<double, N> {
 	friend class Exact;
 
 	auto split() const {
-		static constexpr auto s = 1ul + (1ul << (IEEE754::bits() + 1u) / 2u);
-		const auto &a = this->back();
-		const auto c = s * a;
-		const auto aa = c - a;
-		const auto h = c - aa;
+		auto static constexpr s = 1ul + (1ul << (IEEE754::bits() + 1u) / 2u);
+		auto const &a = this->back();
+		auto const c = s * a;
+		auto const aa = c - a;
+		auto const h = c - aa;
 		return std::pair(a - h, h);
 	};
 
@@ -36,28 +36,28 @@ class Exact : std::array<double, N> {
 			e = *here++;
 	}
 
-	static void two_sum(double &l, double &h) {
-		const auto x = l + h;
-		const auto lv = x - h;
-		const auto hv = x - lv;
-		const auto lr = l - lv;
-		const auto hr = h - hv;
+	void static two_sum(double &l, double &h) {
+		auto const x = l + h;
+		auto const lv = x - h;
+		auto const hv = x - lv;
+		auto const lr = l - lv;
+		auto const hr = h - hv;
 		l = lr + hr, h = x;
 	};
 
-	static void two_diff(double &l, double &h) {
-		const auto x = l - h;
-		const auto hv = l - x;
-		const auto lv = x + hv;
-		const auto hr = h - hv;
-		const auto lr = l - lv;
+	void static two_diff(double &l, double &h) {
+		auto const x = l - h;
+		auto const hv = l - x;
+		auto const lv = x + hv;
+		auto const hr = h - hv;
+		auto const lr = l - lv;
 		l = lr - hr, h = x;
 	};
 
-	static void fast_two_sum(double &l, double &h) {
-		const auto x = l + h;
-		const auto lv = x - h;
-		const auto lr = l - lv;
+	void static fast_two_sum(double &l, double &h) {
+		auto const x = l + h;
+		auto const lv = x - h;
+		auto const lr = l - lv;
 		l = lr, h = x;
 	}
 
@@ -67,22 +67,22 @@ class Exact : std::array<double, N> {
 public:
 	Exact(double d) : Array{{d}} { }
 
-	friend auto operator<=>(const Exact &e1, const Exact &e2) {
+	friend auto operator<=>(Exact const &e1, Exact const &e2) {
 		return (e1 - e2).back() <=> 0;
 	}
 
-	friend auto operator<=>(const Exact &e, const int &zero) {
+	friend auto operator<=>(Exact const &e, int const &zero) {
 		return e.back() <=> zero;
 	}
 
 	template <std::size_t M>
-	auto operator+(const Exact<M> &other) const {
+	auto operator+(Exact<M> const &other) const {
 		auto result = Exact<M+N>();
 		if constexpr (N == 2 && M == 2) { // EXPANSION-SUM
 			auto h = result.begin();
-			for (const auto &e: *this)
+			for (auto const &e: *this)
 				*h++ = e;
-			for (const auto &f: other)
+			for (auto const &f: other)
 				*h++ = f;
 			for (std::size_t m = 0; m < M; ++m)
 				for (std::size_t n = 0; n < N; ++n)
@@ -102,12 +102,12 @@ public:
 	}
 
 	template <std::size_t M>
-	auto operator-(const Exact<M> &other) const { // EXPANSION-DIFF
+	auto operator-(Exact<M> const &other) const { // EXPANSION-DIFF
 		auto result = Exact<M+N>();
 		auto h = result.begin();
-		for (const auto &e: *this)
+		for (auto const &e: *this)
 			*h++ = e;
-		for (const auto &f: other)
+		for (auto const &f: other)
 			*h++ = f;
 		for (std::size_t m = 0; m < M; ++m) {
 			two_diff(result[m], result[m+N]);
@@ -118,18 +118,18 @@ public:
 	}
 
 	template <std::size_t M>
-	auto operator*(const Exact<M> &other) const {
+	auto operator*(Exact<M> const &other) const {
 		if constexpr (N == 1 && M == 1) { // TWO-PRODUCT
 			auto [al, ah] = this->split();
 			auto [bl, bh] = other.split();
-			const auto h = this->back() * other.back();
-			const auto err1 = h - (ah * bh);
-			const auto err2 = err1 - (al * bh);
-			const auto err3 = err2 - (ah * bl);
-			const auto l = (al * bl) - err3;
+			auto const h = this->back() * other.back();
+			auto const err1 = h - (ah * bh);
+			auto const err2 = err1 - (al * bh);
+			auto const err3 = err2 - (ah * bl);
+			auto const l = (al * bl) - err3;
 			return Exact<M+N>(l, h);
 		} else if constexpr(N > 1 && M > 1) {
-			static constexpr auto N1 = N / 2, N2 = N - N1, M1 = M / 2, M2 = M - M1;
+			auto static constexpr N1 = N / 2, N2 = N - N1, M1 = M / 2, M2 = M - M1;
 			auto a1 = Exact<N1>();
 			auto a2 = Exact<N2>();
 			auto b1 = Exact<M1>();

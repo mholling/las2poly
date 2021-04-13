@@ -19,13 +19,13 @@ class PLY {
 		return string;
 	}
 
-	void expect(const std::string words) {
+	void expect(std::string const words) {
 		if (line() != words)
 			throw std::runtime_error("unable to process PLY file");
 	}
 
 	template <typename Value>
-	void expect(const std::string words, Value &value) {
+	void expect(std::string const words, Value &value) {
 		if (auto string = line(); string.rfind(words, 0) != 0)
 			throw std::runtime_error("unable to process PLY file");
 		else

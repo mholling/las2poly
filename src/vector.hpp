@@ -14,32 +14,32 @@
 
 template <std::size_t N>
 struct Vector : std::array<double, N> {
-	auto &operator+=(const Vector &v) {
+	auto &operator+=(Vector const &v) {
 		std::transform(this->begin(), this->end(), v.begin(), this->begin(), std::plus<>());
 		return *this;
 	}
 
-	auto &operator-=(const Vector &v) {
+	auto &operator-=(Vector const &v) {
 		std::transform(this->begin(), this->end(), v.begin(), this->begin(), std::minus<>());
 		return *this;
 	}
 
-	auto &operator*=(const double &d) {
+	auto &operator*=(double const &d) {
 		for (auto &value: *this) value *= d;
 		return *this;
 	}
 
-	auto &operator/=(const double &d) {
+	auto &operator/=(double const &d) {
 		for (auto &value: *this) value /= d;
 		return *this;
 	}
 
-	friend auto operator+(const Vector &v1, const Vector &v2) { return Vector(v1) += v2; }
-	friend auto operator-(const Vector &v1, const Vector &v2) { return Vector(v1) -= v2; }
-	friend auto operator*(const Vector &v, const double &d) { return Vector(v) *= d; }
-	friend auto operator/(const Vector &v, const double &d) { return Vector(v) /= d; }
+	friend auto operator+(Vector const &v1, Vector const &v2) { return Vector(v1) += v2; }
+	friend auto operator-(Vector const &v1, Vector const &v2) { return Vector(v1) -= v2; }
+	friend auto operator*(Vector const &v, double const &d) { return Vector(v) *= d; }
+	friend auto operator/(Vector const &v, double const &d) { return Vector(v) /= d; }
 
-	friend auto operator*(const Vector &v1, const Vector &v2) {
+	friend auto operator*(Vector const &v1, Vector const &v2) {
 		return std::inner_product(v1.begin(), v1.end(), v2.begin(), 0.0);
 	}
 
@@ -48,7 +48,7 @@ struct Vector : std::array<double, N> {
 	auto normalise() { return *this /= norm(); }
 };
 
-Vector<3> operator^(const Vector<3> &v1, const Vector<3> &v2) {
+Vector<3> operator^(Vector<3> const &v1, Vector<3> const &v2) {
 	return {{
 		v1[1] * v2[2] - v1[2] * v2[1],
 		v1[2] * v2[0] - v1[0] * v2[2],
@@ -56,13 +56,13 @@ Vector<3> operator^(const Vector<3> &v1, const Vector<3> &v2) {
 	}};
 }
 
-auto operator^(const Vector<2> &v1, const Vector<2> &v2) {
+auto operator^(Vector<2> const &v1, Vector<2> const &v2) {
 	return v1[0] * v2[1] - v1[1] * v2[0];
 }
 
-auto &operator<<(std::ostream &json, const Vector<2> &vector) {
+auto &operator<<(std::ostream &json, Vector<2> const &vector) {
 	auto separator = '[';
-	for (const auto &coord: vector)
+	for (auto const &coord: vector)
 		json << std::exchange(separator, ',') << coord;
 	return json << ']';
 }

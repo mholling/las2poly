@@ -16,7 +16,7 @@
 
 class Args {
 	struct InvalidArgument : std::runtime_error {
-		InvalidArgument(const std::string message, std::string arg) : runtime_error(message + " " + arg) { }
+		InvalidArgument(std::string const message, std::string const arg) : runtime_error(message + " " + arg) { }
 	};
 
 	using Callback = std::function<void(std::string)>;
@@ -30,7 +30,7 @@ class Args {
 
 		Option(std::string letter, std::string name, std::string format, std::string description, Callback callback) : letter(letter), name(name), format(format), description(description), callback(callback) { }
 
-		auto operator==(const std::string &arg) const {
+		auto operator==(std::string const &arg) const {
 			return arg == letter || arg == name;
 		}
 	};
@@ -55,19 +55,19 @@ class Args {
 		help << "  usage: " << command;
 		if (!options.empty())
 			help << " [options]";
-		for (const auto &position: positions)
+		for (auto const &position: positions)
 			if (position.variadic)
 				help << " " << position.format << " [" << position.format << " ...]";
 			else
 				help << " " << position.format;
 		help << std::endl << "  options:" << std::endl;
 		auto letter_width = 0u, name_width = 0u, format_width = 0u;
-		for (const auto &option: options) {
+		for (auto const &option: options) {
 			letter_width = std::max<unsigned>(letter_width, option.letter.length());
 			name_width = std::max<unsigned>(name_width, option.name.length());
 			format_width = std::max<unsigned>(format_width, option.format.length());
 		}
-		for (const auto &option: options)
+		for (auto const &option: options)
 			help << "    " << std::left
 				<< std::setw(letter_width) << option.letter << (option.letter.empty() ? "  " : ", ")
 				<< std::setw(name_width + 1) << option.name
@@ -102,7 +102,7 @@ public:
 		description_with_default << description;
 		if (optional) {
 			auto before = " (default: ";
-			for (const auto &value: *optional)
+			for (auto const &value: *optional)
 				description_with_default << std::exchange(before, ",") << value;
 			description_with_default << ")";
 		}
@@ -128,7 +128,7 @@ public:
 
 	template <typename Value>
 	void position(std::string format, std::string description, std::vector<Value> &values) {
-		for (const auto &position: positions)
+		for (auto const &position: positions)
 			if (position.variadic)
 				throw std::runtime_error(format + ": only one variadic positional argument allowed");
 		positions.emplace_back(true, format, description, [&](auto arg) {
@@ -153,7 +153,7 @@ public:
 
 		try {
 			for (auto arg = args.begin(); arg != args.end(); ) {
-				const auto option = std::find(options.begin(), options.end(), *arg);
+				auto const option = std::find(options.begin(), options.end(), *arg);
 				if (option == options.end())
 					if (arg->rfind("-", 0) == 0 && arg->size() > 1)
 						throw InvalidArgument("invalid option:", *arg);
@@ -168,7 +168,7 @@ public:
 			}
 
 			for (auto arg = option_args.begin(); arg != option_args.end(); ++arg) {
-				const auto option = std::find(options.begin(), options.end(), *arg);
+				auto const option = std::find(options.begin(), options.end(), *arg);
 				if (option->format.empty())
 					option->callback("1");
 				else if (arg + 1 == option_args.end())

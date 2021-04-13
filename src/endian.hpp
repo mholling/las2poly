@@ -9,9 +9,9 @@ enum endian_type {
 };
 
 #if defined(__BIG_ENDIAN__)
-	constexpr auto byte_order = big_endian;
+	auto constexpr byte_order = big_endian;
 #elif defined(__LITTLE_ENDIAN__)
-	constexpr auto byte_order = little_endian;
+	auto constexpr byte_order = little_endian;
 #else
 	#ifdef BSD
 		#include <sys/endian>
@@ -19,17 +19,17 @@ enum endian_type {
 		#include <endian>
 	#endif
 	#if __BYTE_ORDER == __BIG_ENDIAN
-		constexpr auto byte_order = big_endian;
+		auto constexpr byte_order = big_endian;
 	#elif __BYTE_ORDER == __LITTLE_ENDIAN
-		constexpr auto byte_order = little_endian;
+		auto constexpr byte_order = little_endian;
 	#else
 		#error unsupported endianness
 	#endif
 #endif
 
 namespace Endian {
-	static constexpr bool big    = byte_order == big_endian;
-	static constexpr bool little = byte_order == little_endian;
+	bool static constexpr big    = byte_order == big_endian;
+	bool static constexpr little = byte_order == little_endian;
 };
 
 #endif

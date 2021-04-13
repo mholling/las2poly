@@ -18,9 +18,9 @@
 #include <cstdlib>
 
 int main(int argc, char *argv[]) {
-	static constexpr auto pi = 3.14159265358979324;
-	static constexpr auto smoothing_angle = 15.0;
-	static const auto default_threads = std::max<int>(1, std::thread::hardware_concurrency());
+	auto static constexpr pi = 3.14159265358979324;
+	auto static constexpr smoothing_angle = 15.0;
+	auto static const default_threads = std::max<int>(1, std::thread::hardware_concurrency());
 
 	try {
 		auto width      = std::optional<double>();
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 		args.position("<tile.las>", "LAS input path", tile_paths);
 		args.position("<land.json>", "GeoJSON output path", json_path);
 
-		const auto proceed = args.parse([&]() {
+		auto const proceed = args.parse([&]() {
 			if (!length && !width)
 				throw std::runtime_error("no width or length specified");
 			if (tiles_path && !tile_paths.empty())
@@ -129,13 +129,13 @@ int main(int argc, char *argv[]) {
 		auto land = Land(mesh, *length, *width, *slope * pi / 180, *area, threads->front());
 
 		if (simplify) {
-			const auto tolerance = 4 * *width * *width;
+			auto const tolerance = 4 * *width * *width;
 			land.simplify(tolerance);
 		}
 
 		if (smooth) {
-			const auto angle = smoothing_angle * pi / 180;
-			const auto tolerance = 0.5 * *width / std::sin(angle);
+			auto const angle = smoothing_angle * pi / 180;
+			auto const tolerance = 0.5 * *width / std::sin(angle);
 			land.smooth(tolerance, angle);
 		}
 

@@ -8,9 +8,9 @@
 
 using Polygon = std::vector<Ring>;
 
-auto &operator<<(std::ostream &json, const Polygon &polygon) {
+auto &operator<<(std::ostream &json, Polygon const &polygon) {
 	auto separator = '[';
-	for (const auto &ring: polygon)
+	for (auto const &ring: polygon)
 		json << std::exchange(separator, ',') << ring;
 	return json << ']';
 }

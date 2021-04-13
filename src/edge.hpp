@@ -11,30 +11,30 @@
 
 using Edge = std::pair<PointIterator, PointIterator>;
 
-auto operator<(const Edge &edge1, const Edge &edge2) {
+auto operator<(Edge const &edge1, Edge const &edge2) {
 	return (*edge1.second - *edge1.first).sqnorm() < (*edge2.second - *edge2.first).sqnorm();
 }
 
-auto operator^(const Edge &edge1, const Edge &edge2) {
-	const auto [x1, y1] = *edge1.second - *edge1.first;
-	const auto [x2, y2] = *edge2.second - *edge2.first;
+auto operator^(Edge const &edge1, Edge const &edge2) {
+	auto const [x1, y1] = *edge1.second - *edge1.first;
+	auto const [x2, y2] = *edge2.second - *edge2.first;
 	return Exact(x1) * Exact(y2) - Exact(y1) * Exact(x2);
 }
 
-auto operator*(const Edge &edge1, const Edge &edge2) {
-	const auto [x1, y1] = *edge1.second - *edge1.first;
-	const auto [x2, y2] = *edge2.second - *edge2.first;
+auto operator*(Edge const &edge1, Edge const &edge2) {
+	auto const [x1, y1] = *edge1.second - *edge1.first;
+	auto const [x2, y2] = *edge2.second - *edge2.first;
 	return Exact(x1) * Exact(y2) + Exact(y1) * Exact(x2);
 }
 
-auto operator<=>(const Edge &edge1, const Edge &edge2) {
+auto operator<=>(Edge const &edge1, Edge const &edge2) {
 	using std::abs, IEEE754::epsilon;
-	static constexpr auto error_scale = epsilon() * (1 + 2 * epsilon());
+	auto static constexpr error_scale = epsilon() * (1 + 2 * epsilon());
 
-	const auto [x1, y1] = *edge1.second - *edge1.first;
-	const auto [x2, y2] = *edge2.second - *edge2.first;
-	const auto det1 = x1 * y2, det2 = y1 * x2;
-	const auto det = det1 - det2;
+	auto const [x1, y1] = *edge1.second - *edge1.first;
+	auto const [x2, y2] = *edge2.second - *edge2.first;
+	auto const det1 = x1 * y2, det2 = y1 * x2;
+	auto const det = det1 - det2;
 
 	if (abs(det) > error_scale * (abs(det1) + abs(det2)))
 		return det <=> 0;
@@ -42,22 +42,22 @@ auto operator<=>(const Edge &edge1, const Edge &edge2) {
 		return Exact(x1) * Exact(y2) <=> Exact(y1) * Exact(x2);
 }
 
-auto operator%(const Edge &edge1, const Edge &edge2) { // 3d cross product
+auto operator%(Edge const &edge1, Edge const &edge2) { // 3d cross product
 	return (+*edge1.first - +*edge1.second) ^ (+*edge2.first - +*edge2.second);
 }
 
-auto operator>(const Edge &edge, double length) {
+auto operator>(Edge const &edge, double length) {
 	return (*edge.second - *edge.first).sqnorm() > length * length;
 }
 
-auto operator-(const Edge &edge) {
+auto operator-(Edge const &edge) {
 	return Edge(edge.second, edge.first);
 }
 
 template <> struct std::hash<Edge> {
-	std::size_t operator()(const Edge &edge) const {
-		static constexpr auto hash = std::hash<PointIterator>();
-		const auto seed = hash(edge.first);
+	std::size_t operator()(Edge const &edge) const {
+		auto static constexpr hash = std::hash<PointIterator>();
+		auto const seed = hash(edge.first);
 		return seed ^ (hash(edge.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 	}
 };

@@ -9,8 +9,8 @@ public:
 	Summation(double &sum) : sum(sum), compensation(0) { }
 
 	auto &operator+=(double value) {
-		const auto compensated_value = value - compensation;
-		const auto new_sum = sum + compensated_value;
+		auto const compensated_value = value - compensation;
+		auto const new_sum = sum + compensated_value;
 		compensation = (new_sum - sum) - compensated_value;
 		sum = new_sum;
 		return *this;

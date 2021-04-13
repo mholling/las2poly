@@ -27,28 +27,28 @@ class Ring : std::list<Vector<2>> {
 	auto   end() const { return CornerIterator(*this, Vertices::end()); }
 
 	struct CornerIterator {
-		const Ring &ring;
+		Ring const &ring;
 		VertexIterator here;
 
-		CornerIterator(const Ring &ring, VertexIterator here) : ring(ring), here(here) { }
+		CornerIterator(Ring const &ring, VertexIterator here) : ring(ring), here(here) { }
 		auto &operator++() { ++here; return *this;}
 		auto &operator--() { --here; return *this;}
-		auto operator!=(const CornerIterator &other) const { return here != other.here; }
+		auto operator!=(CornerIterator const &other) const { return here != other.here; }
 		auto next() const { return *this != --ring.end() ? ++CornerIterator(ring, here) : ring.begin(); }
 		auto prev() const { return *this != ring.begin() ? --CornerIterator(ring, here) : --ring.end(); }
 		operator VertexIterator() const { return here; }
 		auto operator*() const { return std::tuple<Vertex, Vertex, Vertex>(*prev().here, *here, *next().here); }
-		auto  cross() const { const auto [v0, v1, v2] = **this; return (v1 - v0) ^ (v2 - v1); }
-		auto cosine() const { const auto [v0, v1, v2] = **this; return (v1 - v0).normalise() * (v2 - v1).normalise(); }
+		auto  cross() const { auto const [v0, v1, v2] = **this; return (v1 - v0) ^ (v2 - v1); }
+		auto cosine() const { auto const [v0, v1, v2] = **this; return (v1 - v0).normalise() * (v2 - v1).normalise(); }
 	};
 
-	const Vertices &vertices() const {
+	Vertices const &vertices() const {
 		return *this;
 	}
 
-	auto winding_number(const Vertex &v) const {
+	auto winding_number(Vertex const &v) const {
 		auto winding = 0;
-		for (const auto [v0, v1, v2]: *this)
+		for (auto const [v0, v1, v2]: *this)
 			if (v1 == v || v2 == v)
 				throw VertexOnRing();
 			else if ((v1 < v) && !(v2 < v) && ((v1 - v) ^ (v2 - v)) > 0)
@@ -60,8 +60,8 @@ class Ring : std::list<Vector<2>> {
 
 	template <bool erode>
 	struct CompareCornerAreas {
-		auto operator()(const CornerIterator &v) const {
-			const auto cross = v.cross();
+		auto operator()(CornerIterator const &v) const {
+			auto const cross = v.cross();
 			return std::pair(erode == cross < 0, std::abs(cross));
 		}
 
@@ -69,13 +69,13 @@ class Ring : std::list<Vector<2>> {
 			return std::pair(false, 2 * corner_area);
 		}
 
-		auto operator()(const CornerIterator &u, const CornerIterator &v) const {
+		auto operator()(CornerIterator const &u, CornerIterator const &v) const {
 			return (*this)(u) < (*this)(v);
 		}
 	};
 
 	struct CompareCornerAngles {
-		auto operator()(const CornerIterator &u, const CornerIterator &v) const {
+		auto operator()(CornerIterator const &u, CornerIterator const &v) const {
 			return u.cosine() < v.cosine();
 		}
 	};
@@ -83,16 +83,16 @@ class Ring : std::list<Vector<2>> {
 	template <bool erode>
 	void simplify(double tolerance) {
 		using Compare = CompareCornerAreas<erode>;
-		const auto compare = Compare();
-		const auto limit = compare(tolerance);
+		auto const compare = Compare();
+		auto const limit = compare(tolerance);
 		auto corners = std::multiset<CornerIterator, Compare>();
 		for (auto corner = begin(); corner != end(); ++corner)
 			corners.insert(corner);
 		while (corners.size() > 4 && compare(*corners.begin()) < limit) {
-			const auto corner = corners.begin();
-			const auto vertex = *corner;
-			const auto prev = vertex.prev();
-			const auto next = vertex.next();
+			auto const corner = corners.begin();
+			auto const vertex = *corner;
+			auto const prev = vertex.prev();
+			auto const next = vertex.next();
 			corners.erase(corner);
 			corners.erase(prev);
 			corners.erase(next);
@@ -104,17 +104,17 @@ class Ring : std::list<Vector<2>> {
 
 public:
 	template <typename Edges>
-	Ring(const Edges &edges) : signed_area(0) {
-		const auto &p = edges.begin()->first;
-		for (auto sum = Summation(signed_area); const auto &[p1, p2]: edges) {
+	Ring(Edges const &edges) : signed_area(0) {
+		auto const &p = edges.begin()->first;
+		for (auto sum = Summation(signed_area); auto const &[p1, p2]: edges) {
 			push_back(*p1);
 			sum += (*p1 - *p) ^ (*p2 - *p);
 		}
 		signed_area /= 2;
 	}
 
-	auto contains(const Ring &ring) const {
-		for (const auto &vertex: ring.vertices())
+	auto contains(Ring const &ring) const {
+		for (auto const &vertex: ring.vertices())
 			try { return winding_number(vertex) != 0; }
 			catch (VertexOnRing &) { }
 		return false; // ring == *this
@@ -129,16 +129,16 @@ public:
 		auto corners = std::multiset<CornerIterator, CompareCornerAngles>();
 		for (auto corner = begin(); corner != end(); ++corner)
 			corners.insert(corner);
-		for (const auto cosine = std::cos(angle); corners.begin()->cosine() < cosine; ) {
-			const auto corner = corners.begin();
-			const auto vertex = *corner;
-			const auto prev = vertex.prev();
-			const auto next = vertex.next();
-			const auto [v0, v1, v2] = **corner;
-			const auto f0 = std::min(0.25, tolerance / (v1 - v0).norm());
-			const auto f2 = std::min(0.25, tolerance / (v2 - v1).norm());
-			const auto v10 = v0 * f0 + v1 * (1.0 - f0);
-			const auto v11 = v2 * f2 + v1 * (1.0 - f2);
+		for (auto const cosine = std::cos(angle); corners.begin()->cosine() < cosine; ) {
+			auto const corner = corners.begin();
+			auto const vertex = *corner;
+			auto const prev = vertex.prev();
+			auto const next = vertex.next();
+			auto const [v0, v1, v2] = **corner;
+			auto const f0 = std::min(0.25, tolerance / (v1 - v0).norm());
+			auto const f2 = std::min(0.25, tolerance / (v2 - v1).norm());
+			auto const v10 = v0 * f0 + v1 * (1.0 - f0);
+			auto const v11 = v2 * f2 + v1 * (1.0 - f2);
 			corners.erase(corner);
 			insert(insert(erase(vertex), v11), v10);
 			corners.insert(next.prev());
@@ -146,21 +146,21 @@ public:
 		}
 	}
 
-	friend auto operator<(const Ring &ring1, const Ring &ring2) {
+	friend auto operator<(Ring const &ring1, Ring const &ring2) {
 		return ring1.signed_area < ring2.signed_area;
 	}
 
-	friend auto operator<(const Ring &ring, double signed_area) {
+	friend auto operator<(Ring const &ring, double signed_area) {
 		return ring.signed_area < signed_area;
 	}
 
-	friend auto operator>(const Ring &ring, double signed_area) {
+	friend auto operator>(Ring const &ring, double signed_area) {
 		return ring.signed_area > signed_area;
 	}
 
-	friend auto &operator<<(std::ostream &json, const Ring &ring) {
+	friend auto &operator<<(std::ostream &json, Ring const &ring) {
 		json << '[';
-		for (const auto &vertex: ring.vertices())
+		for (auto const &vertex: ring.vertices())
 			json << vertex << ',';
 		return json << ring.front() << ']';
 	}

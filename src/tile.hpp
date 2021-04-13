@@ -12,9 +12,9 @@
 class Tile {
 	using TileVariant = std::variant<PLY, LAS>;
 
-	static auto from(std::istream &input) {
-		static constexpr std::array<char, 4> las_magic = {'L','A','S','F'};
-		static constexpr std::array<char, 4> ply_magic = {'p','l','y','\n'};
+	auto static from(std::istream &input) {
+		std::array<char, 4> static constexpr las_magic = {'L','A','S','F'};
+		std::array<char, 4> static constexpr ply_magic = {'p','l','y','\n'};
 
 		auto magic = std::array<char, 4>();
 		input.read(magic.data(), sizeof(magic));
@@ -33,8 +33,8 @@ class Tile {
 	};
 
 	struct Size {
-		auto operator()(const PLY &ply) const { return ply.size; }
-		auto operator()(const LAS &las) const { return las.size; }
+		auto operator()(PLY const &ply) const { return ply.size; }
+		auto operator()(LAS const &las) const { return las.size; }
 	};
 
 	auto read() { return std::visit(Read(), tile_variant); }
@@ -47,7 +47,7 @@ class Tile {
 
 		Iterator(Tile &tile, std::size_t index) : tile(tile), index(index) { }
 		auto &operator++() { ++index; return *this;}
-		auto operator!=(const Iterator &other) const { return index != other.index; }
+		auto operator!=(Iterator const &other) const { return index != other.index; }
 		auto operator*() const { return tile.read(); }
 	};
 

@@ -17,34 +17,34 @@
 class Mesh : std::vector<std::vector<PointIterator>> {
 	PointIterator points_begin;
 
-	auto &adjacent(const PointIterator &point) {
+	auto &adjacent(PointIterator const &point) {
 		return (*this)[point - points_begin];
 	}
 
-	void connect(const PointIterator &p1, const PointIterator &p2) {
+	void connect(PointIterator const &p1, PointIterator const &p2) {
 		adjacent(p1).push_back(p2);
 		adjacent(p2).push_back(p1);
 	}
 
-	void disconnect(const Edge &edge) {
+	void disconnect(Edge const &edge) {
 		auto &neighbours = adjacent(edge.first);
 		neighbours.erase(std::find(neighbours.begin(), neighbours.end(), edge.second));
 	}
 
-	void disconnect(const PointIterator &p1, const PointIterator &p2) {
+	void disconnect(PointIterator const &p1, PointIterator const &p2) {
 		disconnect({p1, p2});
 		disconnect({p2, p1});
 	}
 
-	static auto less_than(const Edge &edge, const Edge &edge1, const Edge &edge2) {
+	auto static less_than(Edge const &edge, Edge const &edge1, Edge const &edge2) {
 		return edge <=> edge1 < 0
 			? edge <=> edge2 > 0 || edge1 <=> edge2 > 0
 			: edge <=> edge2 > 0 && edge1 <=> edge2 > 0;
 	}
 
-	auto next_interior(const Edge &edge) {
-		const auto &neighbours = adjacent(edge.second);
-		const auto next = std::max_element(neighbours.begin(), neighbours.end(), [&](const auto &p1, const auto &p2) {
+	auto next_interior(Edge const &edge) {
+		auto const &neighbours = adjacent(edge.second);
+		auto const next = std::max_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
 			return p1 == edge.first ? true : p2 == edge.first ? false : less_than(edge, Edge(edge.second, p1), Edge(edge.second, p2));
 		});
 		if (next == neighbours.end())
@@ -52,9 +52,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		return Edge(edge.second, *next);
 	}
 
-	auto next_exterior(const Edge &edge) {
-		const auto &neighbours = adjacent(edge.second);
-		const auto next = std::min_element(neighbours.begin(), neighbours.end(), [&](const auto &p1, const auto &p2) {
+	auto next_exterior(Edge const &edge) {
+		auto const &neighbours = adjacent(edge.second);
+		auto const next = std::min_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
 			return p1 == edge.first ? false : p2 == edge.first ? true : less_than(edge, Edge(edge.second, p1), Edge(edge.second, p2));
 		});
 		if (next == neighbours.end())
@@ -76,28 +76,28 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		auto search() const { return Iterator(mesh, peek(), !interior).peek(); }
 	};
 
-	auto exterior_clockwise(const PointIterator &rightmost) {
-		const auto &neighbours = adjacent(rightmost);
-		const auto next = std::min_element(neighbours.begin(), neighbours.end(), [&](const auto &p1, const auto &p2) {
+	auto exterior_clockwise(PointIterator const &rightmost) {
+		auto const &neighbours = adjacent(rightmost);
+		auto const next = std::min_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
 			return Edge(rightmost, p1) <=> Edge(rightmost, p2) < 0;
 		});
 		return Iterator(*this, Edge(rightmost, *next), true);
 	}
 
-	auto exterior_anticlockwise(const PointIterator &leftmost) {
-		const auto &neighbours = adjacent(leftmost);
-		const auto next = std::max_element(neighbours.begin(), neighbours.end(), [&](const auto &p1, const auto &p2) {
+	auto exterior_anticlockwise(PointIterator const &leftmost) {
+		auto const &neighbours = adjacent(leftmost);
+		auto const next = std::max_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
 			return (Edge(leftmost, p1) ^ Edge(leftmost, p2)) < 0;
 		});
 		return Iterator(*this, Edge(leftmost, *next), false);
 	}
 
 	template <bool rhs>
-	auto find_candidate(const Iterator &edge, const PointIterator &opposite) {
-		const auto &[prev, point] = *edge;
+	auto find_candidate(Iterator const &edge, PointIterator const &opposite) {
+		auto const &[prev, point] = *edge;
 		while (true) {
-			const auto [candidate, next] = edge.search();
-			const auto orientation = Edge(opposite, point) <=> Edge(point, candidate);
+			auto const [candidate, next] = edge.search();
+			auto const orientation = Edge(opposite, point) <=> Edge(point, candidate);
 			if (rhs ? orientation <= 0 : orientation >= 0)
 				return std::optional<PointIterator>();
 			if (candidate == prev)
@@ -110,13 +110,13 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 
 	template <bool horizontal = true>
 	void triangulate(PointIterator begin, PointIterator end, unsigned threads) {
-		static constexpr auto less_than = [](const Point &p1, const Point &p2) {
+		auto static constexpr less_than = [](Point const &p1, Point const &p2) {
 			if constexpr (horizontal)
 				return p1[0] < p2[0] ? true : p1[0] > p2[0] ? false : p1[1] < p2[1];
 			else
 				return p1[1] < p2[1] ? true : p1[1] > p2[1] ? false : p1[0] > p2[0];
 		};
-		const auto middle = begin + (end - begin) / 2;
+		auto const middle = begin + (end - begin) / 2;
 		std::nth_element(begin, middle, end, less_than);
 
 		switch (end - begin) {
@@ -143,12 +143,12 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 				triangulate<!horizontal>(begin, middle, 1);
 				triangulate<!horizontal>(middle, end, 1);
 			}
-			const auto rightmost = std::max_element(begin, middle, less_than);
-			const auto leftmost = std::min_element(middle, end, less_than);
+			auto const rightmost = std::max_element(begin, middle, less_than);
+			auto const leftmost = std::min_element(middle, end, less_than);
 			auto left = exterior_clockwise(rightmost);
 			auto right = exterior_anticlockwise(leftmost);
 			while (true) {
-				const auto tangent = Edge(left->first, right->first);
+				auto const tangent = Edge(left->first, right->first);
 				if (tangent <=> *right < 0)
 					++right;
 				else if (tangent <=> *left < 0)
@@ -159,11 +159,11 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 			left.reverse(), right.reverse();
 			auto pairs = std::vector<Edge>();
 			while (true) {
-				const auto &left_point = left->second;
-				const auto &right_point = right->second;
+				auto const &left_point = left->second;
+				auto const &right_point = right->second;
 				pairs.emplace_back(left_point, right_point);
-				const auto left_candidate = find_candidate<false>(left, right_point);
-				const auto right_candidate = find_candidate<true>(right, left_point);
+				auto const left_candidate = find_candidate<false>(left, right_point);
+				auto const right_candidate = find_candidate<true>(right, left_point);
 				if (left_candidate && right_candidate)
 					Circle(left_point, right_point, *right_candidate) > *left_candidate ? ++left : ++right;
 				else if (left_candidate)
@@ -173,14 +173,14 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 				else
 					break;
 			}
-			for (const auto &[p1, p2]: pairs)
+			for (auto const &[p1, p2]: pairs)
 				connect(p1, p2);
 		}
 	}
 
 	void deconstruct(Triangles &triangles, PointIterator begin, PointIterator end, double length, unsigned threads) {
 		if (threads > 1) {
-			const auto middle = begin + (end - begin) / 2;
+			auto const middle = begin + (end - begin) / 2;
 			auto left_triangles = Triangles();
 			auto right_triangles = Triangles();
 			auto left_thread = std::thread([&]() {
@@ -193,21 +193,21 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 			triangles.merge(right_triangles);
 		}
 		for (auto point = begin; point < end; ++point) {
-			const auto &neighbours = adjacent(point);
+			auto const &neighbours = adjacent(point);
 			for (auto neighbour = neighbours.rbegin(); neighbour != neighbours.rend(); ) {
-				const auto edge1 = Iterator(*this, Edge(point, *neighbour++), true);
+				auto const edge1 = Iterator(*this, Edge(point, *neighbour++), true);
 				if (edge1->second < begin || !(edge1->second < end))
 					continue;
-				const auto edge2 = Iterator(*this, edge1.peek(), true);
+				auto const edge2 = Iterator(*this, edge1.peek(), true);
 				if (edge2->second < begin || !(edge2->second < end))
 					continue;
-				const auto edge3 = Iterator(*this, edge2.peek(), true);
+				auto const edge3 = Iterator(*this, edge2.peek(), true);
 				if (edge3->second != point)
 					throw std::runtime_error("corrupted mesh");
-				const Triangle triangle = {*edge1, *edge2, *edge3};
+				Triangle const triangle = {*edge1, *edge2, *edge3};
 				if (triangle > length)
 					triangles.insert(triangle);
-				for (const auto &edge: triangle)
+				for (auto const &edge: triangle)
 					disconnect(edge);
 			}
 		}
@@ -219,7 +219,7 @@ public:
 	}
 
 	void deconstruct(Triangles &triangles, Edges &edges, double length, unsigned threads) {
-		const auto rightmost = std::max_element(points_begin, points_begin + size());
+		auto const rightmost = std::max_element(points_begin, points_begin + size());
 		for (auto edge = exterior_clockwise(rightmost); ; ++edge) {
 			edges.insert(-*edge);
 			disconnect(*edge);

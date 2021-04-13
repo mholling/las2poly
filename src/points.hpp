@@ -27,30 +27,30 @@ class Points : public std::vector<Point> {
 		double resolution;
 
 		Thin(double resolution) : resolution(resolution) {
-			static constexpr auto web_mercator_max = 20048966.10;
+			auto static constexpr web_mercator_max = 20048966.10;
 			if (web_mercator_max / resolution > std::numeric_limits<int>::max())
 				throw std::runtime_error("resolution value too small");
 		}
 
-		auto operator()(const Point &p1, const Point &p2) const {
+		auto operator()(Point const &p1, Point const &p2) const {
 			return
 				std::pair<int, int>(p1[0] / resolution, p1[1] / resolution) <
 				std::pair<int, int>(p2[0] / resolution, p2[1] / resolution);
 		}
 
-		auto operator()(Tile &&tile, const Classes &classes) const {
+		auto operator()(Tile &&tile, Classes const &classes) const {
 			auto points = Points();
 			points.reserve(tile.size());
 
-			for (const auto point: tile)
+			for (auto const point: tile)
 				if (!point.withheld && (point.key_point || classes.count(point.classification)))
 					points.push_back(point);
 			std::sort(points.begin(), points.end(), *this);
 
 			auto here = points.begin();
-			const auto points_end = points.end();
+			auto const points_end = points.end();
 			for (auto range_begin = points.begin(); range_begin != points_end; ++here) {
-				const auto range_end = std::upper_bound(range_begin, points_end, *range_begin, *this);
+				auto const range_end = std::upper_bound(range_begin, points_end, *range_begin, *this);
 				*here = *std::min_element(range_begin, range_end, std::greater());
 				range_begin = range_end;
 			}
@@ -59,7 +59,7 @@ class Points : public std::vector<Point> {
 			return points;
 		}
 
-		auto operator()(const Points &points1, const Points &points2) const {
+		auto operator()(Points const &points1, Points const &points2) const {
 			auto points = Points();
 			points.reserve(points1.size() + points2.size());
 
@@ -82,17 +82,17 @@ class Points : public std::vector<Point> {
 		using PathIterator = Paths::const_iterator;
 
 		Thin thin;
-		const Classes &classes;
+		Classes const &classes;
 		std::mutex mutex;
 		std::exception_ptr exception;
 
 		auto operator()(PathIterator begin, PathIterator end, unsigned threads) {
 			if (auto lock = std::lock_guard(mutex); exception)
 				return Points();
-			const auto middle = begin + (end - begin) / 2;
+			auto const middle = begin + (end - begin) / 2;
 			if (begin + 1 == end)
 				try {
-					const auto &path = *begin;
+					auto const &path = *begin;
 					try {
 						if (path == "-") {
 							std::cin.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -130,19 +130,19 @@ class Points : public std::vector<Point> {
 		}
 
 	public:
-		auto operator()(const Paths &paths, unsigned threads) {
+		auto operator()(Paths const &paths, unsigned threads) {
 			auto points = (*this)(paths.begin(), paths.end(), threads);
 			if (exception)
 				std::rethrow_exception(exception);
 			return points;
 		}
 
-		Load(double resolution, const Classes &classes) : thin(resolution), classes(classes) { }
+		Load(double resolution, Classes const &classes) : thin(resolution), classes(classes) { }
 	};
 
 public:
 	template <typename AdditionalClasses>
-	Points(const Paths &tile_paths, double resolution, const AdditionalClasses &additional_classes, unsigned threads) {
+	Points(Paths const &tile_paths, double resolution, AdditionalClasses const &additional_classes, unsigned threads) {
 		auto classes = Classes({2,3,4,5,6});
 		classes.insert(additional_classes.begin(), additional_classes.end());
 		Load(resolution, classes)(tile_paths, threads).swap(*this);
@@ -152,7 +152,7 @@ public:
 using PointIterator = Points::iterator;
 
 template <> struct std::hash<PointIterator> {
-	std::size_t operator()(const PointIterator &point) const { return std::hash<Point *>()(&*point); }
+	std::size_t operator()(PointIterator const &point) const { return std::hash<Point *>()(&*point); }
 };
 
 #endif

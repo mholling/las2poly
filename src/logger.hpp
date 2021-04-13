@@ -33,14 +33,14 @@ public:
 	}
 
 	template <typename Arg, typename ...Args>
-	void info(const Arg &arg, const Args &...args) {
+	void info(Arg const &arg, Args const &...args) {
 		output << arg;
 		info(args...);
 	}
 
 	template <typename ...Args>
-	void info(std::size_t arg, char const *word, const Args &...args) {
-		static constexpr auto suffixes = {"","k","M","G"};
+	void info(std::size_t arg, char const *word, Args const &...args) {
+		auto static constexpr suffixes = {"","k","M","G"};
 		auto suffix = suffixes.begin();
 		double decimal = arg;
 		for (; decimal >= 999.95 & suffix + 1 < suffixes.end(); decimal *= 0.001, ++suffix) ;
@@ -48,7 +48,7 @@ public:
 	}
 
 	template <typename ...Args>
-	void time(const Args &...args) {
+	void time(Args const &...args) {
 		info(std::fixed, std::setprecision(1), elapsed(), "s: ", args...);
 	}
 };

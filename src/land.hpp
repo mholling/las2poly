@@ -17,7 +17,7 @@
 #include <utility>
 
 struct Land : std::vector<Polygon> {
-	static auto is_water(const Triangles &triangles, double delta, double slope) {
+	auto static is_water(Triangles const &triangles, double delta, double slope) {
 		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
 		auto delta_sum = 0.0;
 		auto count = 0ul;
@@ -28,7 +28,7 @@ struct Land : std::vector<Polygon> {
 		for (auto edges: triangles) {
 			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end()), edges.end());
 
-			const auto perp = edges[1] % edges[2];
+			auto const perp = edges[1] % edges[2];
 			perp_sum[0] += perp[0];
 			perp_sum[1] += perp[1];
 			perp_sum_z  += perp[2];
@@ -38,37 +38,37 @@ struct Land : std::vector<Polygon> {
 					++count, abs_sum += std::abs(edge->second->elevation - edge->first->elevation);
 		}
 
-		const auto angle = std::acos(std::abs(perp_sum[2] / perp_sum.norm()));
+		auto const angle = std::acos(std::abs(perp_sum[2] / perp_sum.norm()));
 		return angle < slope && count > 0 && delta_sum < delta * count;
 	}
 
 	Land(Mesh &mesh, double length, double width, double slope, double area, unsigned threads) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
-		const auto delta = width * std::tan(slope);
+		auto const delta = width * std::tan(slope);
 
 		mesh.deconstruct(large_triangles, outside_edges, length, threads);
 
-		large_triangles.explode([=, &outside_edges](const auto &&triangles) {
+		large_triangles.explode([=, &outside_edges](auto const &&triangles) {
 			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope)))
-				for (const auto &triangle: triangles)
+				for (auto const &triangle: triangles)
 					outside_edges -= triangle;
 		});
 
 		auto rings = Rings(outside_edges);
-		auto rings_end = std::remove_if(rings.begin(), rings.end(), [=](const auto &ring) {
+		auto rings_end = std::remove_if(rings.begin(), rings.end(), [=](auto const &ring) {
 			return ring < area && ring > -area;
 		});
-		auto holes_begin = std::partition(rings.begin(), rings_end, [](const auto &ring) {
+		auto holes_begin = std::partition(rings.begin(), rings_end, [](auto const &ring) {
 			return ring > 0;
 		});
 		std::sort(rings.begin(), holes_begin);
 
 		auto remaining = holes_begin;
-		std::for_each(rings.begin(), holes_begin, [&](const auto &exterior) {
+		std::for_each(rings.begin(), holes_begin, [&](auto const &exterior) {
 			auto polygon = Polygon{{exterior}};
 			auto old_remaining = remaining;
-			remaining = std::partition(remaining, rings_end, [&](const auto &hole) {
+			remaining = std::partition(remaining, rings_end, [&](auto const &hole) {
 				return exterior.contains(hole);
 			});
 			std::copy(old_remaining, remaining, std::back_inserter(polygon));
@@ -89,9 +89,9 @@ struct Land : std::vector<Polygon> {
 	}
 };
 
-auto &operator<<(std::ostream &json, const Land &land) {
+auto &operator<<(std::ostream &json, Land const &land) {
 	auto separator = '[';
-	for (const auto &polygon: land)
+	for (auto const &polygon: land)
 		json << std::exchange(separator, ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
 	return json << (separator == '[' ? "[]" : "]");
 }
