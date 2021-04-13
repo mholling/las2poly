@@ -67,10 +67,6 @@ class Exact : std::array<double, N> {
 public:
 	Exact(double d) : Array{{d}} { }
 
-	friend auto operator<=>(Exact const &e1, Exact const &e2) {
-		return (e1 - e2).back() <=> 0;
-	}
-
 	friend auto operator<=>(Exact const &e, int const &zero) {
 		return e.back() <=> zero;
 	}

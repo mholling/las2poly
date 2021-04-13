@@ -39,7 +39,7 @@ auto operator<=>(Edge const &edge1, Edge const &edge2) {
 	if (abs(det) > error_scale * (abs(det1) + abs(det2)))
 		return det <=> 0;
 	else
-		return Exact(x1) * Exact(y2) <=> Exact(y1) * Exact(x2);
+		return Exact(x1) * Exact(y2) - Exact(y1) * Exact(x2) <=> 0;
 }
 
 auto operator%(Edge const &edge1, Edge const &edge2) { // 3d cross product
