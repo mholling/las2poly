@@ -87,7 +87,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	auto exterior_anticlockwise(PointIterator const &leftmost) {
 		auto const &neighbours = adjacent(leftmost);
 		auto const next = std::max_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
-			return (Edge(leftmost, p1) ^ Edge(leftmost, p2)) < 0;
+			return Edge(leftmost, p1) <=> Edge(leftmost, p2) < 0;
 		});
 		return Iterator(*this, Edge(leftmost, *next), false);
 	}
