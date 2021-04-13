@@ -26,7 +26,9 @@ struct Land : std::vector<Polygon> {
 		auto abs_sum = Summation(delta_sum);
 
 		for (auto edges: triangles) {
-			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end()), edges.end());
+			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end(), [](auto const &edge1, auto const &edge2) {
+				return (*edge1.second - *edge1.first).sqnorm() < (*edge2.second - *edge2.first).sqnorm();
+			}), edges.end());
 
 			auto const perp = edges[1] % edges[2];
 			perp_sum[0] += perp[0];
