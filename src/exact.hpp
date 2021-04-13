@@ -19,7 +19,7 @@ class Exact : std::array<double, N> {
 	friend class Exact;
 
 	auto split() const {
-		constexpr auto s = 1ul + (1ul << (IEEE754::bits() + 1u) / 2u);
+		static constexpr auto s = 1ul + (1ul << (IEEE754::bits() + 1u) / 2u);
 		const auto &a = this->back();
 		const auto c = s * a;
 		const auto aa = c - a;
@@ -129,7 +129,7 @@ public:
 			const auto l = (al * bl) - err3;
 			return Exact<M+N>(l, h);
 		} else if constexpr(N > 1 && M > 1) {
-			constexpr auto N1 = N / 2, N2 = N - N1, M1 = M / 2, M2 = M - M1;
+			static constexpr auto N1 = N / 2, N2 = N - N1, M1 = M / 2, M2 = M - M1;
 			auto a1 = Exact<N1>();
 			auto a2 = Exact<N2>();
 			auto b1 = Exact<M1>();

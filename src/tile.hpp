@@ -13,8 +13,8 @@ class Tile {
 	using TileVariant = std::variant<PLY, LAS>;
 
 	static auto from(std::istream &input) {
-		constexpr std::array<char, 4> las_magic = {'L','A','S','F'};
-		constexpr std::array<char, 4> ply_magic = {'p','l','y','\n'};
+		static constexpr std::array<char, 4> las_magic = {'L','A','S','F'};
+		static constexpr std::array<char, 4> ply_magic = {'p','l','y','\n'};
 
 		auto magic = std::array<char, 4>();
 		input.read(magic.data(), sizeof(magic));

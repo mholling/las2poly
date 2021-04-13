@@ -14,7 +14,7 @@ struct Circle {
 	auto contains(const PointIterator &p) const {
 		using std::abs, IEEE754::epsilon;
 		// TODO: add correct error scaling:
-		constexpr auto error_scale = epsilon() * (10 + 96 * epsilon());
+		static constexpr auto error_scale = epsilon() * (10 + 96 * epsilon());
 
 		const auto [ax, ay] = *a - *p;
 		const auto [bx, by] = *b - *p;

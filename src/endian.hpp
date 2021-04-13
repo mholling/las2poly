@@ -28,8 +28,8 @@ enum endian_type {
 #endif
 
 namespace Endian {
-	constexpr bool big    = byte_order == big_endian;
-	constexpr bool little = byte_order == little_endian;
+	static constexpr bool big    = byte_order == big_endian;
+	static constexpr bool little = byte_order == little_endian;
 };
 
 #endif

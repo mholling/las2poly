@@ -29,7 +29,7 @@ auto operator*(const Edge &edge1, const Edge &edge2) {
 
 auto operator<=>(const Edge &edge1, const Edge &edge2) {
 	using std::abs, IEEE754::epsilon;
-	constexpr auto error_scale = epsilon() * (1 + 2 * epsilon());
+	static constexpr auto error_scale = epsilon() * (1 + 2 * epsilon());
 
 	const auto [x1, y1] = *edge1.second - *edge1.first;
 	const auto [x2, y2] = *edge2.second - *edge2.first;
@@ -56,7 +56,7 @@ auto operator-(const Edge &edge) {
 
 template <> struct std::hash<Edge> {
 	std::size_t operator()(const Edge &edge) const {
-		constexpr auto hash = std::hash<PointIterator>();
+		static constexpr auto hash = std::hash<PointIterator>();
 		const auto seed = hash(edge.first);
 		return seed ^ (hash(edge.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 	}
