@@ -36,10 +36,9 @@ class Ring : std::list<Vector<2>> {
 		auto next() const { return *this != --ring.end() ? ++CornerIterator(ring, here) : ring.begin(); }
 		auto prev() const { return *this != ring.begin() ? --CornerIterator(ring, here) : --ring.end(); }
 		operator VertexIterator() const { return here; }
-		operator const Vertex &() const { return *here; }
-		auto operator*() const { return std::tuple<Vertex, Vertex, Vertex>(prev(), *here, next()); }
-		auto cross() const { return (*here - prev()) ^ (next() - *here); }
-		auto cosine() const { return (*here - prev()).normalise() * (next() - *here).normalise(); }
+		auto operator*() const { return std::tuple<Vertex, Vertex, Vertex>(*prev().here, *here, *next().here); }
+		auto  cross() const { const auto [v0, v1, v2] = **this; return (v1 - v0) ^ (v2 - v1); }
+		auto cosine() const { const auto [v0, v1, v2] = **this; return (v1 - v0).normalise() * (v2 - v1).normalise(); }
 	};
 
 	const Vertices &vertices() const {
