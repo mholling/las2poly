@@ -27,10 +27,10 @@ class PLY {
 
 	template <typename Value>
 	void expect(const std::string words, Value &value) {
-		auto string = line();
-		if (string.rfind(words, 0) != 0)
+		if (auto string = line(); string.rfind(words, 0) != 0)
 			throw std::runtime_error("unable to process PLY file");
-		std::istringstream(string.erase(0, words.size())) >> value;
+		else
+			std::istringstream(string.erase(0, words.size())) >> value;
 	}
 
 public:

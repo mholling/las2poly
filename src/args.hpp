@@ -91,8 +91,7 @@ public:
 		else
 			description_with_default << description;
 		options.emplace_back(letter, name, format, description_with_default.str(), [&](auto arg) {
-			auto parser = std::stringstream(arg);
-			if (!(parser >> optional.emplace()) || !parser.eof())
+			if (auto parser = std::stringstream(arg); !(parser >> optional.emplace()) || !parser.eof())
 				throw std::runtime_error("invalid argument: " + arg);
 		});
 	}
@@ -110,11 +109,9 @@ public:
 		options.emplace_back(letter, name, format, description_with_default.str(), [&](auto arg) {
 			optional.emplace();
 			auto list = std::stringstream(arg);
-			for (std::string arg; std::getline(list, arg, ','); ) {
-				auto parser = std::stringstream(arg);
-				if (!(parser >> optional->emplace_back()) || !parser.eof())
+			for (std::string arg; std::getline(list, arg, ','); )
+				if (auto parser = std::stringstream(arg); !(parser >> optional->emplace_back()) || !parser.eof())
 					throw std::runtime_error("invalid argument: " + arg);
-			}
 		});
 	}
 

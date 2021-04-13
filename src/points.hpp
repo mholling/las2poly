@@ -87,7 +87,7 @@ class Points : public std::vector<Point> {
 		std::exception_ptr exception;
 
 		auto operator()(PathIterator begin, PathIterator end, unsigned threads) {
-			for (auto lock = std::lock_guard(mutex); exception; )
+			if (auto lock = std::lock_guard(mutex); exception)
 				return Points();
 			const auto middle = begin + (end - begin) / 2;
 			if (begin + 1 == end)

@@ -29,11 +29,9 @@ class Triangles : public std::unordered_set<Triangle> {
 			source.erase(triangle);
 			neighbours.erase(triangle);
 			insert(triangle);
-			for (const auto &edge: triangle) {
-				const auto pair = neighbours.find(edge);
-				if (pair != neighbours.end())
+			for (const auto &edge: triangle)
+				if (const auto pair = neighbours.find(edge); pair != neighbours.end())
 					pending.insert(pair->second);
-			}
 			pending.erase(triangle);
 		}
 	}
