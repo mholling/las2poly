@@ -102,7 +102,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 				return std::optional<PointIterator>();
 			if (candidate == prev)
 				return std::optional<PointIterator>(candidate);
-			if (!Circle(rhs ? candidate : point, opposite, rhs ? point : candidate).contains(next))
+			if (Circle(rhs ? candidate : point, opposite, rhs ? point : candidate) <= next)
 				return std::optional<PointIterator>(candidate);
 			disconnect(point, candidate);
 		}
@@ -165,7 +165,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 				const auto left_candidate = find_candidate<false>(left, right_point);
 				const auto right_candidate = find_candidate<true>(right, left_point);
 				if (left_candidate && right_candidate)
-					Circle(left_point, right_point, *right_candidate).contains(*left_candidate) ? ++left : ++right;
+					Circle(left_point, right_point, *right_candidate) > *left_candidate ? ++left : ++right;
 				else if (left_candidate)
 					++left;
 				else if (right_candidate)

@@ -71,8 +71,8 @@ public:
 		return (e1 - e2).back() <=> 0;
 	}
 
-	friend auto operator>(const Exact &e, const int &zero) {
-		return e.back() > zero;
+	friend auto operator<=>(const Exact &e, const int &zero) {
+		return e.back() <=> zero;
 	}
 
 	template <std::size_t M>

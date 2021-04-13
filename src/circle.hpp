@@ -4,44 +4,46 @@
 #include "points.hpp"
 #include "ieee754.hpp"
 #include "edge.hpp"
+#include <tuple>
 #include <cmath>
+#include <compare>
 
-struct Circle {
-	PointIterator a, b, c;
+using Circle = std::tuple<PointIterator, PointIterator, PointIterator>;
 
-	Circle(const PointIterator &a, const PointIterator &b, const PointIterator &c) : a(a), b(b), c(c) { }
+// circle <  point : point is outside circle
+// circle == point : point is on boundary
+// circle >  point : point is inside circle
 
-	auto contains(const PointIterator &p) const {
-		using std::abs, IEEE754::epsilon;
-		// TODO: add correct error scaling:
-		static constexpr auto error_scale = epsilon() * (10 + 96 * epsilon());
+auto operator<=>(const Circle &circle, const PointIterator &point) {
+	using std::abs, IEEE754::epsilon;
+	static constexpr auto error_scale = epsilon() * (10 + 96 * epsilon());
 
-		const auto [ax, ay] = *a - *p;
-		const auto [bx, by] = *b - *p;
-		const auto [cx, cy] = *c - *p;
-		const auto aa = ax * ax + ay * ay;
-		const auto bb = bx * bx + by * by;
-		const auto cc = cx * cx + cy * cy;
-		const auto bxcy = bx * cy, bycx = by * cx;
-		const auto cxay = cx * ay, cyax = cy * ax;
-		const auto axby = ax * by, aybx = ay * bx;
-		const auto det = aa * (bxcy - bycx) + bb * (cxay - cyax) + cc * (axby - aybx);
+	const auto &[a, b, c] = circle;
+	const auto [ax, ay] = *a - *point;
+	const auto [bx, by] = *b - *point;
+	const auto [cx, cy] = *c - *point;
+	const auto aa = ax * ax + ay * ay;
+	const auto bb = bx * bx + by * by;
+	const auto cc = cx * cx + cy * cy;
+	const auto bxcy = bx * cy, bycx = by * cx;
+	const auto cxay = cx * ay, cyax = cy * ax;
+	const auto axby = ax * by, aybx = ay * bx;
+	const auto det = aa * (bxcy - bycx) + bb * (cxay - cyax) + cc * (axby - aybx);
 
-		const auto error_bound = error_scale * (
-			aa * (abs(bxcy) + abs(bycx)) +
-			bb * (abs(cxay) + abs(cyax)) +
-			cc * (abs(axby) + abs(aybx))
-		);
+	const auto error_bound = error_scale * (
+		aa * (abs(bxcy) + abs(bycx)) +
+		bb * (abs(cxay) + abs(cyax)) +
+		cc * (abs(axby) + abs(aybx))
+	);
 
-		if (abs(det) > error_bound)
-			return det > 0;
-		else {
-			const auto ea = Edge(p, a);
-			const auto eb = Edge(p, b);
-			const auto ec = Edge(p, c);
-			return (ea * ea) * (eb ^ ec) + (eb * eb) * (ec ^ ea) + (ec * ec) * (ea ^ eb) > 0;
-		}
+	if (abs(det) > error_bound)
+		return det <=> 0;
+	else {
+		const auto ea = Edge(point, a);
+		const auto eb = Edge(point, b);
+		const auto ec = Edge(point, c);
+		return (ea * ea) * (eb ^ ec) + (eb * eb) * (ec ^ ea) + (ec * ec) * (ea ^ eb) <=> 0;
 	}
-};
+}
 
 #endif
