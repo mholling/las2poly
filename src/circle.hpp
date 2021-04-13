@@ -11,7 +11,8 @@
 using Circle = std::tuple<PointIterator, PointIterator, PointIterator>;
 
 // circle <  point : point is outside circle
-// circle == point : point is on boundary
+// circle <= point : point is outside or on boundary
+// circle >= point : point is inside or on boundary
 // circle >  point : point is inside circle
 
 auto operator<=>(Circle const &circle, PointIterator const &point) {
