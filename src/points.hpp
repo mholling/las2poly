@@ -143,7 +143,7 @@ class Points : public std::vector<Point> {
 public:
 	template <typename AdditionalClasses>
 	Points(const Paths &tile_paths, double resolution, const AdditionalClasses &additional_classes, unsigned threads) {
-		auto classes = Classes({2,3,4,5,6,10,11,17});
+		auto classes = Classes({2,3,4,5,6});
 		classes.insert(additional_classes.begin(), additional_classes.end());
 		Load(resolution, classes)(tile_paths, threads).swap(*this);
 	}
