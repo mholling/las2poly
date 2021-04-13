@@ -37,9 +37,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 	auto static less_than(Edge const &edge, Edge const &edge1, Edge const &edge2) {
-		return edge <=> edge1 < 0
-			? edge <=> edge2 > 0 || edge1 <=> edge2 > 0
-			: edge <=> edge2 > 0 && edge1 <=> edge2 > 0;
+		return edge < edge1
+			? edge > edge2 || edge1 > edge2
+			: edge > edge2 && edge1 > edge2;
 	}
 
 	auto next_interior(Edge const &edge) {
@@ -79,7 +79,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	auto exterior_clockwise(PointIterator const &rightmost) {
 		auto const &neighbours = adjacent(rightmost);
 		auto const next = std::min_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
-			return Edge(rightmost, p1) <=> Edge(rightmost, p2) < 0;
+			return Edge(rightmost, p1) < Edge(rightmost, p2);
 		});
 		return Iterator(*this, Edge(rightmost, *next), true);
 	}
@@ -87,7 +87,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	auto exterior_anticlockwise(PointIterator const &leftmost) {
 		auto const &neighbours = adjacent(leftmost);
 		auto const next = std::max_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
-			return Edge(leftmost, p1) <=> Edge(leftmost, p2) < 0;
+			return Edge(leftmost, p1) < Edge(leftmost, p2);
 		});
 		return Iterator(*this, Edge(leftmost, *next), false);
 	}
@@ -149,9 +149,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 			auto right = exterior_anticlockwise(leftmost);
 			while (true) {
 				auto const tangent = Edge(left->first, right->first);
-				if (tangent <=> *right < 0)
+				if (tangent < *right)
 					++right;
-				else if (tangent <=> *left < 0)
+				else if (tangent < *left)
 					++left;
 				else
 					break;

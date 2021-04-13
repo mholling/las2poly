@@ -38,9 +38,9 @@ public:
 				edges.push_back(point_edge.second);
 			});
 			auto const ordering = [&](Edge const &edge1, Edge const &edge2) {
-				return incoming <=> edge1 < 0
-					? incoming <=> edge2 > 0 || edge1 <=> edge2 > 0
-					: incoming <=> edge2 > 0 && edge1 <=> edge2 > 0;
+				return incoming < edge1
+					? incoming > edge2 || edge1 > edge2
+					: incoming > edge2 && edge1 > edge2;
 			};
 			auto const &outgoing = outside
 				? *std::max_element(edges.begin(), edges.end(), ordering)
