@@ -23,6 +23,11 @@ auto operator*(Edge const &edge1, Edge const &edge2) {
 	return Exact(x1) * Exact(y2) + Exact(y1) * Exact(x2);
 }
 
+// edge1 <  edge2 : edge2 turns anticlockwise from edge1
+// edge1 <= edge2 : edge2 turns anticlockwise from or is parallel to edge1
+// edge1 >= edge2 : edge2 turns clockwise from or is parallel to edge1
+// edge1 >  edge2 : edge2 turns clockwise from edge1
+
 auto operator<=>(Edge const &edge1, Edge const &edge2) {
 	using std::abs, IEEE754::epsilon;
 	auto static constexpr error_scale = epsilon() * (1 + 2 * epsilon());
