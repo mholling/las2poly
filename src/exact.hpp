@@ -6,6 +6,7 @@
 #include <array>
 #include <utility>
 #include <type_traits>
+#include <algorithm>
 #include <compare>
 
 // partial implementation of:
@@ -68,8 +69,11 @@ public:
 	template <typename ...Values, typename = std::enable_if_t<sizeof...(Values) == N>>
 	Exact(Values ...values) : Array{{values...}} { }
 
-	friend auto operator<=>(Exact const &e, int const &zero) {
-		return e.back() <=> zero;
+	friend auto operator<=>(Exact const &exact, int const &zero [[maybe_unused]]) {
+		auto const nonzero = std::find_if(exact.rbegin(), exact.rend(), [](auto const &value) {
+			return value != 0.0;
+		});
+		return (nonzero == exact.rend() ? 0.0 : *nonzero) <=> 0.0;
 	}
 
 	template <std::size_t M>
