@@ -43,7 +43,7 @@ class Points : public std::vector<Point> {
 			points.reserve(tile.size());
 
 			for (auto const point: tile)
-				if (!point.withheld && (point.key_point || !discard.count(point.classification)))
+				if (!point.withheld && (point.key_point || !discard.contains(point.classification)))
 					points.push_back(point);
 			std::sort(points.begin(), points.end(), *this);
 
