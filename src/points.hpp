@@ -19,7 +19,7 @@
 
 class Points : public std::vector<Point> {
 	using Paths = std::vector<std::string>;
-	using Classes = std::unordered_set<unsigned char>;
+	using Discard = std::unordered_set<unsigned char>;
 
 	Points() = default;
 
@@ -38,12 +38,12 @@ class Points : public std::vector<Point> {
 				std::pair<int, int>(p2[0] / resolution, p2[1] / resolution);
 		}
 
-		auto operator()(Tile &&tile, Classes const &classes) const {
+		auto operator()(Tile &&tile, Discard const &discard) const {
 			auto points = Points();
 			points.reserve(tile.size());
 
 			for (auto const point: tile)
-				if (!point.withheld && (point.key_point || classes.count(point.classification)))
+				if (!point.withheld && (point.key_point || !discard.count(point.classification)))
 					points.push_back(point);
 			std::sort(points.begin(), points.end(), *this);
 
@@ -82,7 +82,7 @@ class Points : public std::vector<Point> {
 		using PathIterator = Paths::const_iterator;
 
 		Thin thin;
-		Classes const &classes;
+		Discard discard;
 		std::mutex mutex;
 		std::exception_ptr exception;
 
@@ -96,11 +96,11 @@ class Points : public std::vector<Point> {
 					try {
 						if (path == "-") {
 							std::cin.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-							return thin(Tile(std::cin), classes);
+							return thin(Tile(std::cin), discard);
 						} else {
 							auto input = std::ifstream(path, std::ios::binary);
 							input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-							return thin(Tile(input), classes);
+							return thin(Tile(input), discard);
 						}
 					} catch (std::ios_base::failure &) {
 						throw std::runtime_error(path + ": problem reading file");
@@ -137,15 +137,14 @@ class Points : public std::vector<Point> {
 			return points;
 		}
 
-		Load(double resolution, Classes const &classes) : thin(resolution), classes(classes) { }
+		template <typename Discard>
+		Load(double resolution, Discard const &discard) : thin(resolution), discard(discard.begin(), discard.end()) { }
 	};
 
 public:
-	template <typename AdditionalClasses>
-	Points(Paths const &tile_paths, double resolution, AdditionalClasses const &additional_classes, unsigned threads) {
-		auto classes = Classes({2,3,4,5,6});
-		classes.insert(additional_classes.begin(), additional_classes.end());
-		Load(resolution, classes)(tile_paths, threads).swap(*this);
+	template <typename Discard>
+	Points(Paths const &tile_paths, double resolution, Discard const &discard, unsigned threads) {
+		Load(resolution, discard)(tile_paths, threads).swap(*this);
 	}
 };
 

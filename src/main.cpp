@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 		auto length     = std::optional<double>();
 		auto simplify   = std::optional<bool>();
 		auto smooth     = std::optional<bool>();
-		auto classes    = std::optional<std::vector<int>>();
+		auto discard    = std::optional<std::vector<int>>{{0,1,7,9,18}};
 		auto epsg       = std::optional<int>();
 		auto threads    = std::optional<std::vector<int>>{{default_threads}};
 		auto tiles_path = std::optional<std::string>();
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
 		args.option("-i", "--simplify",                  "apply output simplification",            simplify);
 		args.option("-m", "--smooth",                    "apply output smoothing",                 smooth);
-		args.option("-c", "--classes",    "<class,...>", "additional lidar point classes",         classes);
+		args.option("-c", "--discard",    "<class,...>", "discarded point classes",                discard);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
 		args.option("",   "--tiles",      "<tiles.txt>", "list of input tiles as a text file",     tiles_path);
@@ -76,9 +76,6 @@ int main(int argc, char *argv[]) {
 		if (!proceed)
 			return EXIT_SUCCESS;
 
-		if (!classes)
-			classes.emplace();
-
 		if (width && *width <= 0)
 			throw std::runtime_error("width must be positive");
 		if (*slope <= 0)
@@ -91,12 +88,9 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("edge length can't be more than width");
 		if (area && *area < 0)
 			throw std::runtime_error("area can't be negative");
-		for (auto klass: *classes) {
+		for (auto klass: *discard)
 			if (klass < 0 || klass > 255)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
-			if (7 == klass || 9 == klass || 18 == klass)
-				throw std::runtime_error("can't use lidar point class " + std::to_string(klass));
-		}
 		if (epsg && (*epsg < 1024 || *epsg > 32767))
 			throw std::runtime_error("invalid EPSG code");
 		if (threads->size() > 2)
@@ -120,7 +114,7 @@ int main(int argc, char *argv[]) {
 		auto logger = Logger((bool)progress);
 
 		logger.time("reading", tile_paths.size(), "file");
-		auto points = Points(tile_paths, *length / std::sqrt(8.0), *classes, threads->back());
+		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, threads->back());
 
 		logger.time("triangulating", points.size(), "point");
 		auto mesh = Mesh(points, threads->front());
