@@ -2,6 +2,7 @@
 #define EDGE_HPP
 
 #include "points.hpp"
+#include "ieee754.hpp"
 #include "exact.hpp"
 #include <utility>
 #include <cmath>
@@ -33,9 +34,9 @@ auto operator<=>(Edge const &edge, PointIterator const &point) {
 	auto static constexpr error_scale = epsilon() * (3 + 16 * epsilon());
 
 	auto const &[p1, p2] = edge;
-	auto const &[x1, y1] = static_cast<Vector<2>>(*p1);
-	auto const &[x2, y2] = static_cast<Vector<2>>(*p2);
-	auto const &[x3, y3] = static_cast<Vector<2>>(*point);
+	auto const &[x1, y1] = *p1;
+	auto const &[x2, y2] = *p2;
+	auto const &[x3, y3] = *point;
 
 	auto const det1 = (x2 - x1) * (y3 - y2);
 	auto const det2 = (x3 - x2) * (y2 - y1);
