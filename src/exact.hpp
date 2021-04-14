@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <array>
 #include <utility>
+#include <type_traits>
 #include <compare>
 
 // partial implementation of:
@@ -62,10 +63,10 @@ class Exact : std::array<double, N> {
 	}
 
 	Exact() = default;
-	Exact(double l, double h) : Array{{l, h}} { }
 
 public:
-	Exact(double d) : Array{{d}} { }
+	template <typename ...Values, typename = std::enable_if_t<sizeof...(Values) == N>>
+	Exact(Values ...values) : Array{{values...}} { }
 
 	friend auto operator<=>(Exact const &e, int const &zero) {
 		return e.back() <=> zero;
