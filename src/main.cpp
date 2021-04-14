@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
 		args.option("-i", "--simplify",                  "apply output simplification",            simplify);
 		args.option("-m", "--smooth",                    "apply output smoothing",                 smooth);
-		args.option("-c", "--discard",    "<class,...>", "discarded point classes",                discard);
+		args.option("-d", "--discard",    "<class,...>", "discarded point classes",                discard);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
 		args.option("",   "--tiles",      "<tiles.txt>", "list of input tiles as a text file",     tiles_path);
