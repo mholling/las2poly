@@ -20,15 +20,6 @@ class Exact : std::array<double, N> {
 	template <std::size_t M>
 	friend class Exact;
 
-	auto split() const {
-		auto static constexpr s = 1ul + (1ul << (IEEE754::bits() + 1u) / 2u);
-		auto const &a = this->back();
-		auto const c = s * a;
-		auto const aa = c - a;
-		auto const h = c - aa;
-		return std::pair(a - h, h);
-	};
-
 	template <std::size_t M>
 	auto partition(Exact<M> &e1, Exact<N-M> &e2) const {
 		auto here = this->begin();
@@ -36,6 +27,24 @@ class Exact : std::array<double, N> {
 			e = *here++;
 		for (auto &e: e2)
 			e = *here++;
+	}
+
+	auto static split(double const &a) {
+		auto static constexpr s = 1ul + (1ul << (IEEE754::bits() + 1u) / 2u);
+		auto const c = s * a;
+		auto const aa = c - a;
+		auto const h = c - aa;
+		return std::pair(a - h, h);
+	};
+
+	void static two_product(double &l, double &h) {
+		auto const [ll, lh] = split(l);
+		auto const [hl, hh] = split(h);
+		h = h * l;
+		auto const err1 = h - (lh * hh);
+		auto const err2 = err1 - (ll * hh);
+		auto const err3 = err2 - (lh * hl);
+		l = (ll * hl) - err3;
 	}
 
 	void static two_sum(double &l, double &h) {
@@ -121,14 +130,9 @@ public:
 	template <std::size_t M>
 	auto operator*(Exact<M> const &other) const {
 		if constexpr (N == 1 && M == 1) { // TWO-PRODUCT
-			auto [al, ah] = this->split();
-			auto [bl, bh] = other.split();
-			auto const h = this->back() * other.back();
-			auto const err1 = h - (ah * bh);
-			auto const err2 = err1 - (al * bh);
-			auto const err3 = err2 - (ah * bl);
-			auto const l = (al * bl) - err3;
-			return Exact<M+N>(l, h);
+			auto result = Exact<M+N>(*this->begin(), *other.begin());
+			two_product(result[0], result[1]);
+			return result;
 		} else if constexpr(N > 1 && M > 1) {
 			auto static constexpr N1 = N / 2, N2 = N - N1, M1 = M / 2, M2 = M - M1;
 			auto a1 = Exact<N1>();
