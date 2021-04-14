@@ -12,18 +12,6 @@
 
 using Edge = std::pair<PointIterator, PointIterator>;
 
-auto operator^(Edge const &edge1, Edge const &edge2) {
-	auto const [x1, y1] = *edge1.second - *edge1.first;
-	auto const [x2, y2] = *edge2.second - *edge2.first;
-	return Exact(x1) * Exact(y2) - Exact(y1) * Exact(x2);
-}
-
-auto operator*(Edge const &edge1, Edge const &edge2) {
-	auto const [x1, y1] = *edge1.second - *edge1.first;
-	auto const [x2, y2] = *edge2.second - *edge2.first;
-	return Exact(x1) * Exact(y2) + Exact(y1) * Exact(x2);
-}
-
 // edge <  point : point lies to the right of edge
 // edge <= point : point lies to the right of edge or is colinear
 // edge >= point : point lies to the left of edge or is colinear
