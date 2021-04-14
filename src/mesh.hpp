@@ -36,16 +36,16 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		disconnect({p2, p1});
 	}
 
-	auto static less_than(Edge const &edge, Edge const &edge1, Edge const &edge2) {
-		return edge < edge1
-			? edge > edge2 || edge1 > edge2
-			: edge > edge2 && edge1 > edge2;
+	auto static less_than(Edge const &edge, PointIterator const &p1, PointIterator const &p2) {
+		return edge < p1
+			? edge > p2 || Edge(p1, p2) > edge.second
+			: edge > p2 && Edge(p1, p2) > edge.second;
 	}
 
 	auto next_interior(Edge const &edge) {
 		auto const &neighbours = adjacent(edge.second);
 		auto const next = std::max_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
-			return p1 == edge.first ? true : p2 == edge.first ? false : less_than(edge, Edge(edge.second, p1), Edge(edge.second, p2));
+			return p1 == edge.first ? true : p2 == edge.first ? false : less_than(edge, p1, p2);
 		});
 		if (next == neighbours.end())
 			throw std::runtime_error("unexpected");
@@ -55,7 +55,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	auto next_exterior(Edge const &edge) {
 		auto const &neighbours = adjacent(edge.second);
 		auto const next = std::min_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
-			return p1 == edge.first ? false : p2 == edge.first ? true : less_than(edge, Edge(edge.second, p1), Edge(edge.second, p2));
+			return p1 == edge.first ? false : p2 == edge.first ? true : less_than(edge, p1, p2);
 		});
 		if (next == neighbours.end())
 			throw std::runtime_error("unexpected");
@@ -79,7 +79,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	auto exterior_clockwise(PointIterator const &rightmost) {
 		auto const &neighbours = adjacent(rightmost);
 		auto const next = std::min_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
-			return Edge(rightmost, p1) < Edge(rightmost, p2);
+			return Edge(p1, p2) < rightmost;
 		});
 		return Iterator(*this, Edge(rightmost, *next), true);
 	}
@@ -87,7 +87,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	auto exterior_anticlockwise(PointIterator const &leftmost) {
 		auto const &neighbours = adjacent(leftmost);
 		auto const next = std::max_element(neighbours.begin(), neighbours.end(), [&](auto const &p1, auto const &p2) {
-			return Edge(leftmost, p1) < Edge(leftmost, p2);
+			return Edge(p1, p2) < leftmost;
 		});
 		return Iterator(*this, Edge(leftmost, *next), false);
 	}
@@ -97,7 +97,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		auto const &[prev, point] = *edge;
 		while (true) {
 			auto const [candidate, next] = edge.search();
-			auto const orientation = Edge(opposite, point) <=> Edge(point, candidate);
+			auto const orientation = Edge(point, candidate) <=> opposite;
 			if (rhs ? orientation <= 0 : orientation >= 0)
 				return std::optional<PointIterator>();
 			if (candidate == prev)
@@ -124,7 +124,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		case 1:
 			throw std::runtime_error("not enough points");
 		case 3:
-			if (Edge(begin+2, begin+1) <=> Edge(begin+1, begin) != 0)
+			if (Edge(begin+2, begin+1) <=> begin != 0)
 				connect(begin, begin+2);
 			connect(begin+2, begin+1);
 			[[fallthrough]];
@@ -149,9 +149,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 			auto right = exterior_anticlockwise(leftmost);
 			while (true) {
 				auto const tangent = Edge(left->first, right->first);
-				if (tangent < *right)
+				if (tangent < right->second)
 					++right;
-				else if (tangent < *left)
+				else if (tangent < left->second)
 					++left;
 				else
 					break;

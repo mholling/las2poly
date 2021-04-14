@@ -23,36 +23,30 @@ auto operator*(Edge const &edge1, Edge const &edge2) {
 	return Exact(x1) * Exact(y2) + Exact(y1) * Exact(x2);
 }
 
-// edge1 <  edge2 : edge2 turns anticlockwise from edge1
-// edge1 <= edge2 : edge2 turns anticlockwise from or is parallel to edge1
-// edge1 >= edge2 : edge2 turns clockwise from or is parallel to edge1
-// edge1 >  edge2 : edge2 turns clockwise from edge1
+// edge <  point : point lies to the right of edge
+// edge <= point : point lies to the right of edge or is colinear
+// edge >= point : point lies to the left of edge or is colinear
+// edge >  point : point lies to the left of edge
 
-auto operator<=>(Edge const &edge1, Edge const &edge2) {
+auto operator<=>(Edge const &edge, PointIterator const &point) {
 	using std::abs, IEEE754::epsilon;
 	auto static constexpr error_scale = epsilon() * (3 + 16 * epsilon());
 
-	auto const &[p11, p12] = edge1;
-	auto const &[p21, p22] = edge2;
-	auto const &[x11, y11] = static_cast<Vector<2>>(*p11);
-	auto const &[x12, y12] = static_cast<Vector<2>>(*p12);
-	auto const &[x21, y21] = static_cast<Vector<2>>(*p21);
-	auto const &[x22, y22] = static_cast<Vector<2>>(*p22);
+	auto const &[p1, p2] = edge;
+	auto const &[x1, y1] = static_cast<Vector<2>>(*p1);
+	auto const &[x2, y2] = static_cast<Vector<2>>(*p2);
+	auto const &[x3, y3] = static_cast<Vector<2>>(*point);
 
-	auto const x1 = x12 - x11;
-	auto const y1 = y12 - y11;
-	auto const x2 = x22 - x21;
-	auto const y2 = y22 - y21;
-	auto const det1 = x1 * y2, det2 = y1 * x2;
+	auto const det1 = (x2 - x1) * (y3 - y2);
+	auto const det2 = (x3 - x2) * (y2 - y1);
 	auto const det = det1 - det2;
 	if (abs(det) > error_scale * (abs(det1) + abs(det2)))
 		return det <=> 0;
 	else {
-		auto const x1 = Exact(x12) - Exact(x11);
-		auto const y1 = Exact(y12) - Exact(y11);
-		auto const x2 = Exact(x22) - Exact(x21);
-		auto const y2 = Exact(y22) - Exact(y21);
-		return x1 * y2 - y1 * x2 <=> 0;
+		auto const det1 = Exact(x1) * Exact(y2) - Exact(x2) * Exact(y1);
+		auto const det2 = Exact(x2) * Exact(y3) - Exact(x3) * Exact(y2);
+		auto const det3 = Exact(x3) * Exact(y1) - Exact(x1) * Exact(y3);
+		return det1 + det2 + det3 <=> 0;
 	}
 }
 
