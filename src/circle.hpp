@@ -46,22 +46,27 @@ auto operator<=>(Circle const &circle, PointIterator const &point) {
 	if (abs(det) > error_bound)
 		return det <=> 0;
 	else {
-		auto const dx1 = Exact(x1) - Exact(x4);
-		auto const dx2 = Exact(x2) - Exact(x4);
-		auto const dx3 = Exact(x3) - Exact(x4);
-		auto const dy1 = Exact(y1) - Exact(y4);
-		auto const dy2 = Exact(y2) - Exact(y4);
-		auto const dy3 = Exact(y3) - Exact(y4);
-		auto const dot1 = dx1 * dx1 + dy1 * dy1;
-		auto const dot2 = dx2 * dx2 + dy2 * dy2;
-		auto const dot3 = dx3 * dx3 + dy3 * dy3;
-		auto const dx2dy3 = dx2 * dy3, dx3dy2 = dx3 * dy2;
-		auto const dx3dy1 = dx3 * dy1, dx1dy3 = dx1 * dy3;
-		auto const dx1dy2 = dx1 * dy2, dx2dy1 = dx2 * dy1;
+		auto const dot1 = Exact(x1) * Exact(x1) + Exact(y1) * Exact(y1);
+		auto const dot2 = Exact(x2) * Exact(x2) + Exact(y2) * Exact(y2);
+		auto const dot3 = Exact(x3) * Exact(x3) + Exact(y3) * Exact(y3);
+		auto const dot4 = Exact(x4) * Exact(x4) + Exact(y4) * Exact(y4);
+		auto const x1y2 = Exact(x1) * Exact(y2);
+		auto const x1y3 = Exact(x1) * Exact(y3);
+		auto const x1y4 = Exact(x1) * Exact(y4);
+		auto const x2y1 = Exact(x2) * Exact(y1);
+		auto const x2y3 = Exact(x2) * Exact(y3);
+		auto const x2y4 = Exact(x2) * Exact(y4);
+		auto const x3y1 = Exact(x3) * Exact(y1);
+		auto const x3y2 = Exact(x3) * Exact(y2);
+		auto const x3y4 = Exact(x3) * Exact(y4);
+		auto const x4y1 = Exact(x4) * Exact(y1);
+		auto const x4y2 = Exact(x4) * Exact(y2);
+		auto const x4y3 = Exact(x4) * Exact(y3);
 		auto const det = (
-			dot1 * (dx2dy3 - dx3dy2) +
-			dot2 * (dx3dy1 - dx1dy3) +
-			dot3 * (dx1dy2 - dx2dy1)
+			(dot1 * (x2y3 - x2y4) + dot1 * (x3y4 - x3y2) + dot1 * (x4y2 - x4y3)) +
+			(dot2 * (x3y1 - x3y4) + dot2 * (x4y3 - x4y1) + dot2 * (x1y4 - x1y3)) +
+			(dot3 * (x4y1 - x4y2) + dot3 * (x1y2 - x1y4) + dot3 * (x2y4 - x2y1)) +
+			(dot4 * (x1y3 - x1y2) + dot4 * (x2y1 - x2y3) + dot4 * (x3y2 - x3y1))
 		);
 		return det <=> 0;
 	}
