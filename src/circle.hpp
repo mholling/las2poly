@@ -3,6 +3,7 @@
 
 #include "points.hpp"
 #include "ieee754.hpp"
+#include "exact.hpp"
 #include <tuple>
 #include <cmath>
 #include <compare>

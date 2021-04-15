@@ -6,6 +6,7 @@
 #include "exact.hpp"
 #include <utility>
 #include <cmath>
+#include <algorithm>
 #include <compare>
 #include <functional>
 #include <cstddef>
