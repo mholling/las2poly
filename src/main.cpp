@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 		auto length     = std::optional<double>();
 		auto simplify   = std::optional<bool>();
 		auto smooth     = std::optional<bool>();
-		auto discard    = std::optional<std::vector<int>>{{0,1,7,9,18}};
+		auto discard    = std::optional<std::vector<int>>{{0,1,7,9,12,18}};
 		auto epsg       = std::optional<int>();
 		auto threads    = std::optional<std::vector<int>>{{default_threads}};
 		auto tiles_path = std::optional<std::string>();
