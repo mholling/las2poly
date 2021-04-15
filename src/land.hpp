@@ -30,7 +30,7 @@ struct Land : std::vector<Polygon> {
 				return (*edge1.second - *edge1.first).sqnorm() < (*edge2.second - *edge2.first).sqnorm();
 			}), edges.end());
 
-			auto const perp = edges[1] % edges[2];
+			auto const perp = edges[1] ^ edges[2];
 			perp_sum[0] += perp[0];
 			perp_sum[1] += perp[1];
 			perp_sum_z  += perp[2];

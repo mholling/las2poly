@@ -48,7 +48,7 @@ auto operator<=>(Edge const &edge, PointIterator const &point) {
 	}
 }
 
-auto operator%(Edge const &edge1, Edge const &edge2) { // 3d cross product
+auto operator^(Edge const &edge1, Edge const &edge2) { // 3d cross product
 	return (+*edge1.first - +*edge1.second) ^ (+*edge2.first - +*edge2.second);
 }
 
