@@ -10,7 +10,7 @@
 
 template <bool outside = true>
 class Rings : public std::vector<Ring> {
-	using Neighbours = std::unordered_multimap<PointIterator, PointIterator>;
+	using PointsEdges = std::unordered_multimap<PointIterator, Edge>;
 	using Connections = std::unordered_map<Edge, Edge>;
 
 	auto static unwind(Connections &connections) {
@@ -26,26 +26,23 @@ class Rings : public std::vector<Ring> {
 public:
 	template <typename Edges>
 	Rings(Edges const &edges) {
-		auto neighbours = Neighbours();
+		auto points_edges = PointsEdges();
 		auto connections = Connections();
 
 		for (auto const &edge: edges)
-			neighbours.emplace(edge.first, edge.second);
+			points_edges.emplace(edge.first, edge);
 		for (auto const &incoming: edges) {
-			auto points = std::vector<PointIterator>();
-			auto const &[start, stop] = neighbours.equal_range(incoming.second);
-			std::for_each(start, stop, [&](auto const &pair) {
-				points.push_back(pair.second);
-			});
-			auto const ordering = [&](PointIterator const &p1, PointIterator const &p2) {
+			auto const ordering = [&](auto const &point_edge1, auto const &point_edge2) {
+				auto const &p1 = point_edge1.second.second;
+				auto const &p2 = point_edge2.second.second;
 				return incoming < p1
 					? incoming > p2 || Edge(p1, p2) > incoming.second
 					: incoming > p2 && Edge(p1, p2) > incoming.second;
 			};
-			auto const &neighbour = outside
-				? *std::max_element(points.begin(), points.end(), ordering)
-				: *std::min_element(points.begin(), points.end(), ordering);
-			auto const outgoing = Edge(incoming.second, neighbour);
+			auto const &[start, stop] = points_edges.equal_range(incoming.second);
+			auto const &[point, outgoing] = outside
+				? *std::max_element(start, stop, ordering)
+				: *std::min_element(start, stop, ordering);
 			connections.emplace(incoming, outgoing);
 		}
 
