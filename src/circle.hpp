@@ -70,4 +70,27 @@ auto operator<=>(Circle const &circle, PointIterator const &point) {
 	}
 }
 
+// // fastest version of worst-case test:
+// auto const dot1 = Exact(x1) * Exact(x1) + Exact(y1) * Exact(y1);
+// auto const dot2 = Exact(x2) * Exact(x2) + Exact(y2) * Exact(y2);
+// auto const dot3 = Exact(x3) * Exact(x3) + Exact(y3) * Exact(y3);
+// auto const dot4 = Exact(x4) * Exact(x4) + Exact(y4) * Exact(y4);
+// auto const x1y2 = Exact(x1) * Exact(y2);
+// auto const x1y3 = Exact(x1) * Exact(y3);
+// auto const x1y4 = Exact(x1) * Exact(y4);
+// auto const x2y1 = Exact(x2) * Exact(y1);
+// auto const x2y3 = Exact(x2) * Exact(y3);
+// auto const x2y4 = Exact(x2) * Exact(y4);
+// auto const x3y1 = Exact(x3) * Exact(y1);
+// auto const x3y2 = Exact(x3) * Exact(y2);
+// auto const x3y4 = Exact(x3) * Exact(y4);
+// auto const x4y1 = Exact(x4) * Exact(y1);
+// auto const x4y2 = Exact(x4) * Exact(y2);
+// auto const x4y3 = Exact(x4) * Exact(y3);
+// auto const det1 = dot1 * (x2y3 - x2y4) + dot1 * (x3y4 - x3y2) + dot1 * (x4y2 - x4y3);
+// auto const det2 = dot2 * (x3y1 - x3y4) + dot2 * (x4y3 - x4y1) + dot2 * (x1y4 - x1y3);
+// auto const det3 = dot3 * (x4y1 - x4y2) + dot3 * (x1y2 - x1y4) + dot3 * (x2y4 - x2y1);
+// auto const det4 = dot4 * (x1y3 - x1y2) + dot4 * (x2y1 - x2y3) + dot4 * (x3y2 - x3y1);
+// return det1 + det2 + det3 + det4 <=> 0;
+
 #endif
