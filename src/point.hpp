@@ -21,11 +21,11 @@ struct Point : Vector<2> {
 	auto ground() const {
 		return 2 == classification || 3 == classification;
 	}
-
-	Vector<3> const operator+() const {
-		return {{(*this)[0], (*this)[1], elevation}};
-	}
 };
+
+auto operator+(Point const &point) {
+	return Vector<3>{{point[0], point[1], point.elevation}};
+}
 
 auto operator>(Point const &p1, Point const &p2) {
 	return
