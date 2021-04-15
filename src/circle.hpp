@@ -16,8 +16,7 @@ using Circle = std::tuple<PointIterator, PointIterator, PointIterator>;
 // circle >  point : point is inside circle
 
 auto operator<=>(Circle const &circle, PointIterator const &point) {
-	using std::abs, IEEE754::epsilon;
-	auto static constexpr error_scale = epsilon() * (10 + 96 * epsilon());
+	auto static constexpr error_scale = IEEE754::epsilon() * (10 + 96 * IEEE754::epsilon());
 
 	auto const &[p1, p2, p3] = circle;
 	auto const &[x1, y1] = *p1;
@@ -40,9 +39,9 @@ auto operator<=>(Circle const &circle, PointIterator const &point) {
 	auto const det = det1 + det2 + det3;
 
 	auto const error_bound = error_scale * (
-		dot1 * (abs(dx2dy3) + abs(dx3dy2)) +
-		dot2 * (abs(dx3dy1) + abs(dx1dy3)) +
-		dot3 * (abs(dx1dy2) + abs(dx2dy1))
+		dot1 * (std::abs(dx2dy3) + std::abs(dx3dy2)) +
+		dot2 * (std::abs(dx3dy1) + std::abs(dx1dy3)) +
+		dot3 * (std::abs(dx1dy2) + std::abs(dx2dy1))
 	);
 
 	if (abs(det) > error_bound)

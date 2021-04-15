@@ -19,8 +19,7 @@ using Edge = std::pair<PointIterator, PointIterator>;
 // edge >  point : point lies to the left of edge
 
 auto operator<=>(Edge const &edge, PointIterator const &point) {
-	using std::abs, IEEE754::epsilon;
-	auto static constexpr error_scale = epsilon() * (3 + 16 * epsilon());
+	auto static constexpr error_scale = IEEE754::epsilon() * (3 + 16 * IEEE754::epsilon());
 
 	auto const &[p1, p2] = edge;
 	auto const &[x1, y1] = *p1;
@@ -31,7 +30,7 @@ auto operator<=>(Edge const &edge, PointIterator const &point) {
 	auto const det2 = (x3 - x2) * (y2 - y1);
 	auto const det = det1 - det2;
 
-	if (abs(det) > error_scale * (abs(det1) + abs(det2)))
+	if (std::abs(det) > error_scale * (std::abs(det1) + std::abs(det2)))
 		return det <=> 0;
 
 	auto const [x_min, x_max] = std::minmax({x1, x2, x3});
