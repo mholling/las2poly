@@ -1,5 +1,5 @@
 .Dd $Mdocdate$
-.Dt las2land 1
+.Dt LAS2LAND 1
 .Os
 .Sh NAME
 .Nm las2land
@@ -38,48 +38,49 @@ or
 .Fl -length
 option is required to calibrate the void detection process.
 .Sh OPTIONS
-.Bl -tag
-.It Fl w, -width Ar metres
+.Bl -tag -width 6n
+.It Fl w , -width Ar metres
 Specify the minimum width of waterbodies to be detected.
 The value should be comfortably larger than the linear point density of the lidar data.
 Choose a value according to the scale you're working at.
-.It Fl s, -slope Ar degrees
+.It Fl s , -slope Ar degrees
 Set the maximum slope for a void area to be considered a potential waterbody.
 Some leeway is required to accommodate situations such as steep\-sided river banks.
 Too lenient a value risks capturing non-water voids, such as steep cliffs, which can occlude a lidar sensor.
 The default value of 10° works well in practice.
-.It Fl a, -area Ar metres²
+.It Fl a , -area Ar metres²
 Set an area threshold for removal of small waterbodies and islands.
 A sensible default value is used according to the minimum waterbody width.
-.It Fl l, -length Ar metres
+.It Fl l , -length Ar metres
 Specify a triangle threshold length, if desired.
 Triangles larger than this threshold are added to potential water voids.
 By default, a value the same as the minimum waterbody width is used, however a somewhat smaller value can be used to capture more detail.
-.It Fl i, -simplify
+.It Fl i , -simplify
 Simplify the output polygons using Visvalingam's algorithm.
 Simplified polygons may have self\-intersections and are not guaranteed to be topologically valid, although this is rare.
-.It Fl m, -smooth
+.It Fl m , -smooth
 Apply line smoothing to simplified polygons, rounding off any corners sharper than 15°.
 This option is useful for visual applications such as maps.
-.It Fl d, -discard Ar class,...
+.It Fl d , -discard Ar class,...
 Choose a list of lidar point classes to discard.
 The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
-.It Fl e, -epsg Ar number
+.It Fl e , -epsg Ar number
 Specify an EPSG code to set in the output file.
 This should be the same EPSG as the input data, since no reprojection occurs.
-.It Fl t, -threads Ar number
+.It Fl t , -threads Ar number
 Select the number of threads to use when processing.
 Defaults to the number of available hardware threads.
 .It Fl -tiles Ar tiles.txt
 Provide a text file containing a list of lidar tiles to be processed, in place of command-line arguments.
-.It Fl o, -overwrite
+.It Fl o , -overwrite
 Allow the output file to be overwritten if it already exists.
-.It Fl p, -progress
+.It Fl p , -progress
 Show progress information while data is processed.
-.It Fl v, -version
+.It Fl v , -version
 Show the program version.
-.It Fl h, -help
+.It Fl h , -help
 Show a brief help summary.
+.El
 .Sh EXAMPLES
 .Bl -ohang
 .It Process all lidar tiles in current directory:
@@ -94,5 +95,6 @@ Show a brief help summary.
 .Dl $ las2land --width 12 --length 6 *.las land.json
 .It Add So bridge deck Sc points Po class 17 Pc to water areas:
 .Dl $ las2land --width 8 --discard 0,1,7,9,12,17,18 *.las land.json
+.El
 .Sh AUTHORS
 .An Matthew Hollingworth

@@ -1,3 +1,5 @@
+LAS2LAND(1) - General Commands Manual
+
 # NAME
 
 **las2land** - extract land areas from lidar tiles
@@ -41,51 +43,51 @@ option is required to calibrate the void detection process.
 
 # OPTIONS
 
-**-w,** **--width** *metres*
+**-w**, **--width** *metres*
 
 > Specify the minimum width of waterbodies to be detected.
 > The value should be comfortably larger than the linear point density of the lidar data.
 > Choose a value according to the scale you're working at.
 
-**-s,** **--slope** *degrees*
+**-s**, **--slope** *degrees*
 
 > Set the maximum slope for a void area to be considered a potential waterbody.
 > Some leeway is required to accommodate situations such as steep&#45;sided river banks.
 > Too lenient a value risks capturing non-water voids, such as steep cliffs, which can occlude a lidar sensor.
 > The default value of 10&#176; works well in practice.
 
-**-a,** **--area** *metres&#178;*
+**-a**, **--area** *metres&#178;*
 
 > Set an area threshold for removal of small waterbodies and islands.
 > A sensible default value is used according to the minimum waterbody width.
 
-**-l,** **--length** *metres*
+**-l**, **--length** *metres*
 
 > Specify a triangle threshold length, if desired.
 > Triangles larger than this threshold are added to potential water voids.
 > By default, a value the same as the minimum waterbody width is used, however a somewhat smaller value can be used to capture more detail.
 
-**-i,** **--simplify**
+**-i**, **--simplify**
 
 > Simplify the output polygons using Visvalingam's algorithm.
 > Simplified polygons may have self&#45;intersections and are not guaranteed to be topologically valid, although this is rare.
 
-**-m,** **--smooth**
+**-m**, **--smooth**
 
 > Apply line smoothing to simplified polygons, rounding off any corners sharper than 15&#176;.
 > This option is useful for visual applications such as maps.
 
-**-d,** **--discard** *class,...*
+**-d**, **--discard** *class,...*
 
 > Choose a list of lidar point classes to discard.
 > The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
 
-**-e,** **--epsg** *number*
+**-e**, **--epsg** *number*
 
 > Specify an EPSG code to set in the output file.
 > This should be the same EPSG as the input data, since no reprojection occurs.
 
-**-t,** **--threads** *number*
+**-t**, **--threads** *number*
 
 > Select the number of threads to use when processing.
 > Defaults to the number of available hardware threads.
@@ -94,19 +96,19 @@ option is required to calibrate the void detection process.
 
 > Provide a text file containing a list of lidar tiles to be processed, in place of command-line arguments.
 
-**-o,** **--overwrite**
+**-o**, **--overwrite**
 
 > Allow the output file to be overwritten if it already exists.
 
-**-p,** **--progress**
+**-p**, **--progress**
 
 > Show progress information while data is processed.
 
-**-v,** **--version**
+**-v**, **--version**
 
 > Show the program version.
 
-**-h,** **--help**
+**-h**, **--help**
 
 > Show a brief help summary.
 
@@ -139,3 +141,5 @@ Add 'bridge deck' points (class 17) to water areas:
 # AUTHORS
 
 Matthew Hollingworth
+
+macOS 11.1 - April 16, 2021
