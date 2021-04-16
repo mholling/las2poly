@@ -49,7 +49,7 @@ public:
 		auto static constexpr suffixes = {"","k","M","G"};
 		auto suffix = suffixes.begin();
 		double decimal = arg;
-		for (; decimal >= 999.95 & suffix + 1 < suffixes.end(); decimal *= 0.001, ++suffix) ;
+		for (; decimal >= 999.95 && suffix + 1 < suffixes.end(); decimal *= 0.001, ++suffix) ;
 		info(" ", std::fixed, std::setprecision(arg < 1000 ? 0 : 1), decimal, *suffix, " ", word, arg > 1 ? "s" : "", args...);
 	}
 
