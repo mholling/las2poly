@@ -116,6 +116,8 @@ int main(int argc, char *argv[]) {
 			length = *width;
 		if (!area)
 			area = 4 * *width * *width;
+		if (smooth)
+			simplify = true;
 
 		auto logger = Logger((bool)progress);
 
