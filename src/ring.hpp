@@ -68,7 +68,7 @@ class Ring : std::list<Vector<2>> {
 	struct CompareCornerAreas {
 		auto operator()(CornerIterator const &v) const {
 			auto const cross = v.cross();
-			return std::pair(erode == cross < 0, std::abs(cross));
+			return std::pair(erode == (cross < 0), std::abs(cross));
 		}
 
 		auto operator()(double corner_area) const {
