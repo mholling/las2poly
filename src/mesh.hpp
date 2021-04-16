@@ -210,7 +210,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 				auto const edge3 = Iterator(*this, edge2.peek(), true);
 				if (edge3->second != point)
 					throw std::runtime_error("corrupted mesh");
-				Triangle const triangle = {*edge1, *edge2, *edge3};
+				auto const triangle = Triangle{{*edge1, *edge2, *edge3}};
 				if (triangle > length)
 					triangles.insert(triangle);
 				for (auto const &edge: triangle)
