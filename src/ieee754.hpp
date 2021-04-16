@@ -15,7 +15,7 @@ namespace IEEE754 {
 	double consteval epsilon(double result = 1.0) {
 		return 1.0 + result == 1.0 ? result : epsilon(result * 0.5);
 	}
-};
+}
 
 #endif
 

@@ -19,7 +19,7 @@ auto operator>(Triangle const &triangle, double length) {
 	return std::any_of(triangle.begin(), triangle.end(), [=](auto const &edge) {
 		return edge > length;
 	});
-};
+}
 
 template <> struct std::hash<Triangle> {
 	std::size_t operator()(Triangle const &triangle) const { return hash<Edge>()(triangle[0]); }

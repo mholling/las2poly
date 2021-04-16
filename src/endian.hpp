@@ -36,6 +36,6 @@ enum endian_type {
 namespace Endian {
 	bool static constexpr big    = byte_order == big_endian;
 	bool static constexpr little = byte_order == little_endian;
-};
+}
 
 #endif
