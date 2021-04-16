@@ -18,15 +18,15 @@ LAS2LAND(1) - General Commands Manual
 delineates land and water areas from a classified lidar point cloud.
 Airborne lidar data exhibits voids in areas where surface water is present.
 These voids are detected by triangulating the lidar point cloud; groups of large triangles are likely to indicate the presence of water.
-Slope analysis of each group is performed to reject non&#45;horizontal voids, which can occur in steep terrain.
+Slope analysis of each group is performed to reject non-horizontal voids, which can occur in steep terrain.
 Land polygons are formed from the outline of the remaining triangles.
 
 Input to the program is a list of lidar tiles in LAS format.
 The tiles should share a common projected SRS, typically a UTM projection.
 
 The lidar tiles should be classified to indicate ground points.
-Non&#45;ground points are used in the triangulation, but not for analysis of flatness.
-Spurious points, including low&#45; and high&#45;noise points
+Non-ground points are used in the triangulation, but not for analysis of flatness.
+Spurious points, including low- and high-noise points
 (classes 7 and 18)
 and specular water reflections
 (class 9)
@@ -52,7 +52,7 @@ option is required to calibrate the void detection process.
 **-s**, **--slope** *degrees*
 
 > Set the maximum slope for a void area to be considered a potential waterbody.
-> Some leeway is required to accommodate situations such as steep&#45;sided river banks.
+> Some leeway is required to accommodate situations such as steep-sided river banks.
 > Too lenient a value risks capturing non-water voids, such as steep cliffs, which can occlude a lidar sensor.
 > The default value of 10&#176; works well in practice.
 
@@ -70,7 +70,7 @@ option is required to calibrate the void detection process.
 **-i**, **--simplify**
 
 > Simplify the output polygons using Visvalingam's algorithm.
-> Simplified polygons may have self&#45;intersections and are not guaranteed to be topologically valid, although this is rare.
+> Simplified polygons may have self-intersections and are not guaranteed to be topologically valid, although this is rare.
 
 **-m**, **--smooth**
 

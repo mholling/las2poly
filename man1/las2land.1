@@ -15,15 +15,15 @@
 delineates land and water areas from a classified lidar point cloud.
 Airborne lidar data exhibits voids in areas where surface water is present.
 These voids are detected by triangulating the lidar point cloud; groups of large triangles are likely to indicate the presence of water.
-Slope analysis of each group is performed to reject non\-horizontal voids, which can occur in steep terrain.
+Slope analysis of each group is performed to reject non-horizontal voids, which can occur in steep terrain.
 Land polygons are formed from the outline of the remaining triangles.
 .Pp
 Input to the program is a list of lidar tiles in LAS format.
 The tiles should share a common projected SRS, typically a UTM projection.
 .Pp
 The lidar tiles should be classified to indicate ground points.
-Non\-ground points are used in the triangulation, but not for analysis of flatness.
-Spurious points, including low\- and high\-noise points
+Non-ground points are used in the triangulation, but not for analysis of flatness.
+Spurious points, including low- and high-noise points
 .Pq classes 7 and 18
 and specular water reflections
 .Pq class 9
@@ -45,7 +45,7 @@ The value should be comfortably larger than the linear point density of the lida
 Choose a value according to the scale you're working at.
 .It Fl s , -slope Ar degrees
 Set the maximum slope for a void area to be considered a potential waterbody.
-Some leeway is required to accommodate situations such as steep\-sided river banks.
+Some leeway is required to accommodate situations such as steep-sided river banks.
 Too lenient a value risks capturing non-water voids, such as steep cliffs, which can occlude a lidar sensor.
 The default value of 10° works well in practice.
 .It Fl a , -area Ar metres²
@@ -57,7 +57,7 @@ Triangles larger than this threshold are added to potential water voids.
 By default, a value the same as the minimum waterbody width is used, however a somewhat smaller value can be used to capture more detail.
 .It Fl i , -simplify
 Simplify the output polygons using Visvalingam's algorithm.
-Simplified polygons may have self\-intersections and are not guaranteed to be topologically valid, although this is rare.
+Simplified polygons may have self-intersections and are not guaranteed to be topologically valid, although this is rare.
 .It Fl m , -smooth
 Apply line smoothing to simplified polygons, rounding off any corners sharper than 15°.
 This option is useful for visual applications such as maps.
