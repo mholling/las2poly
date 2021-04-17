@@ -46,8 +46,7 @@ struct Land : std::vector<Polygon> {
 					++count, abs_sum += std::abs(edge->second->elevation - edge->first->elevation);
 		}
 
-		auto const angle = std::acos(std::abs(perp_sum[2] / perp_sum.norm()));
-		return angle < slope && count > 0 && delta_sum < delta * count;
+		return count > 0 && delta_sum < delta * count && std::acos(std::abs(perp_sum[2] / perp_sum.norm())) < slope;
 	}
 
 	Land(Mesh &mesh, double length, double width, double slope, double area, unsigned threads) {
