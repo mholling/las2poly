@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Copyright 2021 Matthew Hollingworth.
-// Distrubuted under GNU General Public License version 3.
+// Distributed under GNU General Public License version 3.
 // See LICENSE file for full license information.
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -18,4 +18,3 @@ namespace IEEE754 {
 }
 
 #endif
-
