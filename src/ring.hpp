@@ -64,8 +64,11 @@ class Ring : std::list<Vector<2>> {
 		return winding;
 	}
 
-	template <bool erode>
 	struct CompareCornerAreas {
+		bool erode;
+
+		CompareCornerAreas(bool erode) : erode(erode) { }
+
 		auto operator()(CornerIterator const &v) const {
 			auto const cross = v.cross();
 			return std::pair(erode == (cross < 0), std::abs(cross));
@@ -86,12 +89,10 @@ class Ring : std::list<Vector<2>> {
 		}
 	};
 
-	template <bool erode>
-	void simplify(double tolerance) {
-		using Compare = CompareCornerAreas<erode>;
-		auto const compare = Compare();
+	void simplify_one_sided(double tolerance, bool erode) {
+		auto const compare = CompareCornerAreas(erode);
 		auto const limit = compare(tolerance);
-		auto corners = std::multiset<CornerIterator, Compare>();
+		auto corners = std::multiset<CornerIterator, CompareCornerAreas>(compare);
 		for (auto corner = begin(); corner != end(); ++corner)
 			corners.insert(corner);
 		while (corners.size() > 4 && compare(*corners.begin()) < limit) {
@@ -126,9 +127,9 @@ public:
 		return false; // ring == *this
 	}
 
-	void simplify(double tolerance) {
-		simplify<true>(tolerance);
-		simplify<false>(tolerance);
+	void simplify(double tolerance, bool open) {
+		simplify_one_sided(tolerance, !open);
+		simplify_one_sided(tolerance, open);
 	}
 
 	void smooth(double tolerance, double angle) {

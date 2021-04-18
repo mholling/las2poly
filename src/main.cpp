@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
 		auto slope      = std::optional<double>(10.0);
 		auto area       = std::optional<double>();
 		auto length     = std::optional<double>();
+		auto water      = std::optional<bool>();
 		auto simplify   = std::optional<bool>();
 		auto smooth     = std::optional<bool>();
 		auto discard    = std::optional<std::vector<int>>{{0,1,7,9,12,18}};
@@ -50,6 +51,7 @@ int main(int argc, char *argv[]) {
 		args.option("-s", "--slope",      "<degrees>",   "maximum waterbody slope",                slope);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
+		args.option("-r", "--water",                     "extract waterbodies instead of land",    water);
 		args.option("-i", "--simplify",                  "apply output simplification",            simplify);
 		args.option("-m", "--smooth",                    "apply output smoothing",                 smooth);
 		args.option("-d", "--discard",    "<class,...>", "discarded point classes",                discard);
@@ -128,11 +130,11 @@ int main(int argc, char *argv[]) {
 		auto mesh = Mesh(points, threads->front());
 
 		logger.time("extracting polygons");
-		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, *area, threads->front());
+		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, *area, (bool)water, threads->front());
 
 		if (simplify) {
 			auto const tolerance = 4 * *width * *width;
-			polygons.simplify(tolerance);
+			polygons.simplify(tolerance, (bool)water);
 		}
 
 		if (smooth) {

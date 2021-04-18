@@ -224,10 +224,10 @@ public:
 		triangulate(points.begin(), points.end(), threads);
 	}
 
-	void deconstruct(Triangles &triangles, Edges &edges, double length, unsigned threads) {
+	void deconstruct(Triangles &triangles, Edges &edges, double length, bool clockwise_edges, unsigned threads) {
 		auto const rightmost = std::max_element(points_begin, points_begin + size());
 		for (auto edge = exterior_clockwise(rightmost); ; ++edge) {
-			edges.insert(-*edge);
+			edges.insert(clockwise_edges ? *edge : -*edge);
 			disconnect(*edge);
 			if (edge->second == rightmost)
 				break;

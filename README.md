@@ -67,6 +67,10 @@ option is required to calibrate the void detection process.
 > Triangles larger than this threshold are added to potential water voids.
 > By default, a value the same as the minimum waterbody width is used, however a somewhat smaller value can be used to capture more detail.
 
+**-r**, **--water**
+
+> Extract polygons for waterbodies instead of land areas.
+
 **-i**, **--simplify**
 
 > Simplify the output polygons using Visvalingam's algorithm.

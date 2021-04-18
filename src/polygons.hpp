@@ -49,17 +49,17 @@ struct Polygons : std::vector<Polygon> {
 		return count > 0 && delta_sum < delta * count && std::acos(std::abs(perp_sum[2] / perp_sum.norm())) < slope;
 	}
 
-	Polygons(Mesh &mesh, double length, double width, double slope, double area, unsigned threads) {
+	Polygons(Mesh &mesh, double length, double width, double slope, double area, bool water, unsigned threads) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 		auto const delta = width * std::tan(slope);
 
-		mesh.deconstruct(large_triangles, outside_edges, length, threads);
+		mesh.deconstruct(large_triangles, outside_edges, length, water, threads);
 
 		large_triangles.explode([=, &outside_edges](auto const &&triangles) {
 			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope)))
 				for (auto const &triangle: triangles)
-					outside_edges -= triangle;
+					water ? outside_edges += triangle : outside_edges -= triangle;
 		});
 
 		auto rings = Rings(outside_edges);
@@ -83,10 +83,10 @@ struct Polygons : std::vector<Polygon> {
 		});
 	}
 
-	void simplify(double tolerance) {
+	void simplify(double tolerance, bool open) {
 		for (auto &polygon: *this)
 			for (auto &ring: polygon)
-				ring.simplify(tolerance);
+				ring.simplify(tolerance, open);
 	}
 
 	void smooth(double tolerance, double angle) {
