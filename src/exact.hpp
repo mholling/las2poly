@@ -7,7 +7,7 @@
 #ifndef EXACT_HPP
 #define EXACT_HPP
 
-#include "ieee754.hpp"
+#include <limits>
 #include <cstddef>
 #include <array>
 #include <utility>
@@ -18,6 +18,8 @@
 // partial implementation of:
 //     Shewchuk, J. 'Adaptive Precision Floating-Point
 //     Arithmetic and Fast Robust Geometric Predicates'
+
+static_assert(std::numeric_limits<double>::is_iec559);
 
 template <std::size_t N = 1>
 class Exact : std::array<double, N> {
@@ -36,7 +38,8 @@ class Exact : std::array<double, N> {
 	}
 
 	auto static split(double const &a) {
-		auto static constexpr s = 1ul + (1ul << (IEEE754::bits() + 1u) / 2u);
+		auto static constexpr bits = std::numeric_limits<double>::digits;
+		auto static constexpr s = 1ul + (1ul << (bits + 1u) / 2u);
 		auto const c = s * a;
 		auto const aa = c - a;
 		auto const h = c - aa;

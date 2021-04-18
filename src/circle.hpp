@@ -8,9 +8,9 @@
 #define CIRCLE_HPP
 
 #include "points.hpp"
-#include "ieee754.hpp"
 #include "exact.hpp"
 #include <tuple>
+#include <limits>
 #include <cmath>
 #include <compare>
 
@@ -22,7 +22,8 @@ using Circle = std::tuple<PointIterator, PointIterator, PointIterator>;
 // circle >  point : point is inside circle
 
 auto operator<=>(Circle const &circle, PointIterator const &point) {
-	auto static constexpr error_scale = IEEE754::epsilon() * (10 + 96 * IEEE754::epsilon());
+	auto static constexpr epsilon = 0.5 * std::numeric_limits<double>::epsilon();
+	auto static constexpr error_scale = epsilon * (10 + 96 * epsilon);
 
 	auto const &[p1, p2, p3] = circle;
 	auto const &[x1, y1] = *p1;

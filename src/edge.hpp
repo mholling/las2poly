@@ -8,9 +8,9 @@
 #define EDGE_HPP
 
 #include "points.hpp"
-#include "ieee754.hpp"
 #include "exact.hpp"
 #include <utility>
+#include <limits>
 #include <cmath>
 #include <algorithm>
 #include <compare>
@@ -25,7 +25,8 @@ using Edge = std::pair<PointIterator, PointIterator>;
 // edge >  point : point lies to the left of edge
 
 auto operator<=>(Edge const &edge, PointIterator const &point) {
-	auto static constexpr error_scale = IEEE754::epsilon() * (3 + 16 * IEEE754::epsilon());
+	auto static constexpr epsilon = 0.5 * std::numeric_limits<double>::epsilon();
+	auto static constexpr error_scale = epsilon * (3 + 16 * epsilon);
 
 	auto const &[p1, p2] = edge;
 	auto const &[x1, y1] = *p1;
