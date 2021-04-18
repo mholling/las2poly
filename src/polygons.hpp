@@ -4,8 +4,8 @@
 // See LICENSE file for full license information.
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef LAND_HPP
-#define LAND_HPP
+#ifndef POLYGONS_HPP
+#define POLYGONS_HPP
 
 #include "polygon.hpp"
 #include "triangles.hpp"
@@ -22,7 +22,7 @@
 #include <ostream>
 #include <utility>
 
-struct Land : std::vector<Polygon> {
+struct Polygons : std::vector<Polygon> {
 	auto static is_water(Triangles const &triangles, double delta, double slope) {
 		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
 		auto delta_sum = 0.0;
@@ -49,7 +49,7 @@ struct Land : std::vector<Polygon> {
 		return count > 0 && delta_sum < delta * count && std::acos(std::abs(perp_sum[2] / perp_sum.norm())) < slope;
 	}
 
-	Land(Mesh &mesh, double length, double width, double slope, double area, unsigned threads) {
+	Polygons(Mesh &mesh, double length, double width, double slope, double area, unsigned threads) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 		auto const delta = width * std::tan(slope);
@@ -96,9 +96,9 @@ struct Land : std::vector<Polygon> {
 	}
 };
 
-auto &operator<<(std::ostream &json, Land const &land) {
+auto &operator<<(std::ostream &json, Polygons const &polygons) {
 	auto separator = '[';
-	for (auto const &polygon: land)
+	for (auto const &polygon: polygons)
 		json << std::exchange(separator, ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
 	return json << (separator == '[' ? "[]" : "]");
 }

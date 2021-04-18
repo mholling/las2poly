@@ -8,7 +8,7 @@
 #include "logger.hpp"
 #include "points.hpp"
 #include "mesh.hpp"
-#include "land.hpp"
+#include "polygons.hpp"
 #include <optional>
 #include <vector>
 #include <algorithm>
@@ -128,17 +128,17 @@ int main(int argc, char *argv[]) {
 		auto mesh = Mesh(points, threads->front());
 
 		logger.time("extracting polygons");
-		auto land = Land(mesh, *length, *width, *slope * pi / 180, *area, threads->front());
+		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, *area, threads->front());
 
 		if (simplify) {
 			auto const tolerance = 4 * *width * *width;
-			land.simplify(tolerance);
+			polygons.simplify(tolerance);
 		}
 
 		if (smooth) {
 			auto const angle = smoothing_angle * pi / 180;
 			auto const tolerance = 0.5 * *width / std::sin(angle);
-			land.smooth(tolerance, angle);
+			polygons.smooth(tolerance, angle);
 		}
 
 		auto json = std::stringstream();
@@ -146,9 +146,9 @@ int main(int argc, char *argv[]) {
 		json << "{\"type\":\"FeatureCollection\",";
 		if (epsg)
 			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << *epsg << "\"}},";
-		json << "\"features\":" << land << "}";
+		json << "\"features\":" << polygons << "}";
 
-		logger.time("saving", land.size(), "polygon");
+		logger.time("saving", polygons.size(), "polygon");
 		if (json_path == "-")
 			std::cout << json.str() << std::endl;
 		else {
