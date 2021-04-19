@@ -92,7 +92,7 @@ option is required to calibrate the void detection process.
 > Select the number of threads to use when processing.
 > Defaults to the number of available hardware threads.
 
-**--tiles** *tiles.txt*
+**-x**, **--tiles** *tiles.txt*
 
 > Provide a text file containing a list of lidar tiles to be processed, in place of command-line arguments.
 
@@ -142,4 +142,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - April 16, 2021
+macOS 11.1 - April 19, 2021
