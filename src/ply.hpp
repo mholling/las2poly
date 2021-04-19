@@ -7,13 +7,13 @@
 #ifndef PLY_HPP
 #define PLY_HPP
 
-#include "endian.hpp"
 #include "point.hpp"
 #include <istream>
 #include <string>
 #include <stdexcept>
 #include <sstream>
 #include <cstddef>
+#include <bit>
 
 class PLY {
 	std::istream &input;
@@ -42,7 +42,7 @@ public:
 	std::size_t size;
 
 	PLY(std::istream &input) : input(input) {
-		if constexpr (Endian::big)
+		if constexpr (std::endian::native == std::endian::big)
 			expect("format binary_big_endian 1.0");
 		else
 			expect("format binary_little_endian 1.0");

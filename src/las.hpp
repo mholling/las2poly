@@ -7,14 +7,16 @@
 #ifndef LAS_HPP
 #define LAS_HPP
 
-#include "endian.hpp"
 #include "point.hpp"
+#include <bit>
 #include <iostream>
 #include <cstddef>
 #include <cstdint>
 #include <algorithm>
 #include <stdexcept>
 #include <string>
+
+static_assert(std::endian::native == std::endian::big || std::endian::native == std::endian::little);
 
 class LAS {
 	std::istream &input;
@@ -29,7 +31,7 @@ class LAS {
 	void read_values(Arg &arg, Args &...args) {
 		input.read(reinterpret_cast<char *>(&arg), sizeof(arg));
 		position += sizeof(arg);
-		if constexpr (Endian::big && sizeof(arg) > 1)
+		if constexpr (std::endian::native == std::endian::big && sizeof(arg) > 1)
 			std::reverse(reinterpret_cast<char *>(&arg), reinterpret_cast<char *>(&arg) + sizeof(arg));
 		read_values(args...);
 	}
@@ -93,7 +95,7 @@ public:
 		case 10: input.read(buffer, 67); break;
 		}
 
-		if constexpr (Endian::big) {
+		if constexpr (std::endian::native == std::endian::big) {
 			std::reverse(buffer,     buffer + 4);
 			std::reverse(buffer + 4, buffer + 8);
 			std::reverse(buffer + 8, buffer + 12);
