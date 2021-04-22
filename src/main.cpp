@@ -47,19 +47,19 @@ int main(int argc, char *argv[]) {
 		auto json_path = std::string();
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
-		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                width);
-		args.option("-s", "--slope",      "<degrees>",   "maximum waterbody slope",                slope);
-		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",     area);
-		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles", length);
-		args.option("-r", "--water",                     "extract waterbodies instead of land",    water);
-		args.option("-i", "--simplify",                  "apply output simplification",            simplify);
-		args.option("-m", "--smooth",                    "apply output smoothing",                 smooth);
-		args.option("-d", "--discard",    "<class,...>", "discarded point classes",                discard);
-		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",        epsg);
-		args.option("-t", "--threads",    "<number>",    "number of processing threads",           threads);
-		args.option("-x", "--tiles",      "<tiles.txt>", "list of input tiles as a text file",     tiles_path);
-		args.option("-o", "--overwrite",                 "overwrite existing output file",         overwrite);
-		args.option("-p", "--progress",                  "show progress",                          progress);
+		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                   width);
+		args.option("-s", "--slope",      "<degrees>",   "maximum waterbody slope",                   slope);
+		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",        area);
+		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles",    length);
+		args.option("-r", "--water",                     "extract waterbodies instead of land areas", water);
+		args.option("-i", "--simplify",                  "apply output simplification",               simplify);
+		args.option("-m", "--smooth",                    "apply output smoothing",                    smooth);
+		args.option("-d", "--discard",    "<class,...>", "discarded point classes",                   discard);
+		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",           epsg);
+		args.option("-t", "--threads",    "<number>",    "number of processing threads",              threads);
+		args.option("-x", "--tiles",      "<tiles.txt>", "list of input tiles as a text file",        tiles_path);
+		args.option("-o", "--overwrite",                 "overwrite existing output file",            overwrite);
+		args.option("-p", "--progress",                  "show progress",                             progress);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
