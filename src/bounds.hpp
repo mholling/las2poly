@@ -15,14 +15,16 @@
 struct Bounds {
 	double xmin, ymin, xmax, ymax;
 
-	Bounds(double xmin, double ymin, double xmax, double ymax) : xmin(xmin), ymin(ymin), xmax(xmax), ymax(ymax) { }
+	Bounds() :
+		xmin(std::numeric_limits<double>::infinity()),
+		ymin(std::numeric_limits<double>::infinity()),
+		xmax(-std::numeric_limits<double>::infinity()),
+		ymax(-std::numeric_limits<double>::infinity())
+	{ }
 
-	Bounds() : Bounds(
-		std::numeric_limits<double>::infinity(),
-		std::numeric_limits<double>::infinity(),
-		-std::numeric_limits<double>::infinity(),
-		-std::numeric_limits<double>::infinity()
-	) { }
+	auto empty() const {
+		return xmin > xmax;
+	}
 
 	auto &operator+=(Point const &point) {
 		auto const &[x, y] = point;

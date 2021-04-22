@@ -35,7 +35,8 @@ class Points : public std::vector<Point> {
 	Points() = default;
 
 	void update(Tile const &tile) {
-		tile_bounds.push_back(tile.bounds);
+		if (!tile.bounds.empty())
+			tile_bounds.push_back(tile.bounds);
 	}
 
 	void update(Points &points) {
@@ -173,7 +174,7 @@ public:
 	Points(Paths const &tile_paths, double resolution, Discard const &discard, bool water, unsigned threads) {
 		Load(resolution, discard)(tile_paths, threads).swap(*this);
 
-		if (water) {
+		if (water && size() > 2) {
 			int const imin = std::min_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareYMin())->ymin / resolution;
 			int const jmin = std::min_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareXMin())->xmin / resolution;
 			int const imax = std::max_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareYMax())->ymax / resolution;
