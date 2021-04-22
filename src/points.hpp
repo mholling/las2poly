@@ -8,6 +8,7 @@
 #define POINTS_HPP
 
 #include "point.hpp"
+#include "bounds.hpp"
 #include "tile.hpp"
 #include <vector>
 #include <string>
@@ -21,13 +22,24 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
+#include <set>
 #include <cstddef>
 
 class Points : public std::vector<Point> {
 	using Paths = std::vector<std::string>;
 	using Discard = std::unordered_set<unsigned char>;
 
+	std::vector<Bounds> tile_bounds;
+
 	Points() = default;
+
+	void update(Tile const &tile) {
+		tile_bounds.push_back(tile.bounds);
+	}
+
+	void update(Points &points) {
+		tile_bounds.insert(tile_bounds.end(), points.tile_bounds.begin(), points.tile_bounds.end());
+	}
 
 	struct Thin {
 		double resolution;
@@ -62,10 +74,11 @@ class Points : public std::vector<Point> {
 			}
 			points.erase(here, points_end);
 
+			points.update(tile);
 			return points;
 		}
 
-		auto operator()(Points const &points1, Points const &points2) const {
+		auto operator()(Points &points1, Points &points2) const {
 			auto points = Points();
 			points.reserve(points1.size() + points2.size());
 
@@ -80,6 +93,8 @@ class Points : public std::vector<Point> {
 				if (here2 != end2) ++here2;
 			}
 
+			points.update(points1);
+			points.update(points2);
 			return points;
 		}
 	};
@@ -149,8 +164,64 @@ class Points : public std::vector<Point> {
 
 public:
 	template <typename Discard>
-	Points(Paths const &tile_paths, double resolution, Discard const &discard, unsigned threads) {
-		Load(resolution, discard)(tile_paths, threads).swap(*this);
+	Points(Paths const &tile_paths, double resolution, Discard const &discard, bool water, unsigned threads) {
+		auto points = Load(resolution, discard)(tile_paths, threads);
+
+		if (water) {
+			auto landfill = Points();
+			auto incoming = std::set<Bounds, Bounds::CompareMin>();
+			auto outgoing = std::set<Bounds, Bounds::CompareMax>();
+
+			for (auto const &bounds: points.tile_bounds) {
+				incoming.insert(bounds);
+				outgoing.insert(bounds);
+			}
+
+			auto [xmin, ymin] = incoming.begin()->min();
+			auto [xmax, ymax] = (--outgoing.end())->max();
+
+			incoming.emplace(xmin - 5 * resolution, ymin - 5 * resolution, xmax + 5 * resolution, ymin - 5 * resolution);
+			outgoing.emplace(xmin - 5 * resolution, ymin - 5 * resolution, xmax + 5 * resolution, ymin - 5 * resolution);
+			incoming.emplace(xmin - 5 * resolution, ymax + 5 * resolution, xmax + 5 * resolution, ymax + 5 * resolution);
+			outgoing.emplace(xmin - 5 * resolution, ymax + 5 * resolution, xmax + 5 * resolution, ymax + 5 * resolution);
+
+			auto current = std::set<Bounds, Bounds::CompareYMax>();
+			double x0 = incoming.begin()->xmin, x1;
+			for (auto in = incoming.begin(), in_end = incoming.end(), out = outgoing.begin(), out_end = outgoing.end(); out != out_end; x0 = x1) {
+				if (in != in_end && in->min() < out->max())
+					current.insert(*in++);
+				else
+					current.erase(*out++);
+				if (out == out_end)
+					break;
+				if (in != in_end && in->min() < out->max())
+					x1 = in->xmin;
+				else
+					x1 = out->xmax;
+				auto const m0 = static_cast<int>(x0 / resolution);
+				auto const m1 = static_cast<int>(x1 / resolution) + 1;
+				for (auto bounds = current.begin(), bounds_end = current.end(); bounds != bounds_end; ) {
+					auto const n0 = static_cast<int>(bounds->ymax / resolution) + 1;
+					bounds = std::min_element(++bounds, bounds_end, Bounds::CompareYMin());
+					if (bounds == bounds_end)
+						break;
+					auto const n1 = static_cast<int>(bounds->ymin / resolution);
+					for (int n = n0; n < n1; ++n)
+						for (int m = m0; m < m1; ++m)
+							landfill.emplace_back((m + 0.5) * resolution, (n + 0.5) * resolution, 0.0, 2, false, true, false);
+				}
+			}
+
+			std::sort(landfill.begin(), landfill.end(), [](auto const &p1, auto const &p2) {
+				return p1[0] < p2[0] ? true : p1[0] > p2[0] ? false : p1[1] < p2[1];
+			});
+			landfill.erase(std::unique(landfill.begin(), landfill.end(), [](auto const &p1, auto const &p2) {
+				return p1[0] == p2[0] && p1[1] == p2[1];
+			}), landfill.end());
+			points.insert(points.end(), landfill.begin(), landfill.end());
+		}
+
+		swap(points);
 	}
 };
 

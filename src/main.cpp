@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
 		auto logger = Logger((bool)progress);
 
 		logger.time("reading", tile_paths.size(), "file");
-		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, threads->back());
+		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, (bool)water, threads->back());
 
 		logger.time("triangulating", points.size(), "point");
 		auto mesh = Mesh(points, threads->front());

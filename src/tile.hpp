@@ -9,6 +9,7 @@
 
 #include "ply.hpp"
 #include "las.hpp"
+#include "bounds.hpp"
 #include <variant>
 #include <istream>
 #include <array>
@@ -43,7 +44,11 @@ class Tile {
 		auto operator()(LAS const &las) const { return las.size; }
 	};
 
-	auto read() { return std::visit(Read(), tile_variant); }
+	auto read() {
+		auto point = std::visit(Read(), tile_variant);
+		bounds += point;
+		return point;
+	}
 
 	TileVariant tile_variant;
 
@@ -58,6 +63,8 @@ class Tile {
 	};
 
 public:
+	Bounds bounds;
+
 	Tile(std::istream &input) : tile_variant(from(input)) { }
 
 	auto size() const { return std::visit(Size(), tile_variant); }

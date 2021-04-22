@@ -35,15 +35,20 @@ struct Polygons : std::vector<Polygon> {
 			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end(), [](auto const &edge1, auto const &edge2) {
 				return (*edge1.second - *edge1.first).sqnorm() < (*edge2.second - *edge2.first).sqnorm();
 			}), edges.end());
-
 			auto const perp = edges[1] ^ edges[2];
-			perp_sum[0] += perp[0];
-			perp_sum[1] += perp[1];
-			perp_sum_z  += perp[2];
 
-			for (auto edge = edges.begin() + 1; edge != edges.end(); ++edge)
-				if (edge->first->ground() && edge->second->ground())
-					++count, abs_sum += std::abs(edge->second->elevation - edge->first->elevation);
+			if (edges[0].first->withheld || edges[1].first->withheld || edges[2].first->withheld) {
+				perp_sum_z += perp.norm();
+				count += 2;
+			} else {
+				perp_sum[0] += perp[0];
+				perp_sum[1] += perp[1];
+				perp_sum_z  += perp[2];
+
+				for (auto edge = edges.begin() + 1; edge != edges.end(); ++edge)
+					if (edge->first->ground() && edge->second->ground())
+						++count, abs_sum += std::abs(edge->second->elevation - edge->first->elevation);
+			}
 		}
 
 		return count > 0 && delta_sum < delta * count && std::acos(std::abs(perp_sum[2] / perp_sum.norm())) < slope;
