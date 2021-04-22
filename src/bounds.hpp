@@ -31,30 +31,27 @@ struct Bounds {
 		return *this;
 	}
 
-	auto min() const { return std::pair(xmin, ymin); }
-	auto max() const { return std::pair(xmax, ymax); }
-
-	struct CompareMin {
+	struct CompareXMin {
 		auto operator()(Bounds const &bounds1, Bounds const &bounds2) const {
-			return bounds1.min() < bounds2.min();
+			return bounds1.xmin < bounds2.xmin;
 		}
 	};
 
-	struct CompareMax {
+	struct CompareXMax {
 		auto operator()(Bounds const &bounds1, Bounds const &bounds2) const {
-			return bounds1.max() < bounds2.max();
-		}
-	};
-
-	struct CompareYMax {
-		auto operator()(Bounds const &bounds1, Bounds const &bounds2) const {
-			return bounds1.ymax < bounds2.ymax;
+			return bounds1.xmax < bounds2.xmax;
 		}
 	};
 
 	struct CompareYMin {
 		auto operator()(Bounds const &bounds1, Bounds const &bounds2) const {
 			return bounds1.ymin < bounds2.ymin;
+		}
+	};
+
+	struct CompareYMax {
+		auto operator()(Bounds const &bounds1, Bounds const &bounds2) const {
+			return bounds1.ymax < bounds2.ymax;
 		}
 	};
 };

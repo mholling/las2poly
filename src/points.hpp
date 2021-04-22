@@ -10,6 +10,7 @@
 #include "point.hpp"
 #include "bounds.hpp"
 #include "tile.hpp"
+#include "fill.hpp"
 #include <vector>
 #include <string>
 #include <unordered_set>
@@ -162,66 +163,36 @@ class Points : public std::vector<Point> {
 		Load(double resolution, Discard const &discard) : thin(resolution), discard(discard.begin(), discard.end()) { }
 	};
 
+	auto swap(Points &other) {
+		vector::swap(other);
+		std::swap(tile_bounds, other.tile_bounds);
+	}
+
 public:
 	template <typename Discard>
 	Points(Paths const &tile_paths, double resolution, Discard const &discard, bool water, unsigned threads) {
-		auto points = Load(resolution, discard)(tile_paths, threads);
+		Load(resolution, discard)(tile_paths, threads).swap(*this);
 
 		if (water) {
-			auto landfill = Points();
-			auto incoming = std::set<Bounds, Bounds::CompareMin>();
-			auto outgoing = std::set<Bounds, Bounds::CompareMax>();
+			int const imin = std::min_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareYMin())->ymin / resolution;
+			int const jmin = std::min_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareXMin())->xmin / resolution;
+			int const imax = std::max_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareYMax())->ymax / resolution;
+			int const jmax = std::max_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareXMax())->xmax / resolution;
+			int const width = jmax - jmin + 1, height = imax - imin + 1;
 
-			for (auto const &bounds: points.tile_bounds) {
-				incoming.insert(bounds);
-				outgoing.insert(bounds);
-			}
+			auto fill = Fill<5>(width, height);
+			for (auto const &bounds: tile_bounds)
+				fill(
+					static_cast<int>(bounds.ymin / resolution) - imin,
+					static_cast<int>(bounds.xmin / resolution) - jmin,
+					static_cast<int>(bounds.ymax / resolution) - imin,
+					static_cast<int>(bounds.xmax / resolution) - jmin
+				);
 
-			auto [xmin, ymin] = incoming.begin()->min();
-			auto [xmax, ymax] = (--outgoing.end())->max();
-
-			incoming.emplace(xmin - 5 * resolution, ymin - 5 * resolution, xmax + 5 * resolution, ymin - 5 * resolution);
-			outgoing.emplace(xmin - 5 * resolution, ymin - 5 * resolution, xmax + 5 * resolution, ymin - 5 * resolution);
-			incoming.emplace(xmin - 5 * resolution, ymax + 5 * resolution, xmax + 5 * resolution, ymax + 5 * resolution);
-			outgoing.emplace(xmin - 5 * resolution, ymax + 5 * resolution, xmax + 5 * resolution, ymax + 5 * resolution);
-
-			auto current = std::set<Bounds, Bounds::CompareYMax>();
-			double x0 = incoming.begin()->xmin, x1;
-			for (auto in = incoming.begin(), in_end = incoming.end(), out = outgoing.begin(), out_end = outgoing.end(); out != out_end; x0 = x1) {
-				if (in != in_end && in->min() < out->max())
-					current.insert(*in++);
-				else
-					current.erase(*out++);
-				if (out == out_end)
-					break;
-				if (in != in_end && in->min() < out->max())
-					x1 = in->xmin;
-				else
-					x1 = out->xmax;
-				auto const m0 = static_cast<int>(x0 / resolution);
-				auto const m1 = static_cast<int>(x1 / resolution) + 1;
-				for (auto bounds = current.begin(), bounds_end = current.end(); bounds != bounds_end; ) {
-					auto const n0 = static_cast<int>(bounds->ymax / resolution) + 1;
-					bounds = std::min_element(++bounds, bounds_end, Bounds::CompareYMin());
-					if (bounds == bounds_end)
-						break;
-					auto const n1 = static_cast<int>(bounds->ymin / resolution);
-					for (int n = n0; n < n1; ++n)
-						for (int m = m0; m < m1; ++m)
-							landfill.emplace_back((m + 0.5) * resolution, (n + 0.5) * resolution, 0.0, 2, false, true, false);
-				}
-			}
-
-			std::sort(landfill.begin(), landfill.end(), [](auto const &p1, auto const &p2) {
-				return p1[0] < p2[0] ? true : p1[0] > p2[0] ? false : p1[1] < p2[1];
+			fill([&](auto i, auto j) {
+				emplace_back((jmin + j + 0.5) * resolution, (imin + i + 0.5) * resolution, 0.0, 2, false, true, false);
 			});
-			landfill.erase(std::unique(landfill.begin(), landfill.end(), [](auto const &p1, auto const &p2) {
-				return p1[0] == p2[0] && p1[1] == p2[1];
-			}), landfill.end());
-			points.insert(points.end(), landfill.begin(), landfill.end());
 		}
-
-		swap(points);
 	}
 };
 
