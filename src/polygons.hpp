@@ -59,7 +59,9 @@ struct Polygons : std::vector<Polygon> {
 		auto outside_edges = Edges();
 		auto const delta = width * std::tan(slope);
 
-		mesh.deconstruct(large_triangles, outside_edges, length, water, threads);
+		mesh.deconstruct(large_triangles, outside_edges, length, threads);
+		if (water)
+			outside_edges.clear();
 
 		large_triangles.explode([=, &outside_edges](auto const &&triangles) {
 			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope)))
