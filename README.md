@@ -33,7 +33,7 @@ and specular water reflections
 are discarded.
 
 Output from the program is a polygon file in GeoJSON format, representing all land areas present in the lidar tiles.
-(Subtract land polygons from the lidar footprint to obtain water polygons.)
+Polygons conform to OGC standard, with non-self-intersecting rings and anticlockwise exteriors.
 
 A single
 **--width**
@@ -148,4 +148,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - April 22, 2021
+macOS 11.1 - April 23, 2021
