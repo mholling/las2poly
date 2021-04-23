@@ -10,33 +10,23 @@
 #include "ring.hpp"
 #include "points.hpp"
 #include "edge.hpp"
+#include "edges.hpp"
 #include <vector>
 #include <unordered_map>
+#include <type_traits>
 #include <algorithm>
 
-template <bool outside = true>
-class Rings : public std::vector<Ring> {
+struct Rings : std::vector<Ring> {
 	using PointsEdges = std::unordered_multimap<PointIterator, Edge>;
 	using Connections = std::unordered_map<Edge, Edge>;
 
-	auto static unwind(Connections &connections) {
-		auto edges = std::vector<Edge>();
-		for (auto connection = connections.begin(); connection != connections.end(); ) {
-			edges.push_back(connection->first);
-			connections.erase(connection);
-			connection = connections.find(connection->second);
-		}
-		return edges;
-	}
-
-public:
-	template <typename Edges>
+	template <typename Edges, bool outside = std::is_same_v<Edges, ::Edges>>
 	Rings(Edges const &edges) {
 		auto points_edges = PointsEdges();
-		auto connections = Connections();
-
 		for (auto const &edge: edges)
 			points_edges.emplace(edge.first, edge);
+
+		auto connections = Connections();
 		for (auto const &incoming: edges) {
 			auto const ordering = [&](auto const &point_edge1, auto const &point_edge2) {
 				auto const &p1 = point_edge1.second.second;
@@ -52,12 +42,20 @@ public:
 			connections.emplace(incoming, outgoing);
 		}
 
-		while (!connections.empty())
+		while (!connections.empty()) {
+			auto edges = std::vector<Edge>();
+			for (auto connection = connections.begin(); connection != connections.end(); ) {
+				edges.push_back(connection->first);
+				connections.erase(connection);
+				connection = connections.find(connection->second);
+			}
+
 			if constexpr (outside)
-				for (auto &ring: Rings<!outside>(unwind(connections)))
+				for (auto &ring: Rings(edges))
 					push_back(ring);
 			else
-				emplace_back(unwind(connections));
+				emplace_back(edges);
+		}
 	}
 };
 
