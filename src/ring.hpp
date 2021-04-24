@@ -65,7 +65,7 @@ class Ring : std::list<Vector<2>> {
 	}
 
 	struct CompareCornerAreas {
-		bool erode;
+		const bool erode;
 
 		CompareCornerAreas(bool erode) : erode(erode) { }
 
