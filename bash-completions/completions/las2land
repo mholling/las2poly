@@ -1,0 +1,20 @@
+_las2land() {
+	local cur prev arg_opts flag_opts file_opts
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	arg_opts=(-w --width -s --slope -a --area -l --length -d --discard -e --epsg -t --threads)
+	flag_opts=(-r --water -i --simplify -m --smooth -o --overwrite -p --progress -v --version -h --help)
+	file_opts=(-x --tiles)
+
+	if [[ " ${arg_opts[@]} " =~ " ${prev} " ]]; then
+		COMPREPLY=()
+	elif [[ " ${file_opts[@]} " =~ " ${prev} " ]]; then
+		COMPREPLY=($(compgen -A file -X '!*.txt' -- ${cur}))
+	elif [[ ${cur} =~ ^- ]]; then
+		COMPREPLY=($(compgen -W "${arg_opts[*]} ${file_opts[*]} ${flag_opts[*]}"))
+	elif [[ ${cur} == * ]] ; then
+		COMPREPLY=($(compgen -A file -X '!*.(las|ply|json)' -- ${cur}))
+	fi
+}
+
+complete -F _las2land las2land
