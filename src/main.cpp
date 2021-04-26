@@ -25,7 +25,6 @@
 
 int main(int argc, char *argv[]) {
 	auto static constexpr pi = 3.14159265358979324;
-	auto static constexpr smoothing_angle = 15.0;
 	auto static const default_threads = std::max<int>(1, std::thread::hardware_concurrency());
 
 	try {
@@ -130,18 +129,7 @@ int main(int argc, char *argv[]) {
 		auto mesh = Mesh(points, threads->front());
 
 		logger.time("extracting polygons");
-		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, *area, (bool)water, threads->front());
-
-		if (simplify) {
-			auto const tolerance = 4 * *width * *width;
-			polygons.simplify(tolerance, (bool)water);
-		}
-
-		if (smooth) {
-			auto const angle = smoothing_angle * pi / 180;
-			auto const tolerance = 0.5 * *width / std::sin(angle);
-			polygons.smooth(tolerance, angle);
-		}
+		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, *area, (bool)water, (bool)simplify, bool(smooth), threads->front());
 
 		auto json = std::stringstream();
 		json.precision(15);

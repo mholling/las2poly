@@ -54,7 +54,7 @@ struct Polygons : std::vector<Polygon> {
 		return count > 0 && delta_sum < delta * count && std::acos(std::abs(perp_sum[2] / perp_sum.norm())) < slope;
 	}
 
-	Polygons(Mesh &mesh, double length, double width, double slope, double area, bool water, unsigned threads) {
+	Polygons(Mesh &mesh, double length, double width, double slope, double area, bool water, bool simplify, bool smooth, unsigned threads) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 		auto const delta = width * std::tan(slope);
@@ -88,18 +88,22 @@ struct Polygons : std::vector<Polygon> {
 			std::copy(old_remaining, remaining, std::back_inserter(polygon));
 			emplace_back(polygon);
 		});
-	}
 
-	void simplify(double tolerance, bool open) {
-		for (auto &polygon: *this)
-			for (auto &ring: polygon)
-				ring.simplify(tolerance, open);
-	}
+		if (simplify) {
+			auto const tolerance = 4 * width * width;
+			for (auto &polygon: *this)
+				for (auto &ring: polygon)
+					ring.simplify(tolerance, water);
+		}
 
-	void smooth(double tolerance, double angle) {
-		for (auto &polygon: *this)
-			for (auto &ring: polygon)
-				ring.smooth(tolerance, angle);
+		if (smooth) {
+			auto static constexpr pi = 3.14159265358979324;
+			auto static constexpr angle = 15.0 * pi / 180;
+			auto const tolerance = 0.5 * width / std::sin(angle);
+			for (auto &polygon: *this)
+				for (auto &ring: polygon)
+					ring.smooth(tolerance, angle);
+		}
 	}
 };
 
