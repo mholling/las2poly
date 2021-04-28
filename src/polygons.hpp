@@ -15,14 +15,97 @@
 #include "rings.hpp"
 #include "ring.hpp"
 #include <vector>
-#include <cstddef>
-#include <algorithm>
+#include <utility>
 #include <cmath>
+#include <set>
+#include <algorithm>
 #include <iterator>
 #include <ostream>
-#include <utility>
 
-struct Polygons : std::vector<Polygon> {
+
+class Polygons : public std::vector<Polygon> {
+	using Corner = Ring::CornerIterator;
+
+	struct CompareAreas {
+		const bool erode;
+		CompareAreas(bool erode) : erode(erode) { }
+
+		auto operator()(Corner const &corner) const {
+			auto const cross = corner.cross();
+			return std::pair(erode == (cross < 0), std::abs(cross));
+		}
+
+		auto operator()(Corner const &corner1, Corner const &corner2) const {
+			return (*this)(corner1) < (*this)(corner2);
+		}
+
+		auto operator()(double corner_area) const {
+			return std::pair(false, 2 * corner_area);
+		}
+	};
+
+	struct CompareAngles {
+		auto operator()(Corner const &corner) const {
+			return corner.cosine();
+		}
+
+		auto operator()(Corner const &corner1, Corner const &corner2) const {
+			return (*this)(corner1) < (*this)(corner2);
+		}
+	};
+
+	void simplify_one_sided(double tolerance, bool erode) {
+		auto const compare = CompareAreas(erode);
+		auto const limit = compare(tolerance);
+		auto corners = std::multiset<Corner, CompareAreas>(compare);
+		for (auto &polygon: *this)
+			for (auto &ring: polygon)
+				for (auto corner = ring.begin(); corner != ring.end(); ++corner)
+					corners.insert(corner);
+		while (!corners.empty() && compare(*corners.begin()) < limit) {
+			auto const least = corners.begin();
+			auto const corner = *least;
+			auto const prev = corner.prev();
+			auto const next = corner.next();
+			corners.erase(least);
+			if (corner.ring_size() > 4) {
+				corners.erase(prev);
+				corners.erase(next);
+				corner.remove();
+				corners.insert(next.prev());
+				corners.insert(prev.next());
+			}
+		}
+	}
+
+	void simplify(double tolerance, bool open) {
+		simplify_one_sided(tolerance, !open);
+		simplify_one_sided(tolerance, open);
+	}
+
+	void smooth(double tolerance, double angle) {
+		auto corners = std::multiset<Corner, CompareAngles>();
+		for (auto &polygon: *this)
+			for (auto &ring: polygon)
+				for (auto corner = ring.begin(); corner != ring.end(); ++corner)
+					corners.insert(corner);
+		for (auto const cosine = std::cos(angle); !corners.empty() && corners.begin()->cosine() < cosine; ) {
+			auto const least = corners.begin();
+			auto const corner = *least;
+			auto const prev = corner.prev();
+			auto const next = corner.next();
+			auto const [v0, v1, v2] = *corner;
+			auto const f0 = std::min(0.25, tolerance / (v1 - v0).norm());
+			auto const f2 = std::min(0.25, tolerance / (v2 - v1).norm());
+			auto const v10 = v0 * f0 + v1 * (1.0 - f0);
+			auto const v11 = v2 * f2 + v1 * (1.0 - f2);
+			corners.erase(least);
+			corner.replace(v10, v11);
+			corners.insert(next.prev());
+			corners.insert(prev.next());
+		}
+	}
+
 	auto static is_water(Triangles const &triangles, double delta, double slope) {
 		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
 		auto delta_sum = 0.0;
@@ -54,6 +137,7 @@ struct Polygons : std::vector<Polygon> {
 		return count > 0 && delta_sum < delta * count && std::acos(std::abs(perp_sum[2] / perp_sum.norm())) < slope;
 	}
 
+public:
 	Polygons(Mesh &mesh, double length, double width, double slope, double area, bool water, bool simplify, bool smooth, unsigned threads) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
@@ -91,18 +175,14 @@ struct Polygons : std::vector<Polygon> {
 
 		if (simplify) {
 			auto const tolerance = 4 * width * width;
-			for (auto &polygon: *this)
-				for (auto &ring: polygon)
-					ring.simplify(tolerance, water);
+			this->simplify(tolerance, water);
 		}
 
 		if (smooth) {
 			auto static constexpr pi = 3.14159265358979324;
 			auto static constexpr angle = 15.0 * pi / 180;
 			auto const tolerance = 0.5 * width / std::sin(angle);
-			for (auto &polygon: *this)
-				for (auto &ring: polygon)
-					ring.smooth(tolerance, angle);
+			this->smooth(tolerance, angle);
 		}
 	}
 };
