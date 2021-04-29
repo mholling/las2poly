@@ -7,6 +7,7 @@
 #ifndef POLYGONS_HPP
 #define POLYGONS_HPP
 
+#include "rtree.hpp"
 #include "polygon.hpp"
 #include "triangles.hpp"
 #include "summation.hpp"
@@ -21,7 +22,6 @@
 #include <algorithm>
 #include <iterator>
 #include <ostream>
-
 
 class Polygons : public std::vector<Polygon> {
 	using Corner = Ring::CornerIterator;
@@ -57,23 +57,23 @@ class Polygons : public std::vector<Polygon> {
 	void simplify_one_sided(double tolerance, bool erode) {
 		auto const compare = CompareAreas(erode);
 		auto const limit = compare(tolerance);
-		auto corners = std::multiset<Corner, CompareAreas>(compare);
+		auto queue = std::multiset<Corner, CompareAreas>(compare);
 		for (auto &polygon: *this)
 			for (auto &ring: polygon)
 				for (auto corner = ring.begin(); corner != ring.end(); ++corner)
-					corners.insert(corner);
-		while (!corners.empty() && compare(*corners.begin()) < limit) {
-			auto const least = corners.begin();
+					queue.insert(corner);
+		while (!queue.empty() && compare(*queue.begin()) < limit) {
+			auto const least = queue.begin();
 			auto const corner = *least;
 			auto const prev = corner.prev();
 			auto const next = corner.next();
-			corners.erase(least);
+			queue.erase(least);
 			if (corner.ring_size() > 4) {
-				corners.erase(prev);
-				corners.erase(next);
+				queue.erase(prev);
+				queue.erase(next);
 				corner.remove();
-				corners.insert(next.prev());
-				corners.insert(prev.next());
+				queue.insert(next.prev());
+				queue.insert(prev.next());
 			}
 		}
 	}
@@ -84,13 +84,13 @@ class Polygons : public std::vector<Polygon> {
 	}
 
 	void smooth(double tolerance, double angle) {
-		auto corners = std::multiset<Corner, CompareAngles>();
+		auto queue = std::multiset<Corner, CompareAngles>();
 		for (auto &polygon: *this)
 			for (auto &ring: polygon)
 				for (auto corner = ring.begin(); corner != ring.end(); ++corner)
-					corners.insert(corner);
-		for (auto const cosine = std::cos(angle); !corners.empty() && corners.begin()->cosine() < cosine; ) {
-			auto const least = corners.begin();
+					queue.insert(corner);
+		for (auto const cosine = std::cos(angle); !queue.empty() && queue.begin()->cosine() < cosine; ) {
+			auto const least = queue.begin();
 			auto const corner = *least;
 			auto const prev = corner.prev();
 			auto const next = corner.next();
@@ -99,10 +99,10 @@ class Polygons : public std::vector<Polygon> {
 			auto const f2 = std::min(0.25, tolerance / (v2 - v1).norm());
 			auto const v10 = v0 * f0 + v1 * (1.0 - f0);
 			auto const v11 = v2 * f2 + v1 * (1.0 - f2);
-			corners.erase(least);
+			queue.erase(least);
 			corner.replace(v10, v11);
-			corners.insert(next.prev());
-			corners.insert(prev.next());
+			queue.insert(next.prev());
+			queue.insert(prev.next());
 		}
 	}
 
