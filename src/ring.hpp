@@ -33,10 +33,10 @@ class Ring : std::list<Vector<2>> {
 
 	template <bool is_const, typename Ring = std::conditional_t<is_const, Ring const, Ring>>
 	struct Iterator {
-		Ring &ring;
+		Ring *ring;
 		VertexIterator here;
 
-		Iterator(Ring &ring, VertexIterator here) : ring(ring), here(here) { }
+		Iterator(Ring *ring, VertexIterator here) : ring(ring), here(here) { }
 
 		auto &operator++() {
 			++here;
@@ -53,11 +53,11 @@ class Ring : std::list<Vector<2>> {
 		}
 
 		auto next() const {
-			return *this != --ring.end() ? ++Iterator(ring, here) : ring.begin();
+			return *this != --ring->end() ? ++Iterator(ring, here) : ring->begin();
 		}
 
 		auto prev() const {
-			return *this != ring.begin() ? --Iterator(ring, here) : --ring.end();
+			return *this != ring->begin() ? --Iterator(ring, here) : --ring->end();
 		}
 
 		auto operator*() const {
@@ -75,15 +75,15 @@ class Ring : std::list<Vector<2>> {
 		}
 
 		auto remove() const {
-			return ring.erase(here);
+			return ring->erase(here);
 		}
 
 		auto replace(Vertex const &v1, Vertex const &v2) const {
-			return ring.insert(ring.insert(remove(), v2), v1);
+			return ring->insert(ring->insert(remove(), v2), v1);
 		}
 
 		auto ring_size() const {
-			return ring.size();
+			return ring->size();
 		}
 
 		auto bounds() const {
@@ -96,10 +96,10 @@ public:
 	using ConstCornerIterator = Iterator<true>;
 	using CornerIterator = Iterator<false>;
 
-	auto begin() const { return ConstCornerIterator(*this, Vertices::begin()); }
-	auto   end() const { return ConstCornerIterator(*this, Vertices::end()); }
-	auto begin() { return CornerIterator(*this, Vertices::begin()); }
-	auto   end() { return CornerIterator(*this, Vertices::end()); }
+	auto begin() const { return ConstCornerIterator(this, Vertices::begin()); }
+	auto   end() const { return ConstCornerIterator(this, Vertices::end()); }
+	auto begin() { return CornerIterator(this, Vertices::begin()); }
+	auto   end() { return CornerIterator(this, Vertices::end()); }
 
 	template <typename Edges>
 	Ring(Edges const &edges) : signed_area(0) {
