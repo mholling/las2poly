@@ -8,6 +8,7 @@
 #define RING_HPP
 
 #include "vector.hpp"
+#include "bounds.hpp"
 #include "summation.hpp"
 #include <list>
 #include <stdexcept>
@@ -36,17 +37,59 @@ class Ring : std::list<Vector<2>> {
 		VertexIterator here;
 
 		Iterator(Ring &ring, VertexIterator here) : ring(ring), here(here) { }
-		auto &operator++() { ++here; return *this;}
-		auto &operator--() { --here; return *this;}
-		auto operator!=(Iterator const &other) const { return here != other.here; }
-		auto next() const { return *this != --ring.end() ? ++Iterator(ring, here) : ring.begin(); }
-		auto prev() const { return *this != ring.begin() ? --Iterator(ring, here) : --ring.end(); }
-		auto operator*() const { return std::tuple(*prev().here, *here, *next().here); }
-		auto cross() const { auto const [v0, v1, v2] = **this; return (v1 - v0) ^ (v2 - v1); }
-		auto cosine() const { auto const [v0, v1, v2] = **this; return (v1 - v0).normalise() * (v2 - v1).normalise(); }
-		auto remove() const { return ring.erase(here); }
-		auto replace(Vertex const &v1, Vertex const &v2) const { return ring.insert(ring.insert(remove(), v2), v1); }
-		auto ring_size() const { return ring.size(); }
+
+		auto &operator++() {
+			++here;
+			return *this;
+		}
+
+		auto &operator--() {
+			--here;
+			return *this;
+		}
+
+		auto operator!=(Iterator const &other) const {
+			return here != other.here;
+		}
+
+		auto next() const {
+			return *this != --ring.end() ? ++Iterator(ring, here) : ring.begin();
+		}
+
+		auto prev() const {
+			return *this != ring.begin() ? --Iterator(ring, here) : --ring.end();
+		}
+
+		auto operator*() const {
+			return std::tuple(*prev().here, *here, *next().here);
+		}
+
+		auto cross() const {
+			auto const [v0, v1, v2] = **this;
+			return (v1 - v0) ^ (v2 - v1);
+		}
+
+		auto cosine() const {
+			auto const [v0, v1, v2] = **this;
+			return (v1 - v0).normalise() * (v2 - v1).normalise();
+		}
+
+		auto remove() const {
+			return ring.erase(here);
+		}
+
+		auto replace(Vertex const &v1, Vertex const &v2) const {
+			return ring.insert(ring.insert(remove(), v2), v1);
+		}
+
+		auto ring_size() const {
+			return ring.size();
+		}
+
+		auto bounds() const {
+			auto const [v0, v1, v2] = **this;
+			return Bounds(v0, v1, v2);
+		}
 	};
 
 public:

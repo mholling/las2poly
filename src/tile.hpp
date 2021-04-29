@@ -46,7 +46,7 @@ class Tile {
 
 	auto read() {
 		auto point = std::visit(Read(), tile_variant);
-		bounds += point;
+		bounds += Bounds(point);
 		return point;
 	}
 
