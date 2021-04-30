@@ -7,7 +7,6 @@
 #ifndef POLYGONS_HPP
 #define POLYGONS_HPP
 
-#include "rtree.hpp"
 #include "polygon.hpp"
 #include "triangles.hpp"
 #include "summation.hpp"
@@ -16,96 +15,13 @@
 #include "rings.hpp"
 #include "ring.hpp"
 #include <vector>
-#include <utility>
-#include <cmath>
-#include <set>
 #include <algorithm>
+#include <cmath>
 #include <iterator>
 #include <ostream>
+#include <utility>
 
 class Polygons : public std::vector<Polygon> {
-	using Corner = Ring::CornerIterator;
-
-	struct CompareAreas {
-		const bool erode;
-		CompareAreas(bool erode) : erode(erode) { }
-
-		auto operator()(Corner const &corner) const {
-			auto const cross = corner.cross();
-			return std::pair(erode == (cross < 0), std::abs(cross));
-		}
-
-		auto operator()(Corner const &corner1, Corner const &corner2) const {
-			return (*this)(corner1) < (*this)(corner2);
-		}
-
-		auto operator()(double corner_area) const {
-			return std::pair(false, 2 * corner_area);
-		}
-	};
-
-	struct CompareAngles {
-		auto operator()(Corner const &corner) const {
-			return corner.cosine();
-		}
-
-		auto operator()(Corner const &corner1, Corner const &corner2) const {
-			return (*this)(corner1) < (*this)(corner2);
-		}
-	};
-
-	void simplify_one_sided(double tolerance, bool erode) {
-		auto const compare = CompareAreas(erode);
-		auto const limit = compare(tolerance);
-		auto queue = std::multiset<Corner, CompareAreas>(compare);
-		for (auto &polygon: *this)
-			for (auto &ring: polygon)
-				for (auto corner = ring.begin(); corner != ring.end(); ++corner)
-					queue.insert(corner);
-		while (!queue.empty() && compare(*queue.begin()) < limit) {
-			auto const least = queue.begin();
-			auto const corner = *least;
-			auto const prev = corner.prev();
-			auto const next = corner.next();
-			queue.erase(least);
-			if (corner.ring_size() > 4) {
-				queue.erase(prev);
-				queue.erase(next);
-				corner.remove();
-				queue.insert(next.prev());
-				queue.insert(prev.next());
-			}
-		}
-	}
-
-	void simplify(double tolerance, bool open) {
-		simplify_one_sided(tolerance, !open);
-		simplify_one_sided(tolerance, open);
-	}
-
-	void smooth(double tolerance, double angle) {
-		auto queue = std::multiset<Corner, CompareAngles>();
-		for (auto &polygon: *this)
-			for (auto &ring: polygon)
-				for (auto corner = ring.begin(); corner != ring.end(); ++corner)
-					queue.insert(corner);
-		for (auto const cosine = std::cos(angle); !queue.empty() && queue.begin()->cosine() < cosine; ) {
-			auto const least = queue.begin();
-			auto const corner = *least;
-			auto const prev = corner.prev();
-			auto const next = corner.next();
-			auto const [v0, v1, v2] = *corner;
-			auto const f0 = std::min(0.25, tolerance / (v1 - v0).norm());
-			auto const f2 = std::min(0.25, tolerance / (v2 - v1).norm());
-			auto const v10 = v0 * f0 + v1 * (1.0 - f0);
-			auto const v11 = v2 * f2 + v1 * (1.0 - f2);
-			queue.erase(least);
-			corner.replace(v10, v11);
-			queue.insert(next.prev());
-			queue.insert(prev.next());
-		}
-	}
-
 	auto static is_water(Triangles const &triangles, double delta, double slope) {
 		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
 		auto delta_sum = 0.0;
@@ -138,7 +54,7 @@ class Polygons : public std::vector<Polygon> {
 	}
 
 public:
-	Polygons(Mesh &mesh, double length, double width, double slope, double area, bool water, bool simplify, bool smooth, unsigned threads) {
+	Polygons(Mesh &mesh, double length, double width, double slope, double area, bool water, unsigned threads) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 		auto const delta = width * std::tan(slope);
@@ -172,18 +88,6 @@ public:
 			std::copy(old_remaining, remaining, std::back_inserter(polygon));
 			emplace_back(polygon);
 		});
-
-		if (simplify) {
-			auto const tolerance = 4 * width * width;
-			this->simplify(tolerance, water);
-		}
-
-		if (smooth) {
-			auto static constexpr pi = 3.14159265358979324;
-			auto static constexpr angle = 15.0 * pi / 180;
-			auto const tolerance = 0.5 * width / std::sin(angle);
-			this->smooth(tolerance, angle);
-		}
 	}
 };
 

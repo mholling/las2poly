@@ -9,6 +9,8 @@
 #include "points.hpp"
 #include "mesh.hpp"
 #include "polygons.hpp"
+#include "simplify.hpp"
+#include "smooth.hpp"
 #include <optional>
 #include <vector>
 #include <algorithm>
@@ -129,7 +131,19 @@ int main(int argc, char *argv[]) {
 		auto mesh = Mesh(points, threads->front());
 
 		logger.time("extracting polygons");
-		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, *area, (bool)water, (bool)simplify, bool(smooth), threads->front());
+		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, *area, (bool)water, threads->front());
+
+		if (simplify) {
+			auto const tolerance = 4 * *width * *width;
+			Simplify()(polygons, tolerance, (bool)water);
+		}
+
+		if (smooth) {
+			auto static constexpr pi = 3.14159265358979324;
+			auto static constexpr angle = 15.0 * pi / 180;
+			auto const tolerance = 0.5 * *width / std::sin(angle);
+			Smooth()(polygons, tolerance, angle);
+		}
 
 		auto json = std::stringstream();
 		json.precision(15);
