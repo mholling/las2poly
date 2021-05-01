@@ -15,6 +15,7 @@
 #include <stack>
 #include <cstddef>
 #include <algorithm>
+#include <stdexcept>
 #include <vector>
 
 template <typename Element>
@@ -162,19 +163,24 @@ class RTree {
 
 	template <typename Iterator, bool horizontal = true>
 	auto static partition(Iterator begin, Iterator end) {
-		if (end - begin == 1)
+		switch (end - begin) {
+		case 0:
+			throw std::runtime_error("not enough points");
+		case 1:
 			return std::make_unique<Node>(*begin);
-		auto const middle = begin + (end - begin) / 2;
-		std::nth_element(begin, middle, end, [](auto const &corner1, auto const &corner2) {
-			if constexpr (horizontal)
-				return corner1.bounds().xmin < corner2.bounds().xmin;
-			else
-				return corner1.bounds().ymin < corner2.bounds().ymin;
-		});
-		return std::make_unique<Node>(
-			partition<Iterator, !horizontal>(begin, middle),
-			partition<Iterator, !horizontal>(middle, end)
-		);
+		default:
+			auto const middle = begin + (end - begin) / 2;
+			std::nth_element(begin, middle, end, [](auto const &corner1, auto const &corner2) {
+				if constexpr (horizontal)
+					return corner1.bounds().xmin < corner2.bounds().xmin;
+				else
+					return corner1.bounds().ymin < corner2.bounds().ymin;
+			});
+			return std::make_unique<Node>(
+				partition<Iterator, !horizontal>(begin, middle),
+				partition<Iterator, !horizontal>(middle, end)
+			);
+		}
 	}
 
 public:
