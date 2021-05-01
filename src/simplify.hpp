@@ -78,12 +78,12 @@ class Simplify {
 					continue;
 				auto const next = corner.next();
 				auto const prev = corner.prev();
+				rtree.erase(corner);
 				for (auto const &corner: rtree.search(bounds)) {
 					auto const candidate = Candidate(corner, rtree);
 					auto const [begin, end] = queue.equal_range(candidate);
 					queue.erase(std::find(begin, end, candidate));
 				};
-				rtree.erase(corner);
 				corner.remove();
 				rtree.update(next);
 				rtree.update(prev);
