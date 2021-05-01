@@ -8,6 +8,8 @@
 #define SIMPLIFY_HPP
 
 #include "ring.hpp"
+#include "rtree.hpp"
+#include "bounds.hpp"
 #include "polygons.hpp"
 #include <utility>
 #include <cmath>
@@ -15,45 +17,78 @@
 
 class Simplify {
 	using Corner = Ring::CornerIterator;
+	using Ordinal = std::pair<bool, double>;
 
 	template <bool erode>
 	struct OneSided {
-		struct Compare {
-			auto operator()(Corner const &corner) const {
+		struct Candidate {
+			Corner corner;
+			Bounds bounds;
+			Ordinal ordinal;
+
+			static auto order(Corner const &corner, RTree<Corner> const &rtree) {
 				auto const cross = corner.cross();
-				return std::pair(erode == (cross < 0), std::abs(cross));
+				if (erode != (cross < 0))
+					return Ordinal(false, std::abs(cross));
+				auto const [v0, v1, v2] = *corner;
+				auto const bounds = Bounds(v0, v2);
+				for (auto const &corner: rtree.search(bounds)) {
+					auto const [u0, u1, u2] = *corner;
+					// if (/* u0-u1 intersects with v0-v2 */)
+					// 	return = Ordinal(false, std::abs(cross));
+					// if (/* u1-u2 intersects with v0-v2 */)
+					// 	return = Ordinal(false, std::abs(cross));
+				}
+				return Ordinal(true, std::abs(cross));
 			}
 
-			auto operator()(Corner const &corner1, Corner const &corner2) const {
-				return (*this)(corner1) < (*this)(corner2);
+			Candidate(Corner const &corner, RTree<Corner> const &rtree) : corner(corner), bounds(corner.bounds()), ordinal(order(corner, rtree)) { }
+
+			friend auto operator<(Candidate const &candidate1, Candidate const &candidate2) {
+				return candidate1.ordinal < candidate2.ordinal;
 			}
 
-			auto operator()(double corner_area) const {
-				return std::pair(false, 2 * corner_area);
+			friend auto operator==(Candidate const &candidate1, Candidate const &candidate2) {
+				return candidate1.corner == candidate2.corner;
+			}
+
+			auto operator<(double corner_area) const {
+				return ordinal < Ordinal(false, corner_area * 2);
 			}
 		};
 
 		void operator()(Polygons &polygons, double tolerance) {
-			auto const compare = Compare();
-			auto const limit = compare(tolerance);
-			auto corners = std::multiset<Corner, Compare>(compare);
+			auto queue = std::multiset<Candidate>();
+			auto corners = std::vector<Corner>();
 			for (auto &polygon: polygons)
 				for (auto &ring: polygon)
 					for (auto corner = ring.begin(); corner != ring.end(); ++corner)
-						corners.insert(corner);
-			while (!corners.empty() && compare(*corners.begin()) < limit) {
-				auto const least = corners.begin();
-				auto const corner = *least;
-				auto const prev = corner.prev();
+						corners.push_back(corner);
+			auto rtree = RTree(corners);
+			for (auto &polygon: polygons)
+				for (auto &ring: polygon)
+					for (auto corner = ring.begin(); corner != ring.end(); ++corner)
+						queue.emplace(corner, rtree);
+			while (!queue.empty() && *queue.begin() < tolerance) {
+				auto const least = queue.begin();
+				auto const corner = least->corner;
+				auto const bounds = least->bounds;
+				queue.erase(least);
+				if (corner.ring_size() <= 4)
+					continue;
 				auto const next = corner.next();
-				corners.erase(least);
-				if (corner.ring_size() > 4) {
-					corners.erase(prev);
-					corners.erase(next);
-					corner.remove();
-					corners.insert(next.prev());
-					corners.insert(prev.next());
-				}
+				auto const prev = corner.prev();
+				for (auto const &corner: rtree.search(bounds)) {
+					auto const candidate = Candidate(corner, rtree);
+					auto const [begin, end] = queue.equal_range(candidate);
+					queue.erase(std::find(begin, end, candidate));
+				};
+				rtree.erase(corner);
+				corner.remove();
+				rtree.update(next);
+				rtree.update(prev);
+				for (auto const &corner: rtree.search(bounds))
+					queue.emplace(corner, rtree);
 			}
 		}
 	};

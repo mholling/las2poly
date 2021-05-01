@@ -52,6 +52,10 @@ class Ring : std::list<Vector<2>> {
 			return here != other.here;
 		}
 
+		auto operator==(Iterator const &other) const {
+			return here == other.here;
+		}
+
 		auto next() const {
 			return *this != --ring->end() ? ++Iterator(ring, here) : ring->begin();
 		}
