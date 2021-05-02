@@ -13,6 +13,7 @@
 #include <utility>
 #include <variant>
 #include <stack>
+#include <iterator>
 #include <cstddef>
 #include <algorithm>
 #include <stdexcept>
@@ -58,6 +59,12 @@ class RTree {
 			Bounds const &bounds;
 
 			struct Iterator {
+				using iterator_category = std::input_iterator_tag;
+				using value_type        = Element;
+				using reference         = Element &;
+				using pointer           = void;
+				using difference_type   = void;
+
 				Search &search;
 				std::size_t index;
 
@@ -84,6 +91,10 @@ class RTree {
 				auto &operator++() {
 					search.pop();
 					return advance();
+				}
+
+				auto operator==(Iterator const &other) const {
+					return other.index == index;
 				}
 
 				auto operator!=(Iterator const &other) const {
