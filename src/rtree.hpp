@@ -68,7 +68,7 @@ class RTree {
 				Search &search;
 				std::size_t index;
 
-				auto &advance() {
+				auto &next() {
 					while (!search.empty()) {
 						auto const &node = *search.top();
 						if (!(node.bounds && search.bounds))
@@ -90,7 +90,7 @@ class RTree {
 
 				auto &operator++() {
 					search.pop();
-					return advance();
+					return next();
 				}
 
 				auto operator==(Iterator const &other) const {
@@ -110,7 +110,7 @@ class RTree {
 				this->push(root);
 			}
 
-			auto begin() { return Iterator(*this).advance(); }
+			auto begin() { return Iterator(*this).next(); }
 			auto   end() { return Iterator(*this); }
 		};
 
@@ -118,49 +118,46 @@ class RTree {
 			return Search(bounds, this);
 		}
 
-		auto erase(Element const &element) {
-			enum { found_none = 0, found_branch = 1, found_leaf = 2 };
+		auto erase(Element const &element, Bounds const &element_bounds) {
 			if (is_leaf())
-				return this->element() != element ? found_none : found_leaf;
-			if (!(element.bounds() && bounds)) // TODO: should be <= ?
-				return found_none;
+				return this->element() == element;
+			if (!(bounds && element_bounds))
+				return false;
 			auto const &[node1, node2] = children();
-			if (auto const found = node1->erase(element); found != found_none) {
-				if (found == found_leaf) {
+			if (node1->erase(element, element_bounds))
+				if (node1->is_leaf()) {
 					auto &node = *node2;
 					std::swap(node, *this);
 					auto &[node1, node2] = node.children();
 					node1.reset(), node2.reset();
 				} else
 					bounds = node1->bounds + node2->bounds;
-				return found_branch;
-			}
-			if (auto const found = node2->erase(element); found != found_none) {
-				if (found == found_leaf) {
+			else if (node2->erase(element, element_bounds))
+				if (node2->is_leaf()) {
 					auto &node = *node1;
 					std::swap(node, *this);
 					auto &[node1, node2] = node.children();
 					node2.reset(), node1.reset();
 				} else
 					bounds = node1->bounds + node2->bounds;
-				return found_branch;
-			}
-			return found_none;
+			else
+				return false;
+			return true;
 		}
 
-		auto update(Element const &element) {
+		auto update(Element const &element, Bounds const &old_bounds) {
 			if (is_leaf()) {
 				if (this->element() != element)
 					return false;
 				bounds = element.bounds();
 				return true;
 			}
-			if (!(element.bounds() <= bounds))
+			if (!(old_bounds && bounds))
 				return false;
 			auto const &[node1, node2] = children();
-			if (node1->update(element))
+			if (node1->update(element, old_bounds))
 				bounds = node1->bounds + node2->bounds;
-			else if (node2->update(element))
+			else if (node2->update(element, old_bounds))
 				bounds = node1->bounds + node2->bounds;
 			else
 				return false;
@@ -181,11 +178,11 @@ class RTree {
 			return std::make_unique<Node>(*begin);
 		default:
 			auto const middle = begin + (end - begin) / 2;
-			std::nth_element(begin, middle, end, [](auto const &corner1, auto const &corner2) {
+			std::nth_element(begin, middle, end, [](auto const &element1, auto const &element2) {
 				if constexpr (horizontal)
-					return corner1.bounds().xmin < corner2.bounds().xmin;
+					return element1.bounds().xmin < element2.bounds().xmin;
 				else
-					return corner1.bounds().ymin < corner2.bounds().ymin;
+					return element1.bounds().ymin < element2.bounds().ymin;
 			});
 			return std::make_unique<Node>(
 				partition<Iterator, !horizontal>(begin, middle),
@@ -195,20 +192,18 @@ class RTree {
 	}
 
 public:
-	RTree(std::vector<Element> &elements) : root(partition(elements.begin(), elements.end())) {
-		elements.clear();
-	}
+	RTree(std::vector<Element> &elements) : root(partition(elements.begin(), elements.end())) { }
 
 	auto search(Bounds const &bounds) const {
 		return root->search(bounds);
 	}
 
-	void erase(Element const &element) {
-		root->erase(element);
+	auto erase(Element const &element) {
+		return root->erase(element, element.bounds());
 	}
 
-	void update(Element const &element) const {
-		root->update(element);
+	auto update(Element const &element, Bounds const &old_bounds) const {
+		return root->update(element, old_bounds);
 	}
 };
 

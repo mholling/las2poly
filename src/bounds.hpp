@@ -46,12 +46,6 @@ struct Bounds {
 		return Bounds(bounds1) += bounds2;
 	}
 
-	friend auto operator<=(Bounds const &bounds1, Bounds const &bounds2) {
-		return
-			bounds1.xmin >= bounds2.xmin && bounds1.xmax <= bounds1.xmax &&
-			bounds1.ymin >= bounds2.ymin && bounds1.ymax <= bounds1.ymax;
-	}
-
 	friend auto operator&&(Bounds const &bounds1, Bounds const &bounds2) {
 		return
 			bounds1.xmax >= bounds2.xmin && bounds1.xmin <= bounds2.xmax &&
