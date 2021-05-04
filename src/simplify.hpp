@@ -7,11 +7,13 @@
 #ifndef SIMPLIFY_HPP
 #define SIMPLIFY_HPP
 
+#include "vector.hpp"
 #include "ring.hpp"
 #include "bounds.hpp"
 #include "segment.hpp"
 #include "polygons.hpp"
 #include "rtree.hpp"
+#include <tuple>
 #include <utility>
 #include <cmath>
 #include <algorithm>
@@ -19,6 +21,17 @@
 #include <vector>
 
 class Simplify {
+	using Vertex = Vector<2>;
+	using Vertices = std::tuple<Vertex, Vertex, Vertex>;
+
+	static auto encloses(Vertices const &vertices, Vertex const &vertex) {
+		auto &[v0, v1, v2] = vertices;
+		auto const orient0 = Segment(v0, v1) <= vertex;
+		auto const orient1 = Segment(v1, v2) <= vertex;
+		auto const orient2 = Segment(v2, v0) <= vertex;
+		return orient0 == orient1 && orient1 == orient2;
+	}
+
 	template <bool erode>
 	class OneSided {
 		using Corner = Ring::CornerIterator;
@@ -45,22 +58,16 @@ class Simplify {
 				auto const vertices = *corner;
 				auto search = rtree.search(corner.bounds());
 				auto const withhold = std::any_of(search.begin(), search.end(), [&](auto const &other) {
-					if (corner == other)
+					if (other == corner)
 						return false;
 					auto const [u0, u1, u2] = *other;
-					auto const &[v0, v1, v2] = vertices;
 					if (other == prev1)
-						return
-							Segment(v0, v1) <= u0 && Segment(v1, v2) <= u0 && Segment(v2, v0) <= u0 ||
-							Segment(v0, v1) >= u0 && Segment(v1, v2) >= u0 && Segment(v2, v0) >= u0;
+						return encloses(vertices, u0);
 					if (other == next1)
-						return
-							Segment(v0, v1) <= u2 && Segment(v1, v2) <= u2 && Segment(v2, v0) <= u2 ||
-							Segment(v0, v1) >= u2 && Segment(v1, v2) >= u2 && Segment(v2, v0) >= u2;
+						return encloses(vertices, u2);
 					if (other == prev2 && other == next2)
-						return
-							Segment(v0, v1) <= u1 && Segment(v1, v2) <= u1 && Segment(v2, v0) <= u1 ||
-							Segment(v0, v1) >= u1 && Segment(v1, v2) >= u1 && Segment(v2, v0) >= u1;
+						return encloses(vertices, u1);
+					auto const &[v0, v1, v2] = vertices;
 					if (other == prev2)
 						return Segment(u0, u1) && Segment(v0, v2);
 					if (other == next2)
