@@ -57,6 +57,10 @@ class Simplify {
 						return
 							Segment(v0, v1) <= u2 && Segment(v1, v2) <= u2 && Segment(v2, v0) <= u2 ||
 							Segment(v0, v1) >= u2 && Segment(v1, v2) >= u2 && Segment(v2, v0) >= u2;
+					if (other == prev2 && other == next2)
+						return
+							Segment(v0, v1) <= u1 && Segment(v1, v2) <= u1 && Segment(v2, v0) <= u1 ||
+							Segment(v0, v1) >= u1 && Segment(v1, v2) >= u1 && Segment(v2, v0) >= u1;
 					if (other == prev2)
 						return Segment(u0, u1) && Segment(v0, v2);
 					if (other == next2)
