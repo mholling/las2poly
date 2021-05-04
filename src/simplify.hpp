@@ -9,9 +9,9 @@
 
 #include "ring.hpp"
 #include "bounds.hpp"
-#include "rtree.hpp"
 #include "segment.hpp"
 #include "polygons.hpp"
+#include "rtree.hpp"
 #include <utility>
 #include <cmath>
 #include <algorithm>

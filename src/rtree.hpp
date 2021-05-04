@@ -8,7 +8,6 @@
 #define RTREE_HPP
 
 #include "bounds.hpp"
-#include "ring.hpp"
 #include <memory>
 #include <utility>
 #include <variant>
