@@ -60,8 +60,8 @@ class RTree {
 
 			struct Iterator {
 				using iterator_category = std::input_iterator_tag;
-				using value_type        = Element;
-				using reference         = Element &;
+				using value_type        = Element const;
+				using reference         = Element const &;
 				using pointer           = void;
 				using difference_type   = void;
 
@@ -165,10 +165,6 @@ class RTree {
 		}
 	};
 
-	using NodePtr = std::unique_ptr<Node>;
-
-	NodePtr root;
-
 	template <typename Iterator, bool horizontal = true>
 	auto static partition(Iterator begin, Iterator end) {
 		switch (end - begin) {
@@ -191,6 +187,10 @@ class RTree {
 		}
 	}
 
+	using NodePtr = std::unique_ptr<Node>;
+
+	NodePtr root;
+
 public:
 	RTree(std::vector<Element> &elements) : root(partition(elements.begin(), elements.end())) { }
 
@@ -202,7 +202,7 @@ public:
 		return root->erase(element, element.bounds());
 	}
 
-	auto update(Element const &element, Bounds const &old_bounds) const {
+	auto update(Element const &element, Bounds const &old_bounds) {
 		return root->update(element, old_bounds);
 	}
 };
