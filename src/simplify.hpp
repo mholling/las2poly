@@ -38,8 +38,10 @@ class Simplify {
 				auto const cross = corner.cross();
 				if (erode == (cross < 0))
 					return Ordinal(true, std::abs(cross));
-				auto const prev = corner.prev();
-				auto const next = corner.next();
+				auto const prev1 = corner.prev();
+				auto const next1 = corner.next();
+				auto const prev2 = prev1.prev();
+				auto const next2 = next1.next();
 				auto const vertices = *corner;
 				auto search = rtree.search(corner.bounds());
 				auto const withhold = std::any_of(search.begin(), search.end(), [&](auto const &other) {
@@ -47,13 +49,21 @@ class Simplify {
 						return false;
 					auto const [u0, u1, u2] = *other;
 					auto const &[v0, v1, v2] = vertices;
-					if (prev == other)
-						return Segment(v0, v2) >= u0 && Segment(v0, v1) <= u0;
-					if (next == other)
-						return Segment(v0, v2) >= u2 && Segment(v1, v2) <= u2;
+					if (other == prev1)
+						return
+							Segment(v0, v1) <= u0 && Segment(v1, v2) <= u0 && Segment(v2, v0) <= u0 ||
+							Segment(v0, v1) >= u0 && Segment(v1, v2) >= u0 && Segment(v2, v0) >= u0;
+					if (other == next1)
+						return
+							Segment(v0, v1) <= u2 && Segment(v1, v2) <= u2 && Segment(v2, v0) <= u2 ||
+							Segment(v0, v1) >= u2 && Segment(v1, v2) >= u2 && Segment(v2, v0) >= u2;
+					if (other == prev2)
+						return Segment(u0, u1) && Segment(v0, v2);
+					if (other == next2)
+						return Segment(u1, u2) && Segment(v0, v2);
 					return
-						(Segment(u0, u1) && Segment(v0, v2)) ||
-						(Segment(u1, u2) && Segment(v0, v2));
+						Segment(u0, u1) && Segment(v0, v2) ||
+						Segment(u1, u2) && Segment(v0, v2);
 				});
 				return Ordinal(withhold, std::abs(cross));
 			}

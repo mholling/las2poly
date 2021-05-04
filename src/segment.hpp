@@ -17,10 +17,14 @@ auto operator&&(Segment const &s1, Segment const &s2) {
 	auto const &[u1, v1] = s1;
 	auto const &[u2, v2] = s2;
 	auto const det = (v1 - u1) ^ (v2 - u2);
-	if (det == 0) return false; // TODO: test vertex intersections, etc
-	auto const t1 = ((u2 - u1) ^ (v2 - u2)) / det;
-	auto const t2 = ((u2 - u1) ^ (v1 - u1)) / det;
-	return t1 > 0 && t1 < 1 && t2 > 0 && t2 < 1;
+	if (det == 0)
+		return false;
+	auto const t1 = (u2 - u1) ^ (v2 - u2);
+	auto const t2 = (u2 - u1) ^ (v1 - u1);
+	if (det > 0)
+		return t1 > 0 && t1 < det && t2 > 0 && t2 < det;
+	else
+		return t1 < 0 && t1 > det && t2 < 0 && t2 > det;
 }
 
 // segment <  vector : vector lies to the right of segment
