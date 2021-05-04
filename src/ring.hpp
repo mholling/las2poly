@@ -49,11 +49,11 @@ class Ring : std::list<Vector<2>> {
 		}
 
 		auto operator!=(Iterator const &other) const {
-			return here != other.here;
+			return ring != other.ring || here != other.here;
 		}
 
 		auto operator==(Iterator const &other) const {
-			return here == other.here;
+			return ring == other.ring && here == other.here;
 		}
 
 		auto next() const {
