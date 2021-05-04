@@ -78,12 +78,12 @@ class Ring : std::list<Vector<2>> {
 			return (v1 - v0).normalise() * (v2 - v1).normalise();
 		}
 
-		auto remove() const {
+		auto erase() const {
 			return ring->erase(here);
 		}
 
 		auto replace(Vertex const &v1, Vertex const &v2) const {
-			return ring->insert(ring->insert(remove(), v2), v1);
+			return ring->insert(ring->insert(erase(), v2), v1);
 		}
 
 		auto ring_size() const {

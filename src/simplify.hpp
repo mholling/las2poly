@@ -125,7 +125,7 @@ class Simplify {
 					auto const prev = corner.prev();
 					auto const next_bounds = next.bounds();
 					auto const prev_bounds = prev.bounds();
-					corner.remove();
+					corner.erase();
 					rtree.update(next, next_bounds);
 					rtree.update(prev, prev_bounds);
 					for (auto const &neighbour: neighbours)
