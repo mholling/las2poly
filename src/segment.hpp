@@ -27,10 +27,10 @@ auto operator&&(Segment const &s1, Segment const &s2) {
 		return t1 < 0 && t1 > det && t2 < 0 && t2 > det;
 }
 
-// segment <  vector : vector lies to the right of segment
-// segment <= vector : vector lies to the right of segment or is colinear
-// segment >= vector : vector lies to the left of segment or is colinear
-// segment >  vector : vector lies to the left of segment
+// segment <  vector : segment lies to the left of vector
+// segment <= vector : segment lies to the left of vector or is colinear
+// segment >= vector : segment lies to the right of vector or is colinear
+// segment >  vector : segment lies to the right of vector
 
 auto operator<=>(Segment const &segment, Vector<2> const &vector) {
 	auto const &[v1, v2] = segment;

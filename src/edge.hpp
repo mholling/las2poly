@@ -19,10 +19,10 @@
 
 using Edge = std::pair<PointIterator, PointIterator>;
 
-// edge <  point : point lies to the right of edge
-// edge <= point : point lies to the right of edge or is colinear
-// edge >= point : point lies to the left of edge or is colinear
-// edge >  point : point lies to the left of edge
+// edge <  point : edge lies to the left of point
+// edge <= point : edge lies to the left of point or is colinear
+// edge >= point : edge lies to the right of point or is colinear
+// edge >  point : edge lies to the right of point
 
 auto operator<=>(Edge const &edge, PointIterator const &point) {
 	auto static constexpr epsilon = 0.5 * std::numeric_limits<double>::epsilon();
