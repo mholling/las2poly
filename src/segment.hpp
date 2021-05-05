@@ -24,10 +24,4 @@ auto operator<=>(Segment const &segment, Vector<2> const &vector) {
 	return det <=> 0;
 }
 
-auto operator&&(Segment const &s1, Segment const &s2) {
-	auto const &[u1, v1] = s1;
-	auto const &[u2, v2] = s2;
-	return s1 <= u2 != s1 <= v2 && s2 <= u1 != s2 <= v1;
-}
-
 #endif

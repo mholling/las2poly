@@ -8,9 +8,9 @@
 #define SIMPLIFY_HPP
 
 #include "vector.hpp"
+#include "segment.hpp"
 #include "ring.hpp"
 #include "bounds.hpp"
-#include "segment.hpp"
 #include "polygons.hpp"
 #include "rtree.hpp"
 #include <tuple>
@@ -30,6 +30,11 @@ class Simplify {
 		auto const orient1 = Segment(v1, v2) <= vertex;
 		auto const orient2 = Segment(v2, v0) <= vertex;
 		return orient0 == orient1 && orient1 == orient2;
+	}
+
+	template <typename ...Others>
+	static auto encloses(Vertices const &vertices, Vertex const &vertex, Others const &...others) {
+		return encloses(vertices, vertex) || encloses(vertices, others...);
 	}
 
 	template <bool erode>
@@ -67,14 +72,12 @@ class Simplify {
 						return encloses(vertices, u2);
 					if (other == prev2 && other == next2)
 						return encloses(vertices, u1);
-					auto const &[v0, v1, v2] = vertices;
 					if (other == prev2)
-						return Segment(u0, u1) && Segment(v0, v2);
+						return encloses(vertices, u0, u1);
 					if (other == next2)
-						return Segment(u1, u2) && Segment(v0, v2);
-					return
-						Segment(u0, u1) && Segment(v0, v2) ||
-						Segment(u1, u2) && Segment(v0, v2);
+						return encloses(vertices, u1, u2);
+					else
+						return encloses(vertices, u0, u1, u2);
 				});
 				return Ordinal(withhold, std::abs(cross));
 			}
