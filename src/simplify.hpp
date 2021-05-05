@@ -25,7 +25,7 @@ class Simplify {
 	using Vertices = std::tuple<Vertex, Vertex, Vertex>;
 
 	static auto encloses(Vertices const &vertices, Vertex const &vertex) {
-		auto &[v0, v1, v2] = vertices;
+		auto const &[v0, v1, v2] = vertices;
 		auto const orient0 = Segment(v0, v1) <= vertex;
 		auto const orient1 = Segment(v1, v2) <= vertex;
 		auto const orient2 = Segment(v2, v0) <= vertex;
@@ -119,7 +119,7 @@ class Simplify {
 				if (corner.ring_size() > 4) {
 					rtree.erase(corner);
 					auto search = rtree.search(bounds);
-					auto neighbours = Corners(search.begin(), search.end());
+					auto const neighbours = Corners(search.begin(), search.end());
 					for (auto const &neighbour: neighbours)
 						for (auto const withhold: {true, false}) {
 							auto const candidate = Candidate(neighbour, withhold);
