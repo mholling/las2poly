@@ -93,8 +93,8 @@ class Simplify {
 				return candidate1.corner == candidate2.corner;
 			}
 
-			friend bool operator>(Candidate const &candidate, double corner_area) {
-				return candidate > Ordinal(false, corner_area * 2);
+			friend bool operator<(Candidate const &candidate, double corner_area) {
+				return candidate < Ordinal(false, corner_area * 2);
 			}
 		};
 
@@ -112,10 +112,7 @@ class Simplify {
 			auto rtree = RTree(corners);
 			for (auto const &corner: corners)
 				ordered.emplace(corner, rtree);
-			while (!ordered.empty()) {
-				auto const least = ordered.begin();
-				if (*least > tolerance)
-					break;
+			for (auto least = ordered.begin(); !ordered.empty() && *least < tolerance; least = ordered.begin()) {
 				auto const corner = least->corner;
 				auto const bounds = least->bounds;
 				ordered.erase(least);
