@@ -54,7 +54,7 @@ class Simplify {
 			template <typename RTree>
 			static auto ordinal(Corner const &corner, RTree const &rtree) {
 				auto const cross = corner.cross();
-				if (erode == (cross < 0))
+				if (erode == (cross < 0) || corner.ring_size() <= 4)
 					return Ordinal(true, std::abs(cross));
 				auto const prev1 = corner.prev();
 				auto const next1 = corner.next();
@@ -116,28 +116,26 @@ class Simplify {
 				auto const corner = least->corner;
 				auto const bounds = least->bounds;
 				ordered.erase(least);
-				if (corner.ring_size() > 4) {
-					rtree.erase(corner);
-					auto search = rtree.search(bounds);
-					auto const neighbours = Corners(search.begin(), search.end());
-					for (auto const &neighbour: neighbours)
-						for (auto const withhold: {true, false}) {
-							auto const candidate = Candidate(neighbour, withhold);
-							auto const [begin, end] = ordered.equal_range(candidate);
-							auto const position = std::find(begin, end, candidate);
-							if (position != end)
-								ordered.erase(position);
-						}
-					auto const next = corner.next();
-					auto const prev = corner.prev();
-					auto const next_bounds = next.bounds();
-					auto const prev_bounds = prev.bounds();
-					corner.erase();
-					rtree.update(next, next_bounds);
-					rtree.update(prev, prev_bounds);
-					for (auto const &neighbour: neighbours)
-						ordered.emplace(neighbour, rtree);
-				}
+				rtree.erase(corner);
+				auto search = rtree.search(bounds);
+				auto const neighbours = Corners(search.begin(), search.end());
+				for (auto const &neighbour: neighbours)
+					for (auto const withhold: {true, false}) {
+						auto const candidate = Candidate(neighbour, withhold);
+						auto const [begin, end] = ordered.equal_range(candidate);
+						auto const position = std::find(begin, end, candidate);
+						if (position != end)
+							ordered.erase(position);
+					}
+				auto const next = corner.next();
+				auto const prev = corner.prev();
+				auto const next_bounds = next.bounds();
+				auto const prev_bounds = prev.bounds();
+				corner.erase();
+				rtree.update(next, next_bounds);
+				rtree.update(prev, prev_bounds);
+				for (auto const &neighbour: neighbours)
+					ordered.emplace(neighbour, rtree);
 			}
 		}
 	};
