@@ -20,6 +20,8 @@
 #include <vector>
 
 class Simplify {
+	auto static constexpr min_ring_size = 4;
+
 	template <bool erode>
 	class OneSided {
 		using Corner = Ring::CornerIterator;
@@ -37,7 +39,7 @@ class Simplify {
 			template <typename RTree>
 			static auto ordinal(Corner const &corner, RTree const &rtree) {
 				auto const cross = corner.cross();
-				if (erode == (cross < 0) || corner.ring_size() <= 4)
+				if (erode == (cross < 0) || corner.ring_size() <= min_ring_size)
 					return Ordinal(true, std::abs(cross));
 				auto const prev = corner.prev();
 				auto const next = corner.next();
@@ -92,6 +94,8 @@ class Simplify {
 				auto const corner = least->corner;
 				auto const bounds = least->bounds;
 				ordered.erase(least);
+				if (corner.ring_size() <= min_ring_size)
+					continue;
 				rtree.erase(corner);
 				auto search = rtree.search(bounds);
 				auto const neighbours = Corners(search.begin(), search.end());
