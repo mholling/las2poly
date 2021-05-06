@@ -8,7 +8,6 @@
 #define SIMPLIFY_HPP
 
 #include "vector.hpp"
-#include "segment.hpp"
 #include "ring.hpp"
 #include "bounds.hpp"
 #include "polygons.hpp"
@@ -39,6 +38,8 @@ class Simplify {
 			template <typename RTree>
 			static auto ordinal(Corner const &corner, RTree const &rtree) {
 				auto const cross = corner.cross();
+				if (cross == 0)
+					return Ordinal(false, std::abs(cross));
 				if (erode == (cross < 0) || corner.ring_size() <= min_ring_size)
 					return Ordinal(true, std::abs(cross));
 				auto const prev = corner.prev();
@@ -49,13 +50,15 @@ class Simplify {
 					if (other == corner || other == prev || other == next)
 						return false;
 					auto const &[v0, v1, v2] = vertices;
-					auto const &vertex = other.vertex();
-					if (vertex == v1)
+					auto const [u0, u1, u2] = *other;
+					auto const cross01 = (u1 - v0) ^ (u1 - v1);
+					auto const cross12 = (u1 - v1) ^ (u1 - v2);
+					auto const cross20 = (u1 - v2) ^ (u1 - v0);
+					if (cross01 < 0 && cross12 < 0 && cross20 < 0)
 						return true;
-					auto const orient0 = Segment(v0, v1) <= vertex;
-					auto const orient1 = Segment(v1, v2) <= vertex;
-					auto const orient2 = Segment(v2, v0) <= vertex;
-					return orient0 == orient1 && orient1 == orient2;
+					if (cross01 > 0 && cross12 > 0 && cross20 > 0)
+						return true;
+					return u1 == v1;
 				});
 				return Ordinal(withhold, std::abs(cross));
 			}
