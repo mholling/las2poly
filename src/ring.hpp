@@ -21,8 +21,6 @@ class Ring : std::list<Vector<2>> {
 	using Vertices = std::list<Vertex>;
 	using VertexIterator = typename Vertices::const_iterator;
 
-	double signed_area;
-
 	struct VertexOnRing : std::runtime_error {
 		VertexOnRing() : runtime_error("vertex on ring") { }
 	};
@@ -106,13 +104,22 @@ public:
 	auto   end() { return CornerIterator(this, Vertices::end()); }
 
 	template <typename Edges>
-	Ring(Edges const &edges) : signed_area(0) {
-		auto const &p = edges.begin()->first;
-		for (auto sum = Summation(signed_area); auto const &[p1, p2]: edges) {
+	Ring(Edges const &edges) {
+		for (auto const &[p1, p2]: edges)
 			push_back(*p1);
-			sum += (*p1 - *p) ^ (*p2 - *p);
-		}
-		signed_area /= 2;
+	}
+
+	auto is_exterior() const {
+		auto const leftmost = std::min_element(list::begin(), list::end());
+		return ConstCornerIterator(this, leftmost).cross() > 0;
+	}
+
+	auto signed_area() const {
+		auto cross_product_sum = 0.0;
+		auto const v = *list::begin();
+		for (auto summation = Summation(cross_product_sum); auto const [v0, v1, v2]: *this)
+			summation += (v1 - v) ^ (v2 - v);
+		return cross_product_sum * 0.5;
 	}
 
 	auto winding_number(Vertex const &v) const {
@@ -135,15 +142,15 @@ public:
 	}
 
 	friend auto operator<(Ring const &ring1, Ring const &ring2) {
-		return ring1.signed_area < ring2.signed_area;
+		return ring1.signed_area() < ring2.signed_area();
 	}
 
 	friend auto operator<(Ring const &ring, double signed_area) {
-		return ring.signed_area < signed_area;
+		return ring.signed_area() < signed_area;
 	}
 
 	friend auto operator>(Ring const &ring, double signed_area) {
-		return ring.signed_area > signed_area;
+		return ring.signed_area() > signed_area;
 	}
 
 	friend auto &operator<<(std::ostream &json, Ring const &ring) {

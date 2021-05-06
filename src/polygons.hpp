@@ -74,7 +74,7 @@ public:
 			return ring < area && ring > -area;
 		});
 		auto holes_begin = std::partition(rings.begin(), rings_end, [](auto const &ring) {
-			return ring > 0;
+			return ring.is_exterior();
 		});
 		std::sort(rings.begin(), holes_begin);
 
