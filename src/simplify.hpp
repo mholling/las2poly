@@ -48,6 +48,8 @@ class Simplify {
 						return false;
 					auto const &[v0, v1, v2] = vertices;
 					auto const &vertex = other.vertex();
+					if (vertex == v1)
+						return true;
 					auto const orient0 = Segment(v0, v1) <= vertex;
 					auto const orient1 = Segment(v1, v2) <= vertex;
 					auto const orient2 = Segment(v2, v0) <= vertex;
