@@ -13,7 +13,6 @@
 #include "bounds.hpp"
 #include "polygons.hpp"
 #include "rtree.hpp"
-#include <tuple>
 #include <utility>
 #include <cmath>
 #include <algorithm>
@@ -21,22 +20,6 @@
 #include <vector>
 
 class Simplify {
-	using Vertex = Vector<2>;
-	using Vertices = std::tuple<Vertex, Vertex, Vertex>;
-
-	static auto encloses(Vertices const &vertices, Vertex const &vertex) {
-		auto const &[v0, v1, v2] = vertices;
-		auto const orient0 = Segment(v0, v1) <= vertex;
-		auto const orient1 = Segment(v1, v2) <= vertex;
-		auto const orient2 = Segment(v2, v0) <= vertex;
-		return orient0 == orient1 && orient1 == orient2;
-	}
-
-	template <typename ...Others>
-	static auto encloses(Vertices const &vertices, Vertex const &vertex, Others const &...others) {
-		return encloses(vertices, vertex) || encloses(vertices, others...);
-	}
-
 	template <bool erode>
 	class OneSided {
 		using Corner = Ring::CornerIterator;
@@ -56,28 +39,19 @@ class Simplify {
 				auto const cross = corner.cross();
 				if (erode == (cross < 0) || corner.ring_size() <= 4)
 					return Ordinal(true, std::abs(cross));
-				auto const prev1 = corner.prev();
-				auto const next1 = corner.next();
-				auto const prev2 = prev1.prev();
-				auto const next2 = next1.next();
+				auto const prev = corner.prev();
+				auto const next = corner.next();
 				auto const vertices = *corner;
 				auto search = rtree.search(corner.bounds());
 				auto const withhold = std::any_of(search.begin(), search.end(), [&](auto const &other) {
-					if (other == corner)
+					if (other == corner || other == prev || other == next)
 						return false;
-					auto const [u0, u1, u2] = *other;
-					if (other == prev1)
-						return encloses(vertices, u0);
-					if (other == next1)
-						return encloses(vertices, u2);
-					if (other == prev2 && other == next2)
-						return encloses(vertices, u1);
-					if (other == prev2)
-						return encloses(vertices, u0, u1);
-					if (other == next2)
-						return encloses(vertices, u1, u2);
-					else
-						return encloses(vertices, u0, u1, u2);
+					auto const &[v0, v1, v2] = vertices;
+					auto const &vertex = other.vertex();
+					auto const orient0 = Segment(v0, v1) <= vertex;
+					auto const orient1 = Segment(v1, v2) <= vertex;
+					auto const orient2 = Segment(v2, v0) <= vertex;
+					return orient0 == orient1 && orient1 == orient2;
 				});
 				return Ordinal(withhold, std::abs(cross));
 			}

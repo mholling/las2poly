@@ -68,6 +68,10 @@ class Ring : std::list<Vector<2>> {
 			return std::tuple(*prev().here, *here, *next().here);
 		}
 
+		auto &vertex() const {
+			return *here;
+		}
+
 		auto cross() const {
 			auto const [v0, v1, v2] = **this;
 			return (v1 - v0) ^ (v2 - v1);
