@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iterator>
+#include <numeric>
 #include <ostream>
 #include <utility>
 
@@ -94,6 +95,12 @@ public:
 			}), polygon.end());
 			return polygon.front().signed_area() < area;
 		}), end());
+	}
+
+	auto ring_count() const {
+		return std::accumulate(begin(), end(), 0ul, [](auto const &sum, auto const &ring) {
+			return sum + ring.size();
+		});
 	}
 };
 

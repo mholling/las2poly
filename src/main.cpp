@@ -119,8 +119,6 @@ int main(int argc, char *argv[]) {
 			length = *width;
 		if (!area)
 			area = 4 * *width * *width;
-		if (smooth)
-			simplify = true;
 
 		auto logger = Logger((bool)progress);
 
@@ -130,10 +128,11 @@ int main(int argc, char *argv[]) {
 		logger.time("triangulating", points.size(), "point");
 		auto mesh = Mesh(points, threads->front());
 
-		logger.time("extracting polygons");
+		logger.time("extracting polygon rings");
 		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, (bool)water, threads->front());
 
-		if (simplify) {
+		if (simplify || smooth) {
+			logger.time(smooth ? "smoothing" : "simplifying", polygons.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
 			Simplify()(polygons, tolerance, (bool)water);
 		}
