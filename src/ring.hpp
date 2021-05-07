@@ -20,6 +20,7 @@ class Ring : std::list<Vector<2>> {
 	using Vertex = Vector<2>;
 	using Vertices = std::list<Vertex>;
 	using VertexIterator = typename Vertices::const_iterator;
+	using Tuple = std::tuple<Vertex const &, Vertex const &, Vertex const &>;
 
 	struct VertexOnRing : std::runtime_error {
 		VertexOnRing() : runtime_error("vertex on ring") { }
@@ -63,7 +64,7 @@ class Ring : std::list<Vector<2>> {
 		}
 
 		auto operator*() const {
-			return std::tuple(*prev().here, *here, *next().here);
+			return Tuple(*prev().here, *here, *next().here);
 		}
 
 		auto cross() const {
