@@ -145,14 +145,6 @@ public:
 		return ring1.signed_area() < ring2.signed_area();
 	}
 
-	friend auto operator<(Ring const &ring, double signed_area) {
-		return ring.signed_area() < signed_area;
-	}
-
-	friend auto operator>(Ring const &ring, double signed_area) {
-		return ring.signed_area() > signed_area;
-	}
-
 	friend auto &operator<<(std::ostream &json, Ring const &ring) {
 		json << '[';
 		for (auto const &vertex: ring.vertices())

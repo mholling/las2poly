@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 		auto mesh = Mesh(points, threads->front());
 
 		logger.time("extracting polygons");
-		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, *area, (bool)water, threads->front());
+		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, (bool)water, threads->front());
 
 		if (simplify) {
 			auto const tolerance = 4 * *width * *width;
@@ -144,6 +144,9 @@ int main(int argc, char *argv[]) {
 			auto const tolerance = 0.5 * *width / std::sin(angle);
 			Smooth()(polygons, tolerance, angle);
 		}
+
+		if (*area > 0)
+			polygons.filter_by_area(*area);
 
 		auto json = std::stringstream();
 		json.precision(15);
