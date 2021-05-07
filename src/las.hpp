@@ -121,6 +121,7 @@ public:
 		case 8:
 		case 9:
 		case 10:
+		default:
 			key_point      = *reinterpret_cast<std::uint8_t *>(buffer + 16) & 0b00000010;
 			withheld       = *reinterpret_cast<std::uint8_t *>(buffer + 16) & 0b00000100;
 			overlap        = *reinterpret_cast<std::uint8_t *>(buffer + 16) & 0b00001000;
