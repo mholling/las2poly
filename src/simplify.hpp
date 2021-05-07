@@ -78,6 +78,17 @@ class Simplify {
 				return false;
 			});
 		}
+
+		template <typename RTree>
+		void erase(RTree &rtree) const {
+			auto const next = corner.next();
+			auto const prev = corner.prev();
+			auto const next_bounds = next.bounds();
+			auto const prev_bounds = prev.bounds();
+			corner.erase();
+			rtree.update(next, next_bounds);
+			rtree.update(prev, prev_bounds);
+		}
 	};
 
 	using Ordered = std::multiset<Candidate>;
@@ -96,30 +107,23 @@ class Simplify {
 				ordered.insert(candidate);
 		while (!ordered.empty()) {
 			auto const least = ordered.begin();
-			auto const corner = least->corner;
-			auto const bounds = least->bounds;
+			auto const candidate = *least;
 			ordered.erase(least);
-			if (corner.ring_size() <= min_ring_size)
+			if (candidate.corner.ring_size() <= min_ring_size)
 				continue;
-			rtree.erase(corner);
-			auto search = rtree.search(bounds);
-			auto const neighbours = Corners(search.begin(), search.end());
-			for (auto const &neighbour: neighbours) {
-				auto const candidate = Candidate(neighbour);
+			rtree.erase(candidate.corner);
+			auto search = rtree.search(candidate.bounds);
+			auto const updates = Corners(search.begin(), search.end());
+			for (auto const &corner: updates) {
+				auto const candidate = Candidate(corner);
 				auto const &[begin, end] = ordered.equal_range(candidate);
 				auto const position = std::find(begin, end, candidate);
 				if (position != end)
 					ordered.erase(position);
 			}
-			auto const next = corner.next();
-			auto const prev = corner.prev();
-			auto const next_bounds = next.bounds();
-			auto const prev_bounds = prev.bounds();
-			corner.erase();
-			rtree.update(next, next_bounds);
-			rtree.update(prev, prev_bounds);
-			for (auto const &neighbour: neighbours)
-				if (auto const candidate = Candidate(neighbour); candidate.removeable(rtree, tolerance, erode))
+			candidate.erase(rtree);
+			for (auto const &corner: updates)
+				if (auto const candidate = Candidate(corner); candidate.removeable(rtree, tolerance, erode))
 					ordered.insert(candidate);
 		}
 	}
