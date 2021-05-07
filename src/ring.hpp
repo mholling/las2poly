@@ -11,9 +11,10 @@
 #include "bounds.hpp"
 #include "summation.hpp"
 #include <list>
+#include <tuple>
 #include <stdexcept>
 #include <type_traits>
-#include <tuple>
+#include <algorithm>
 #include <ostream>
 
 class Ring : std::list<Vector<2>> {

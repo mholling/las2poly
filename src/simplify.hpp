@@ -7,12 +7,10 @@
 #ifndef SIMPLIFY_HPP
 #define SIMPLIFY_HPP
 
-#include "vector.hpp"
 #include "ring.hpp"
 #include "bounds.hpp"
 #include "polygons.hpp"
 #include "rtree.hpp"
-#include <utility>
 #include <cmath>
 #include <algorithm>
 #include <set>
