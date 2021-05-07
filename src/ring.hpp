@@ -68,12 +68,12 @@ class Ring : std::list<Vector<2>> {
 		}
 
 		auto cross() const {
-			auto const [v0, v1, v2] = **this;
+			auto const &[v0, v1, v2] = **this;
 			return (v1 - v0) ^ (v2 - v1);
 		}
 
 		auto cosine() const {
-			auto const [v0, v1, v2] = **this;
+			auto const &[v0, v1, v2] = **this;
 			return (v1 - v0).normalise() * (v2 - v1).normalise();
 		}
 
@@ -90,7 +90,7 @@ class Ring : std::list<Vector<2>> {
 		}
 
 		auto bounds() const {
-			auto const [v0, v1, v2] = **this;
+			auto const &[v0, v1, v2] = **this;
 			return Bounds(v0, v1, v2);
 		}
 	};
@@ -118,14 +118,14 @@ public:
 	auto signed_area() const {
 		auto cross_product_sum = 0.0;
 		auto const v = *list::begin();
-		for (auto summation = Summation(cross_product_sum); auto const [v0, v1, v2]: *this)
+		for (auto summation = Summation(cross_product_sum); auto const &&[v0, v1, v2]: *this)
 			summation += (v1 - v) ^ (v2 - v);
 		return cross_product_sum * 0.5;
 	}
 
 	auto winding_number(Vertex const &v) const {
 		auto winding = 0;
-		for (auto const [v0, v1, v2]: *this)
+		for (auto const &&[v0, v1, v2]: *this)
 			if (v1 == v || v2 == v)
 				throw VertexOnRing();
 			else if ((v1 < v) && !(v2 < v) && ((v1 - v) ^ (v2 - v)) > 0)

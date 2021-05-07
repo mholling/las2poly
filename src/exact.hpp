@@ -47,8 +47,8 @@ class Exact : std::array<double, N> {
 	};
 
 	void static two_product(double &l, double &h) {
-		auto const [ll, lh] = split(l);
-		auto const [hl, hh] = split(h);
+		auto const &[ll, lh] = split(l);
+		auto const &[hl, hh] = split(h);
 		h = h * l;
 		auto const err1 = h - (lh * hh);
 		auto const err2 = err1 - (ll * hh);

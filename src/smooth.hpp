@@ -38,7 +38,7 @@ public:
 			auto const corner = *least;
 			auto const prev = corner.prev();
 			auto const next = corner.next();
-			auto const [v0, v1, v2] = *corner;
+			auto const &[v0, v1, v2] = *corner;
 			auto const f0 = std::min(0.25, tolerance / (v1 - v0).norm());
 			auto const f2 = std::min(0.25, tolerance / (v2 - v1).norm());
 			auto const v10 = v0 * f0 + v1 * (1.0 - f0);
