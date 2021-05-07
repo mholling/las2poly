@@ -57,14 +57,28 @@ class Simplify {
 						return false;
 					auto const &[v0, v1, v2] = vertices;
 					auto const &[u0, u1, u2] = *other;
-					auto const cross01 = (u1 - v0) ^ (u1 - v1);
-					auto const cross12 = (u1 - v1) ^ (u1 - v2);
-					auto const cross20 = (u1 - v2) ^ (u1 - v0);
+					auto cross01 = (u1 - v0) ^ (u1 - v1);
+					auto cross12 = (u1 - v1) ^ (u1 - v2);
+					auto cross20 = (u1 - v2) ^ (u1 - v0);
 					if (cross01 < 0 && cross12 < 0 && cross20 < 0)
 						return true;
 					if (cross01 > 0 && cross12 > 0 && cross20 > 0)
 						return true;
-					return u1 == v1;
+					if (u1 != v1)
+						return false;
+					cross01 = (u0 - v0) ^ (u0 - v1);
+					cross12 = (u0 - v1) ^ (u0 - v2);
+					if (cross01 < 0 && cross12 < 0 && cross < 0)
+						return true;
+					if (cross01 > 0 && cross12 > 0 && cross > 0)
+						return true;
+					cross01 = (u2 - v0) ^ (u2 - v1);
+					cross12 = (u2 - v1) ^ (u2 - v2);
+					if (cross01 < 0 && cross12 < 0 && cross < 0)
+						return true;
+					if (cross01 > 0 && cross12 > 0 && cross > 0)
+						return true;
+					return false;
 				});
 			}
 		};
