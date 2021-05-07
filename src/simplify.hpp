@@ -24,29 +24,37 @@ class Simplify {
 	template <bool erode>
 	class OneSided {
 		using Corner = Ring::CornerIterator;
-		using Ordinal = std::pair<bool, double>;
 
-		struct Candidate : Ordinal {
+		struct Candidate {
 			Corner corner;
 			Bounds bounds;
+			double cross;
 
-			static auto ordinal(Corner const &corner, bool withhold) {
-				auto const cross = corner.cross();
-				return Ordinal(withhold, std::abs(cross));
+			Candidate(Corner const &corner) :
+				corner(corner),
+				bounds(corner.bounds()),
+				cross(corner.cross())
+			{ }
+
+			friend auto operator==(Candidate const &candidate1, Candidate const &candidate2) {
+				return candidate1.corner == candidate2.corner;
+			}
+
+			friend auto operator<(Candidate const &candidate1, Candidate const &candidate2) {
+				return std::abs(candidate1.cross) < std::abs(candidate2.cross);
 			}
 
 			template <typename RTree>
-			static auto ordinal(Corner const &corner, RTree const &rtree) {
-				auto const cross = corner.cross();
+			auto removeable(RTree const &rtree, double corner_area) const {
 				if (cross == 0)
-					return Ordinal(false, std::abs(cross));
-				if (erode == (cross < 0) || corner.ring_size() <= min_ring_size)
-					return Ordinal(true, std::abs(cross));
+					return true;
+				if (erode == (cross < 0) || std::abs(cross) > corner_area * 2 || corner.ring_size() <= min_ring_size)
+					return false;
 				auto const prev = corner.prev();
 				auto const next = corner.next();
 				auto const &vertices = *corner;
-				auto search = rtree.search(corner.bounds());
-				auto const withhold = std::any_of(search.begin(), search.end(), [&](auto const &other) {
+				auto search = rtree.search(bounds);
+				return std::none_of(search.begin(), search.end(), [&](auto const &other) {
 					if (other == corner || other == prev || other == next)
 						return false;
 					auto const &[v0, v1, v2] = vertices;
@@ -60,22 +68,6 @@ class Simplify {
 						return true;
 					return u1 == v1;
 				});
-				return Ordinal(withhold, std::abs(cross));
-			}
-
-			template <typename Arg>
-			Candidate(Corner const &corner, Arg const &arg) :
-				Ordinal(ordinal(corner, arg)),
-				corner(corner),
-				bounds(corner.bounds())
-			{ }
-
-			friend bool operator==(Candidate const &candidate1, Candidate const &candidate2) {
-				return candidate1.corner == candidate2.corner;
-			}
-
-			friend bool operator<(Candidate const &candidate, double corner_area) {
-				return candidate < Ordinal(false, corner_area * 2);
 			}
 		};
 
@@ -92,8 +84,10 @@ class Simplify {
 						corners.push_back(corner);
 			auto rtree = RTree(corners);
 			for (auto const &corner: corners)
-				ordered.emplace(corner, rtree);
-			for (auto least = ordered.begin(); !ordered.empty() && *least < tolerance; least = ordered.begin()) {
+				if (auto const candidate = Candidate(corner); candidate.removeable(rtree, tolerance))
+					ordered.insert(candidate);
+			while (!ordered.empty()) {
+				auto const least = ordered.begin();
 				auto const corner = least->corner;
 				auto const bounds = least->bounds;
 				ordered.erase(least);
@@ -102,14 +96,13 @@ class Simplify {
 				rtree.erase(corner);
 				auto search = rtree.search(bounds);
 				auto const neighbours = Corners(search.begin(), search.end());
-				for (auto const &neighbour: neighbours)
-					for (auto const withhold: {true, false}) {
-						auto const candidate = Candidate(neighbour, withhold);
-						auto const &[begin, end] = ordered.equal_range(candidate);
-						auto const position = std::find(begin, end, candidate);
-						if (position != end)
-							ordered.erase(position);
-					}
+				for (auto const &neighbour: neighbours) {
+					auto const candidate = Candidate(neighbour);
+					auto const &[begin, end] = ordered.equal_range(candidate);
+					auto const position = std::find(begin, end, candidate);
+					if (position != end)
+						ordered.erase(position);
+				}
 				auto const next = corner.next();
 				auto const prev = corner.prev();
 				auto const next_bounds = next.bounds();
@@ -118,7 +111,8 @@ class Simplify {
 				rtree.update(next, next_bounds);
 				rtree.update(prev, prev_bounds);
 				for (auto const &neighbour: neighbours)
-					ordered.emplace(neighbour, rtree);
+					if (auto const candidate = Candidate(neighbour); candidate.removeable(rtree, tolerance))
+						ordered.insert(candidate);
 			}
 		}
 	};
