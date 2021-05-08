@@ -14,6 +14,7 @@
 #include <tuple>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 #include <algorithm>
 #include <ostream>
 
@@ -83,7 +84,10 @@ class Ring : std::list<Vector<2>> {
 		}
 
 		auto replace(Vertex const &v1, Vertex const &v2) const {
-			return ring->insert(ring->insert(erase(), v2), v1);
+			auto const i3 = ring->erase(here);
+			auto const i2 = ring->insert(i3, v2);
+			auto const i1 = ring->insert(i2, v1);
+			return std::pair(Iterator(ring, i1), Iterator(ring, i2));
 		}
 
 		auto ring_size() const {

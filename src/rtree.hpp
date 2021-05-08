@@ -146,6 +146,27 @@ class RTree {
 			return found_branch;
 		}
 
+		auto replace(Element const &element, Bounds const &old_bounds, Element const &element1, Element const &element2) {
+			if (is_leaf()) {
+				if (this->element() != element)
+					return false;
+				value = Children(std::make_unique<Node>(element1), std::make_unique<Node>(element2));
+				auto const &[node1, node2] = children();
+				bounds = node1->bounds + node2->bounds;
+				return true;
+			}
+			if (!(bounds && old_bounds))
+				return false;
+			auto const &[node1, node2] = children();
+			if (node1->replace(element, old_bounds, element1, element2))
+				bounds = node1->bounds + node2->bounds;
+			else if (node2->replace(element, old_bounds, element1, element2))
+				bounds = node1->bounds + node2->bounds;
+			else
+				return false;
+			return true;
+		}
+
 		auto update(Element const &element, Bounds const &old_bounds) {
 			if (is_leaf()) {
 				if (this->element() != element)
@@ -201,6 +222,10 @@ public:
 
 	void erase(Element const &element) {
 		root->erase(element, element.bounds());
+	}
+
+	void replace(Element const &element, Bounds const &old_bounds, Element const &element1, Element const &element2) {
+		root->replace(element, old_bounds, element1, element2);
 	}
 
 	void update(Element const &element, Bounds const &old_bounds) {
