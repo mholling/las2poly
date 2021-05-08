@@ -122,28 +122,34 @@ class RTree {
 		auto erase(Element const &element, Bounds const &element_bounds) {
 			if (is_leaf())
 				return this->element() == element ? found_leaf : found_none;
-			if (!(element_bounds <= bounds))
-				return found_none;
-			auto const &[node1, node2] = children();
-			if (auto result = node1->erase(element, element_bounds); result != found_none)
-				if (result == found_leaf) {
+			if (element_bounds <= bounds) {
+				auto const &[node1, node2] = children();
+				switch (node1->erase(element, element_bounds)) {
+				case found_none: break;
+				case found_branch:
+					bounds = node1->bounds + node2->bounds;
+					return found_branch;
+				case found_leaf:
 					auto &node = *node2;
 					std::swap(node, *this);
 					auto &[node1, node2] = node.children();
 					node1.reset(), node2.reset();
-				} else
+					return found_branch;
+				}
+				switch (node2->erase(element, element_bounds)) {
+				case found_none: break;
+				case found_branch:
 					bounds = node1->bounds + node2->bounds;
-			else if (auto result = node2->erase(element, element_bounds); result != found_none)
-				if (result == found_leaf) {
+					return found_branch;
+				case found_leaf:
 					auto &node = *node1;
 					std::swap(node, *this);
 					auto &[node1, node2] = node.children();
 					node2.reset(), node1.reset();
-				} else
-					bounds = node1->bounds + node2->bounds;
-			else
-				return found_none;
-			return found_branch;
+					return found_branch;
+				}
+			}
+			return found_none;
 		}
 
 		auto replace(Element const &element, Bounds const &old_bounds, Element const &element1, Element const &element2) {
