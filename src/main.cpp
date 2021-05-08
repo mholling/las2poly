@@ -118,21 +118,21 @@ int main(int argc, char *argv[]) {
 		if (!area)
 			area = 4 * *width * *width;
 
-		auto logger = Logger((bool)progress);
+		auto logger = Logger(progress == true);
 
 		logger.time("reading", tile_paths.size(), "file");
-		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, (bool)water, threads->back());
+		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, threads->back());
 
 		logger.time("triangulating", points.size(), "point");
 		auto mesh = Mesh(points, threads->front());
 
 		logger.time("extracting polygon rings");
-		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, (bool)water, threads->front());
+		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, water == true, threads->front());
 
 		if (simplify || smooth) {
 			logger.time(smooth ? "smoothing" : "simplifying", polygons.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
-			polygons.simplify(tolerance, (bool)water);
+			polygons.simplify(tolerance, water == true);
 		}
 
 		if (smooth) {
