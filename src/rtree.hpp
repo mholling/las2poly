@@ -220,8 +220,8 @@ public:
 		return root->search(bounds);
 	}
 
-	void erase(Element const &element) {
-		root->erase(element, element.bounds());
+	void erase(Element const &element, Bounds const &old_bounds) {
+		root->erase(element, old_bounds);
 	}
 
 	void replace(Element const &element, Bounds const &old_bounds, Element const &element1, Element const &element2) {

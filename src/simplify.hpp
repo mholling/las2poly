@@ -106,7 +106,7 @@ class Simplify {
 			ordered.erase(least);
 			if (candidate.corner.ring_size() <= min_ring_size)
 				continue;
-			rtree.erase(candidate.corner);
+			rtree.erase(candidate.corner, candidate.bounds);
 			auto search = rtree.search(candidate.bounds);
 			auto const updates = Corners(search.begin(), search.end());
 			for (auto const &corner: updates) {
