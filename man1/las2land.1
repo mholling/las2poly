@@ -20,6 +20,7 @@ Land polygons are formed from the outline of the remaining triangles.
 .Pp
 Input to the program is a list of lidar tiles in LAS format.
 The tiles should share a common projected SRS, typically a UTM projection.
+Points are thinned before triangulation, so no pre-processing is required.
 .Pp
 The lidar tiles should be classified to indicate ground points.
 Non-ground points are used in the triangulation, but not for analysis of flatness.
