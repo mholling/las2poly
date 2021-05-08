@@ -63,27 +63,22 @@ class Smooth {
 					return false;
 				auto const &[v0, v1, v2] = vertices;
 				auto const &[u0, u1, u2] = *other;
-				auto cross01 = (u1 - v01) ^ (u1 - v1);
-				auto cross12 = (u1 - v1)  ^ (u1 - v12);
-				auto cross20 = (u1 - v12) ^ (u1 - v01);
+				auto const cross01 = (u1 - v01) ^ (u1 - v1);
+				auto const cross12 = (u1 - v1)  ^ (u1 - v12);
+				auto const cross20 = (u1 - v12) ^ (u1 - v01);
 				if (cross01 < 0 && cross12 < 0 && cross20 < 0)
 					return true;
 				if (cross01 > 0 && cross12 > 0 && cross20 > 0)
 					return true;
-				if (u1 != v1)
-					return false;
-				cross01 = (u0 - v01) ^ (u0 - v1);
-				cross12 = (u0 - v1)  ^ (u0 - v12);
-				if (cross01 < 0 && cross12 < 0 && cross < 0)
-					return true;
-				if (cross01 > 0 && cross12 > 0 && cross > 0)
-					return true;
-				cross01 = (u2 - v01) ^ (u2 - v1);
-				cross12 = (u2 - v1)  ^ (u2 - v12);
-				if (cross01 < 0 && cross12 < 0 && cross < 0)
-					return true;
-				if (cross01 > 0 && cross12 > 0 && cross > 0)
-					return true;
+				if (u1 == v1)
+					for (auto const &u: {u0, u2}) {
+						auto const cross01 = (u - v01) ^ (u - v1);
+						auto const cross12 = (u - v1)  ^ (u - v12);
+						if (cross01 < 0 && cross12 < 0 && cross < 0)
+							return true;
+						if (cross01 > 0 && cross12 > 0 && cross > 0)
+							return true;
+					}
 				return false;
 			});
 		}
