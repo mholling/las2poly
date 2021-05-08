@@ -150,9 +150,10 @@ class RTree {
 			if (is_leaf()) {
 				if (this->element() != element)
 					return false;
-				value = Children(std::make_unique<Node>(element1), std::make_unique<Node>(element2));
-				auto const &[node1, node2] = children();
+				auto node1 = std::make_unique<Node>(element1);
+				auto node2 = std::make_unique<Node>(element2);
 				bounds = node1->bounds + node2->bounds;
+				value = Children(std::move(node1), std::move(node2));
 				return true;
 			}
 			if (!(bounds && old_bounds))
