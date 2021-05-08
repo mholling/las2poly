@@ -122,7 +122,7 @@ class RTree {
 		auto erase(Element const &element, Bounds const &element_bounds) {
 			if (is_leaf())
 				return this->element() == element ? found_leaf : found_none;
-			if (!(bounds && element_bounds))
+			if (!(element_bounds <= bounds))
 				return found_none;
 			auto const &[node1, node2] = children();
 			if (auto result = node1->erase(element, element_bounds); result != found_none)
@@ -155,7 +155,7 @@ class RTree {
 					value = Children(std::move(node1), std::move(node2));
 					return true;
 				}
-			} else if (bounds && old_bounds) {
+			} else if (old_bounds <= bounds) {
 				auto const &[node1, node2] = children();
 				if (node1->replace(element, old_bounds, element1, element2) || node2->replace(element, old_bounds, element1, element2)) {
 					bounds = node1->bounds + node2->bounds;
@@ -171,7 +171,7 @@ class RTree {
 					bounds = element.bounds();
 					return true;
 				}
-			} else if (old_bounds && bounds) {
+			} else if (old_bounds <= bounds) {
 				auto const &[node1, node2] = children();
 				if (node1->update(element, old_bounds) || node2->update(element, old_bounds)) {
 					bounds = node1->bounds + node2->bounds;
