@@ -54,7 +54,7 @@ option is required to calibrate the void detection process.
 > Set the maximum slope for a void area to be considered a potential waterbody.
 > Some leeway is required to accommodate situations such as steep-sided river banks.
 > Too lenient a value risks capturing non-water voids, such as steep cliffs, which can occlude a lidar sensor.
-> The default value of 10&#176; works well in practice.
+> The default value of 10 degrees works well in practice.
 
 **-a**, **--area** *metres&#178;*
 
@@ -76,12 +76,10 @@ option is required to calibrate the void detection process.
 **-i**, **--simplify**
 
 > Simplify the output polygons using Visvalingam's algorithm.
-> Simplified polygons may have self-intersections and are not guaranteed to be topologically valid, although this is rare.
 
 **-m**, **--smooth**
 
-> Apply line smoothing to simplified polygons, rounding off any corners sharper than 15&#176;.
-> This option is useful for visual applications such as maps.
+> Apply line smoothing to simplified polygons, rounding off any corners sharper than 15 degrees.
 
 **-d**, **--discard** *class,...*
 
@@ -148,4 +146,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - April 23, 2021
+macOS 11.1 - May 8, 2021
