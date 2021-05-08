@@ -9,13 +9,13 @@
 
 #include "ring.hpp"
 #include "bounds.hpp"
-#include "polygons.hpp"
 #include "rtree.hpp"
 #include <cmath>
 #include <algorithm>
 #include <set>
 #include <vector>
 
+template <typename Polygons>
 class Simplify {
 	auto static constexpr min_ring_size = 4;
 	using Corner = Ring::CornerIterator;
@@ -89,10 +89,10 @@ class Simplify {
 	using Ordered = std::multiset<Candidate>;
 	using Corners = std::vector<Corner>;
 
-	void static one_sided(Polygons &polygons, double tolerance, bool erode) {
+	void simplify_one_sided(double tolerance, bool erode) {
 		auto corners = Corners();
 		auto ordered = Ordered();
-		for (auto &polygon: polygons)
+		for (auto &polygon: static_cast<Polygons &>(*this))
 			for (auto &ring: polygon)
 				for (auto corner = ring.begin(); corner != ring.end(); ++corner)
 					corners.push_back(corner);
@@ -124,9 +124,9 @@ class Simplify {
 	}
 
 public:
-	void operator()(Polygons &polygons, double tolerance, bool open) {
-		one_sided(polygons, tolerance, !open);
-		one_sided(polygons, tolerance, open);
+	void simplify(double tolerance, bool open) {
+		simplify_one_sided(tolerance, !open);
+		simplify_one_sided(tolerance, open);
 	}
 };
 

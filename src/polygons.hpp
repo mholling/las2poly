@@ -8,6 +8,8 @@
 #define POLYGONS_HPP
 
 #include "polygon.hpp"
+#include "simplify.hpp"
+#include "smooth.hpp"
 #include "triangles.hpp"
 #include "summation.hpp"
 #include "mesh.hpp"
@@ -22,7 +24,7 @@
 #include <ostream>
 #include <utility>
 
-class Polygons : public std::vector<Polygon> {
+class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public Smooth<Polygons> {
 	auto static is_water(Triangles const &triangles, double delta, double slope) {
 		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
 		auto delta_sum = 0.0;

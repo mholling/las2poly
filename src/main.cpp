@@ -9,8 +9,6 @@
 #include "points.hpp"
 #include "mesh.hpp"
 #include "polygons.hpp"
-#include "simplify.hpp"
-#include "smooth.hpp"
 #include <optional>
 #include <vector>
 #include <algorithm>
@@ -134,14 +132,14 @@ int main(int argc, char *argv[]) {
 		if (simplify || smooth) {
 			logger.time(smooth ? "smoothing" : "simplifying", polygons.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
-			Simplify()(polygons, tolerance, (bool)water);
+			polygons.simplify(tolerance, (bool)water);
 		}
 
 		if (smooth) {
 			auto static constexpr pi = 3.14159265358979324;
 			auto static constexpr angle = 15.0 * pi / 180;
 			auto const tolerance = 0.5 * *width / std::sin(angle);
-			Smooth()(polygons, tolerance, angle);
+			polygons.smooth(tolerance, angle);
 		}
 
 		if (*area > 0)

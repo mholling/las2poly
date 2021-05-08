@@ -10,13 +10,13 @@
 #include "ring.hpp"
 #include "vector.hpp"
 #include "bounds.hpp"
-#include "polygons.hpp"
 #include "rtree.hpp"
 #include <algorithm>
 #include <set>
 #include <vector>
 #include <cmath>
 
+template <typename Polygons>
 class Smooth {
 	using Corner = Ring::CornerIterator;
 	using Vertex = Vector<2>;
@@ -103,11 +103,11 @@ class Smooth {
 	using Corners = std::vector<Corner>;
 
 public:
-	void operator()(Polygons &polygons, double tolerance, double angle) {
+	void smooth(double tolerance, double angle) {
 		auto const cosine = std::cos(angle);
 		auto corners = Corners();
 		auto ordered = Ordered();
-		for (auto &polygon: polygons)
+		for (auto &polygon: static_cast<Polygons &>(*this))
 			for (auto &ring: polygon)
 				for (auto corner = ring.begin(); corner != ring.end(); ++corner)
 					corners.push_back(corner);
