@@ -148,43 +148,37 @@ class RTree {
 
 		auto replace(Element const &element, Bounds const &old_bounds, Element const &element1, Element const &element2) {
 			if (is_leaf()) {
-				if (this->element() != element)
-					return false;
-				auto node1 = std::make_unique<Node>(element1);
-				auto node2 = std::make_unique<Node>(element2);
-				bounds = node1->bounds + node2->bounds;
-				value = Children(std::move(node1), std::move(node2));
-				return true;
+				if (this->element() == element) {
+					auto node1 = std::make_unique<Node>(element1);
+					auto node2 = std::make_unique<Node>(element2);
+					bounds = node1->bounds + node2->bounds;
+					value = Children(std::move(node1), std::move(node2));
+					return true;
+				}
+			} else if (bounds && old_bounds) {
+				auto const &[node1, node2] = children();
+				if (node1->replace(element, old_bounds, element1, element2) || node2->replace(element, old_bounds, element1, element2)) {
+					bounds = node1->bounds + node2->bounds;
+					return true;
+				}
 			}
-			if (!(bounds && old_bounds))
-				return false;
-			auto const &[node1, node2] = children();
-			if (node1->replace(element, old_bounds, element1, element2))
-				bounds = node1->bounds + node2->bounds;
-			else if (node2->replace(element, old_bounds, element1, element2))
-				bounds = node1->bounds + node2->bounds;
-			else
-				return false;
-			return true;
+			return false;
 		}
 
 		auto update(Element const &element, Bounds const &old_bounds) {
 			if (is_leaf()) {
-				if (this->element() != element)
-					return false;
-				bounds = element.bounds();
-				return true;
+				if (this->element() == element) {
+					bounds = element.bounds();
+					return true;
+				}
+			} else if (old_bounds && bounds) {
+				auto const &[node1, node2] = children();
+				if (node1->update(element, old_bounds) || node2->update(element, old_bounds)) {
+					bounds = node1->bounds + node2->bounds;
+					return true;
+				}
 			}
-			if (!(old_bounds && bounds))
-				return false;
-			auto const &[node1, node2] = children();
-			if (node1->update(element, old_bounds))
-				bounds = node1->bounds + node2->bounds;
-			else if (node2->update(element, old_bounds))
-				bounds = node1->bounds + node2->bounds;
-			else
-				return false;
-			return true;
+			return false;
 		}
 	};
 
