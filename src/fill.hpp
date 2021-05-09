@@ -12,27 +12,25 @@
 #include <queue>
 #include <algorithm>
 
-template <int margin>
 class Fill {
 	using Empty = std::vector<bool>;
 	using Queue = std::queue<Empty::iterator>;
 
+	int static constexpr margin = 5;
 	double resolution;
 	int imin, jmin;
-	int rows, columns;
+	long long columns;
 	Empty empty;
 
 public:
-	Fill(Bounds const &bounds, double resolution) :
-		resolution(resolution),
-		imin(bounds.ymin / resolution),
-		jmin(bounds.xmin / resolution)
-	{
-		int const imax = bounds.ymax / resolution;
-		int const jmax = bounds.xmax / resolution;
-		auto const height = imax - imin + 1;
-		auto const width  = jmax - jmin + 1;
-		rows   = height + 2 * margin;
+	Fill(Bounds const &bounds, double resolution) : resolution(resolution) {
+		imin = bounds.ymin / resolution;
+		jmin = bounds.xmin / resolution;
+		int imax = bounds.ymax / resolution;
+		int jmax = bounds.xmax / resolution;
+		int height = imax - imin + 1;
+		int width  = jmax - jmin + 1;
+		long long rows = height + 2 * margin;
 		columns = width + 2 * margin;
 		empty.assign(rows * columns, true);
 	}

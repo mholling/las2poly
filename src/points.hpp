@@ -47,8 +47,8 @@ class Points : public std::vector<Point> {
 		double resolution;
 
 		Thin(double resolution) : resolution(resolution) {
-			auto static constexpr web_mercator_max = 20048966.10;
-			if (web_mercator_max / resolution > std::numeric_limits<int>::max())
+			auto static constexpr web_mercator_range = 2 * 20048966.10;
+			if (web_mercator_range / resolution > std::numeric_limits<int>::max())
 				throw std::runtime_error("resolution value too small");
 		}
 
@@ -176,7 +176,7 @@ public:
 
 		if (water && size() > 2) {
 			auto const overall_bounds = std::accumulate(tile_bounds.begin(), tile_bounds.end(), Bounds());
-			auto fill = Fill<5>(overall_bounds, resolution);
+			auto fill = Fill(overall_bounds, resolution);
 
 			for (auto const &bounds: tile_bounds)
 				fill(bounds);
