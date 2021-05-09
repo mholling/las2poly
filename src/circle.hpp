@@ -51,7 +51,7 @@ auto operator<=>(Circle const &circle, PointIterator const &point) {
 		dot3 * (std::abs(dx1dy2) + std::abs(dx2dy1))
 	);
 
-	if (abs(det) > error_bound)
+	if (std::abs(det) > error_bound)
 		return det <=> 0;
 
 	auto const [x_min, x_max] = std::minmax({x1, x2, x3, x4});
