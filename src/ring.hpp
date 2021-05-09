@@ -12,10 +12,10 @@
 #include "summation.hpp"
 #include <list>
 #include <tuple>
-#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <algorithm>
+#include <compare>
 #include <ostream>
 
 class Ring : std::list<Vector<2>> {
@@ -23,10 +23,6 @@ class Ring : std::list<Vector<2>> {
 	using Vertices = std::list<Vertex>;
 	using VertexIterator = typename Vertices::const_iterator;
 	using Tuple = std::tuple<Vertex const &, Vertex const &, Vertex const &>;
-
-	struct VertexOnRing : std::runtime_error {
-		VertexOnRing() : runtime_error("vertex on ring") { }
-	};
 
 	Vertices const &vertices() const {
 		return *this;
@@ -128,27 +124,31 @@ public:
 		return cross_product_sum * 0.5;
 	}
 
-	auto winding_number(Vertex const &v) const {
+	// ring <=> vertex  < 0 : vertex inside clockwise ring
+	// ring <=> vertex == 0 : vertex on or outside ring
+	// ring <=> vertex  > 0 : vertex inside anticlockwise ring
+
+	friend auto operator<=>(Ring const &ring, Vertex const &v) {
 		auto winding = 0;
-		for (auto const &&[v0, v1, v2]: *this)
-			if (v1 == v || v2 == v)
-				throw VertexOnRing();
+		for (auto const &&[v0, v1, v2]: ring)
+			if (v1 == v)
+				return 0 <=> 0;
 			else if ((v1 < v) && !(v2 < v) && ((v1 - v) ^ (v2 - v)) > 0)
 				++winding;
 			else if ((v2 < v) && !(v1 < v) && ((v2 - v) ^ (v1 - v)) > 0)
 				--winding;
-		return winding;
+		return winding <=> 0;
 	}
 
-	auto contains(Ring const &ring) const {
-		for (auto const &vertex: ring.vertices())
-			try { return winding_number(vertex) != 0; }
-			catch (VertexOnRing &) { }
-		return false; // ring == *this
-	}
+	// ring1 <=> ring2  < 0 : ring1 contained by ring2
+	// ring1 <=> ring2 == 0 : ring1 and ring2 are disjoint or the same
+	// ring1 <=> ring2  > 0 : ring1 contains ring2
 
-	friend auto operator<(Ring const &ring1, Ring const &ring2) {
-		return ring1.signed_area() < ring2.signed_area();
+	friend auto operator<=>(Ring const &ring1, Ring const &ring2) {
+		for (auto const &vertex: ring2.vertices())
+			if (auto const result = ring1 <=> vertex; !(result == 0))
+				return result;
+		return 0 <=> 0;
 	}
 
 	friend auto &operator<<(std::ostream &json, Ring const &ring) {

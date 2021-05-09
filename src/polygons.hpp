@@ -76,14 +76,16 @@ public:
 		auto holes_begin = std::partition(rings.begin(), rings.end(), [](auto const &ring) {
 			return ring.is_exterior();
 		});
-		std::sort(rings.begin(), holes_begin);
+		std::sort(rings.begin(), holes_begin, [](auto const &ring1, auto const &ring2) {
+			return ring1.signed_area() < ring2.signed_area();
+		});
 
 		auto remaining = holes_begin;
 		std::for_each(rings.begin(), holes_begin, [&](auto const &exterior) {
 			auto polygon = Polygon{{exterior}};
 			auto old_remaining = remaining;
 			remaining = std::partition(remaining, rings.end(), [&](auto const &hole) {
-				return exterior.contains(hole);
+				return exterior > hole;
 			});
 			std::copy(old_remaining, remaining, std::back_inserter(polygon));
 			emplace_back(polygon);
