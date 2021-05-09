@@ -17,7 +17,7 @@
 
 template <typename Polygons>
 class Simplify {
-	auto static constexpr min_ring_size = 4;
+	auto static constexpr min_ring_size = 8;
 	using Corner = Ring::CornerIterator;
 
 	struct Candidate {
