@@ -23,7 +23,7 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
-#include <set>
+#include <numeric>
 #include <cstddef>
 
 class Points : public std::vector<Point> {
@@ -175,23 +175,14 @@ public:
 		Load(resolution, discard)(tile_paths, threads).swap(*this);
 
 		if (water && size() > 2) {
-			int const imin = std::min_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareYMin())->ymin / resolution;
-			int const jmin = std::min_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareXMin())->xmin / resolution;
-			int const imax = std::max_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareYMax())->ymax / resolution;
-			int const jmax = std::max_element(tile_bounds.begin(), tile_bounds.end(), Bounds::CompareXMax())->xmax / resolution;
-			int const width = jmax - jmin + 1, height = imax - imin + 1;
+			auto const overall_bounds = std::accumulate(tile_bounds.begin(), tile_bounds.end(), Bounds());
+			auto fill = Fill<5>(overall_bounds, resolution);
 
-			auto fill = Fill<5>(width, height);
 			for (auto const &bounds: tile_bounds)
-				fill(
-					static_cast<int>(bounds.ymin / resolution) - imin,
-					static_cast<int>(bounds.xmin / resolution) - jmin,
-					static_cast<int>(bounds.ymax / resolution) - imin,
-					static_cast<int>(bounds.xmax / resolution) - jmin
-				);
+				fill(bounds);
 
-			fill([&](auto i, auto j) {
-				emplace_back((jmin + j + 0.5) * resolution, (imin + i + 0.5) * resolution, 0.0, 2, false, true, false);
+			fill([&](auto x, auto y) {
+				emplace_back(x, y, 0.0, 2, false, true, false);
 			});
 		}
 	}

@@ -61,30 +61,6 @@ struct Bounds {
 	auto empty() const {
 		return xmin > xmax;
 	}
-
-	struct CompareXMin {
-		auto operator()(Bounds const &bounds1, Bounds const &bounds2) const {
-			return bounds1.xmin < bounds2.xmin;
-		}
-	};
-
-	struct CompareXMax {
-		auto operator()(Bounds const &bounds1, Bounds const &bounds2) const {
-			return bounds1.xmax < bounds2.xmax;
-		}
-	};
-
-	struct CompareYMin {
-		auto operator()(Bounds const &bounds1, Bounds const &bounds2) const {
-			return bounds1.ymin < bounds2.ymin;
-		}
-	};
-
-	struct CompareYMax {
-		auto operator()(Bounds const &bounds1, Bounds const &bounds2) const {
-			return bounds1.ymax < bounds2.ymax;
-		}
-	};
 };
 
 #endif

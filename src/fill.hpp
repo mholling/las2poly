@@ -7,6 +7,7 @@
 #ifndef FILL_HPP
 #define FILL_HPP
 
+#include "bounds.hpp"
 #include <vector>
 #include <queue>
 #include <algorithm>
@@ -16,20 +17,40 @@ class Fill {
 	using Empty = std::vector<bool>;
 	using Queue = std::queue<Empty::iterator>;
 
-	int columns;
+	double resolution;
+	int imin, jmin;
+	int rows, columns;
 	Empty empty;
-	Queue queue;
 
 public:
-	Fill(int width, int height) : columns(width + 2 * margin), empty((width + 2 * margin) * (height + 2 * margin), true) { }
+	Fill(Bounds const &bounds, double resolution) :
+		resolution(resolution),
+		imin(bounds.ymin / resolution),
+		jmin(bounds.xmin / resolution)
+	{
+		int const imax = bounds.ymax / resolution;
+		int const jmax = bounds.xmax / resolution;
+		auto const height = imax - imin + 1;
+		auto const width  = jmax - jmin + 1;
+		rows   = height + 2 * margin;
+		columns = width + 2 * margin;
+		empty.assign(rows * columns, true);
+	}
 
-	void operator()(int imin, int jmin, int imax, int jmax) {
-		for (auto row = empty.begin() + (imin + margin) * columns, row_end = empty.begin() + (imax + margin) * columns; row <= row_end; row += columns)
-			std::fill(row + jmin + margin, row + jmax + margin + 1, false);
+	void operator()(Bounds const &bounds) {
+		auto const i0 = static_cast<int>(bounds.ymin / resolution) - imin;
+		auto const i1 = static_cast<int>(bounds.ymax / resolution) - imin;
+		auto const j0 = static_cast<int>(bounds.xmin / resolution) - jmin;
+		auto const j1 = static_cast<int>(bounds.xmax / resolution) - jmin;
+		auto const row_begin = empty.begin() + (i0 + margin) * columns;
+		auto const row_end   = empty.begin() + (i1 + margin) * columns;
+		for (auto row = row_begin; row <= row_end; row += columns)
+			std::fill(row + j0 + margin, row + j1 + margin + 1, false);
 	}
 
 	template <typename Function>
 	void operator()(Function function) {
+		auto queue = Queue();
 		for (queue.push(empty.begin()); !queue.empty(); queue.pop()) {
 			auto here = queue.front();
 			const auto row_begin = here - (here - empty.begin()) % columns, row_end = row_begin + columns;
@@ -38,7 +59,11 @@ public:
 			for (bool above = false, below = false; here < row_end && *here; *here++ = false) {
 				int const    row = (here - empty.begin()) / columns;
 				int const column = (here - empty.begin()) % columns;
-				function(row - margin, column - margin);
+				auto const i = row - margin + imin;
+				auto const j = column - margin + jmin;
+				auto const x = resolution * (j + 0.5);
+				auto const y = resolution * (i + 0.5);
+				function(x, y);
 				if (!above && empty.end() - here > columns && *(here + columns))
 					above = !above, queue.push(here + columns);
 				if (!below && here >= empty.begin() + columns && *(here - columns))
