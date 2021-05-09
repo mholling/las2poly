@@ -47,13 +47,13 @@ class Simplify {
 				return false;
 			auto const prev = corner.prev();
 			auto const next = corner.next();
-			auto const &vertices = *corner;
+			auto const vertices = *corner;
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
 				if (other == corner || other == prev || other == next)
 					return false;
-				auto const &[v0, v1, v2] = vertices;
-				auto const &[u0, u1, u2] = *other;
+				auto const [v0, v1, v2] = vertices;
+				auto const [u0, u1, u2] = *other;
 				auto const cross01 = (u1 - v0) ^ (u1 - v1);
 				auto const cross12 = (u1 - v1) ^ (u1 - v2);
 				auto const cross20 = (u1 - v2) ^ (u1 - v0);
@@ -111,7 +111,7 @@ class Simplify {
 			auto const updates = Corners(search.begin(), search.end());
 			for (auto const &corner: updates) {
 				auto const candidate = Candidate(corner);
-				auto const &[begin, end] = ordered.equal_range(candidate);
+				auto const [begin, end] = ordered.equal_range(candidate);
 				auto const position = std::find(begin, end, candidate);
 				if (position != end)
 					ordered.erase(position);

@@ -11,8 +11,8 @@
 #include "bounds.hpp"
 #include "summation.hpp"
 #include <list>
-#include <tuple>
 #include <type_traits>
+#include <tuple>
 #include <utility>
 #include <algorithm>
 #include <compare>
@@ -22,7 +22,6 @@ class Ring : std::list<Vector<2>> {
 	using Vertex = Vector<2>;
 	using Vertices = std::list<Vertex>;
 	using VertexIterator = typename Vertices::const_iterator;
-	using Tuple = std::tuple<Vertex const &, Vertex const &, Vertex const &>;
 
 	Vertices const &vertices() const {
 		return *this;
@@ -62,16 +61,16 @@ class Ring : std::list<Vector<2>> {
 		}
 
 		auto operator*() const {
-			return Tuple(*prev().here, *here, *next().here);
+			return std::tuple(*prev().here, *here, *next().here);
 		}
 
 		auto cross() const {
-			auto const &[v0, v1, v2] = **this;
+			auto const [v0, v1, v2] = **this;
 			return (v1 - v0) ^ (v2 - v1);
 		}
 
 		auto cosine() const {
-			auto const &[v0, v1, v2] = **this;
+			auto const [v0, v1, v2] = **this;
 			return (v1 - v0).normalise() * (v2 - v1).normalise();
 		}
 
@@ -91,7 +90,7 @@ class Ring : std::list<Vector<2>> {
 		}
 
 		auto bounds() const {
-			auto const &[v0, v1, v2] = **this;
+			auto const [v0, v1, v2] = **this;
 			return Bounds(v0, v1, v2);
 		}
 	};
@@ -119,7 +118,7 @@ public:
 	auto signed_area() const {
 		auto cross_product_sum = 0.0;
 		auto const v = *list::begin();
-		for (auto summation = Summation(cross_product_sum); auto const &&[v0, v1, v2]: *this)
+		for (auto summation = Summation(cross_product_sum); auto const [v0, v1, v2]: *this)
 			summation += (v1 - v) ^ (v2 - v);
 		return cross_product_sum * 0.5;
 	}
@@ -130,7 +129,7 @@ public:
 
 	friend auto operator<=>(Ring const &ring, Vertex const &v) {
 		auto winding = 0;
-		for (auto const &&[v0, v1, v2]: ring)
+		for (auto const [v0, v1, v2]: ring)
 			if (v1 == v)
 				return 0 <=> 0;
 			else if ((v1 < v) && !(v2 < v) && ((v1 - v) ^ (v2 - v)) > 0)

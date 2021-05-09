@@ -123,7 +123,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	auto find_candidate(Iterator const &edge, PointIterator const &opposite) {
 		auto const &[prev, point] = *edge;
 		while (true) {
-			auto const &[candidate, next] = edge.search();
+			auto const [candidate, next] = edge.search();
 			auto const orientation = Edge(point, candidate) <=> opposite;
 			if (rhs ? orientation <= 0 : orientation >= 0)
 				return std::optional<PointIterator>();

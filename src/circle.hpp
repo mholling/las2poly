@@ -54,8 +54,8 @@ auto operator<=>(Circle const &circle, PointIterator const &point) {
 	if (abs(det) > error_bound)
 		return det <=> 0;
 
-	auto const &[x_min, x_max] = std::minmax({x1, x2, x3, x4});
-	auto const &[y_min, y_max] = std::minmax({y1, y2, y3, y4});
+	auto const [x_min, x_max] = std::minmax({x1, x2, x3, x4});
+	auto const [y_min, y_max] = std::minmax({y1, y2, y3, y4});
 
 	if ((2 * x_min > x_max || 2 * x_max < x_min) && (2 * y_min > y_max || 2 * y_max < y_min)) {
 		auto const dx1 = Exact(x1 - x4), dy1 = Exact(y1 - y4);

@@ -34,7 +34,7 @@ class Smooth {
 		{ }
 
 		Candidate(Corner const &corner, double tolerance) : Candidate(corner) {
-			auto const &[v0, v1, v2] = *corner;
+			auto const [v0, v1, v2] = *corner;
 			auto const f0 = std::min(0.25, tolerance / (v1 - v0).norm());
 			auto const f2 = std::min(0.25, tolerance / (v2 - v1).norm());
 			v01 = v0 * f0 + v1 * (1.0 - f0);
@@ -56,13 +56,13 @@ class Smooth {
 			auto const cross = corner.cross();
 			auto const prev = corner.prev();
 			auto const next = corner.next();
-			auto const &vertices = *corner;
+			auto const vertices = *corner;
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
 				if (other == corner || other == prev || other == next)
 					return false;
-				auto const &[v0, v1, v2] = vertices;
-				auto const &[u0, u1, u2] = *other;
+				auto const [v0, v1, v2] = vertices;
+				auto const [u0, u1, u2] = *other;
 				auto const cross01 = (u1 - v01) ^ (u1 - v1);
 				auto const cross12 = (u1 - v1)  ^ (u1 - v12);
 				auto const cross20 = (u1 - v12) ^ (u1 - v01);
@@ -89,7 +89,7 @@ class Smooth {
 			auto const prev = corner.prev();
 			auto const next_bounds = next.bounds();
 			auto const prev_bounds = prev.bounds();
-			auto const &[corner1, corner2] = corner.replace(v01, v12);
+			auto const [corner1, corner2] = corner.replace(v01, v12);
 			rtree.replace(corner, bounds, corner1, corner2);
 			rtree.update(next, next_bounds);
 			rtree.update(prev, prev_bounds);
@@ -121,7 +121,7 @@ public:
 			auto updates = Corners(search.begin(), search.end());
 			for (auto const &corner: updates) {
 				auto const candidate = Candidate(corner);
-				auto const &[begin, end] = ordered.equal_range(candidate);
+				auto const [begin, end] = ordered.equal_range(candidate);
 				auto const position = std::find(begin, end, candidate);
 				if (position != end)
 					ordered.erase(position);

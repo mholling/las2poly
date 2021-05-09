@@ -40,8 +40,8 @@ auto operator<=>(Edge const &edge, PointIterator const &point) {
 	if (std::abs(det) > error_scale * (std::abs(det1) + std::abs(det2)))
 		return det <=> 0;
 
-	auto const &[x_min, x_max] = std::minmax({x1, x2, x3});
-	auto const &[y_min, y_max] = std::minmax({y1, y2, y3});
+	auto const [x_min, x_max] = std::minmax({x1, x2, x3});
+	auto const [y_min, y_max] = std::minmax({y1, y2, y3});
 
 	if ((2 * x_min > x_max || 2 * x_max < x_min) && (2 * y_min > y_max || 2 * y_max < y_min)) {
 		auto const det1 = Exact(x2 - x1) * Exact(y3 - y2);
