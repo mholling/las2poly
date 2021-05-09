@@ -72,7 +72,7 @@ option is required to calibrate the void detection process.
 
 > Extract polygons for waterbodies instead of land areas.
 > Unexpected results may occur when using partly-covered tiles.
-> Contiguous tile sets are preferred.
+> Tile extents should be continguous when using this option.
 
 **-i**, **--simplify**
 
@@ -151,4 +151,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - May 9, 2021
+macOS 11.1 - May 10, 2021
