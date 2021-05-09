@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
 		auto water      = std::optional<bool>();
 		auto simplify   = std::optional<bool>();
 		auto smooth     = std::optional<bool>();
+		auto angle      = std::optional<double>();
 		auto discard    = std::optional<std::vector<int>>{{0,1,7,9,12,18}};
 		auto epsg       = std::optional<int>();
 		auto threads    = std::optional<std::vector<int>>{{default_threads}};
@@ -51,8 +52,9 @@ int main(int argc, char *argv[]) {
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",        area);
 		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles",    length);
 		args.option("-r", "--water",                     "extract waterbodies instead of land areas", water);
-		args.option("-i", "--simplify",                  "apply output simplification",               simplify);
-		args.option("-m", "--smooth",                    "apply output smoothing",                    smooth);
+		args.option("-i", "--simplify",                  "simplify output polygons",                  simplify);
+		args.option("-m", "--smooth",                    "smooth output polygons",                    smooth);
+		args.option("-g", "--angle",      "<degrees>",   "smooth output with given angle",            angle);
 		args.option("-d", "--discard",    "<class,...>", "discarded point classes",                   discard);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",           epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",              threads);
@@ -95,6 +97,10 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("edge length can't be more than width");
 		if (area && *area < 0)
 			throw std::runtime_error("area can't be negative");
+		if (angle && *angle <= 0)
+			throw std::runtime_error("smoothing angle must be positive");
+		if (angle && *angle >= 180)
+			throw std::runtime_error("smoothing angle must be less than 180");
 		for (auto klass: *discard)
 			if (klass < 0 || klass > 255)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
@@ -117,6 +123,10 @@ int main(int argc, char *argv[]) {
 			length = *width;
 		if (!area)
 			area = 4 * *width * *width;
+		if (angle)
+			smooth = true;
+		if (!angle)
+			angle = 15.0;
 
 		auto logger = Logger(progress == true);
 
@@ -137,9 +147,9 @@ int main(int argc, char *argv[]) {
 
 		if (smooth) {
 			auto static constexpr pi = 3.14159265358979324;
-			auto static constexpr angle = 15.0 * pi / 180;
-			auto const tolerance = 0.5 * *width / std::sin(angle);
-			polygons.smooth(tolerance, angle);
+			auto const radians = *angle * pi / 180;
+			auto const tolerance = 0.5 * *width / std::sin(radians);
+			polygons.smooth(tolerance, radians);
 		}
 
 		if (*area > 0)

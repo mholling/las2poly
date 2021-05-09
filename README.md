@@ -80,7 +80,11 @@ option is required to calibrate the void detection process.
 
 **-m**, **--smooth**
 
-> Apply line smoothing to simplified polygons, rounding off any corners sharper than 15 degrees.
+> Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
+
+**-g**, **--angle**
+
+> Apply line smoothing using the specified smoothing angle.
 
 **-d**, **--discard** *class,...*
 
@@ -147,4 +151,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - May 8, 2021
+macOS 11.1 - May 9, 2021

@@ -63,7 +63,9 @@ Contiguous tile sets are preferred.
 .It Fl i , -simplify
 Simplify the output polygons using Visvalingam's algorithm.
 .It Fl m , -smooth
-Apply line smoothing to simplified polygons, rounding off any corners sharper than 15 degrees.
+Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
+.It Fl g , -angle
+Apply line smoothing using the specified smoothing angle.
 .It Fl d , -discard Ar class,...
 Choose a list of lidar point classes to discard.
 The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
