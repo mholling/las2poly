@@ -57,9 +57,19 @@ class Tile {
 		std::size_t index;
 
 		Iterator(Tile &tile, std::size_t index) : tile(tile), index(index) { }
-		auto &operator++() { ++index; return *this;}
-		auto operator!=(Iterator const &other) const { return index != other.index; }
-		auto operator*() const { return tile.read(); }
+
+		auto &operator++() {
+			++index;
+			return *this;
+		}
+
+		auto operator!=(Iterator const &other) const {
+			return index != other.index;
+		}
+
+		auto operator*() const {
+			return tile.read();
+		}
 	};
 
 public:

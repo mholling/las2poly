@@ -74,12 +74,33 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		bool interior;
 
 		Iterator(Mesh &mesh, Edge edge, bool interior) : mesh(mesh), edge(edge), interior(interior) { }
-		auto peek() const { return interior ? mesh.next_interior(edge) : mesh.next_exterior(edge); }
-		auto &operator++() { edge = peek(); return *this; }
-		auto &reverse() { interior = !interior; edge = -edge; return *this; }
-		auto &operator*() const { return edge; }
-		auto operator->() const { return &edge; }
-		auto search() const { return Iterator(mesh, peek(), !interior).peek(); }
+
+		auto peek() const {
+			return interior ? mesh.next_interior(edge) : mesh.next_exterior(edge);
+		}
+
+		auto &operator++() {
+			edge = peek();
+			return *this;
+		}
+
+		auto &reverse() {
+			interior = !interior;
+			edge = -edge;
+			return *this;
+		}
+
+		auto &operator*() const {
+			return edge;
+		}
+
+		auto operator->() const {
+			return &edge;
+		}
+
+		auto search() const {
+			return Iterator(mesh, peek(), !interior).peek();
+		}
 	};
 
 	auto exterior_clockwise(PointIterator const &rightmost) {
