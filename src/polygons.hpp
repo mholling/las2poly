@@ -94,7 +94,7 @@ public:
 
 	void filter_by_area(double area) {
 		erase(std::remove_if(begin(), end(), [=](auto &polygon) {
-			polygon.erase(std::remove_if(++polygon.begin(), polygon.end(), [=](auto const &ring) {
+			polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [=](auto const &ring) {
 				return ring.signed_area() > -area;
 			}), polygon.end());
 			return polygon.front().signed_area() < area;
