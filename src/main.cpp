@@ -146,7 +146,6 @@ int main(int argc, char *argv[]) {
 		}
 
 		if (smooth) {
-			auto static constexpr pi = 3.14159265358979324;
 			auto const radians = *angle * pi / 180;
 			auto const tolerance = 0.5 * *width / std::sin(radians);
 			polygons.smooth(tolerance, radians);
