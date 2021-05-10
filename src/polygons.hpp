@@ -57,7 +57,7 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 	}
 
 public:
-	Polygons(Mesh &mesh, double length, double width, double slope, bool water, unsigned threads) {
+	Polygons(Mesh &mesh, double length, double width, double slope, bool water, int threads) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 		auto const delta = width * std::tan(slope);

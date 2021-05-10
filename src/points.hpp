@@ -103,7 +103,7 @@ class Points : public std::vector<Point> {
 		}
 	};
 
-	Points(PathIterator begin, PathIterator end, double resolution, Discard const &discard, std::mutex &mutex, std::exception_ptr &exception, unsigned threads) {
+	Points(PathIterator begin, PathIterator end, double resolution, Discard const &discard, std::mutex &mutex, std::exception_ptr &exception, int threads) {
 		if (auto lock = std::lock_guard(mutex); exception)
 			return;
 		auto thin = Thin(resolution);
@@ -148,7 +148,7 @@ class Points : public std::vector<Point> {
 	}
 
 public:
-	Points(Paths const &tile_paths, double resolution, std::vector<int> const &discard_ints, bool water, unsigned threads) {
+	Points(Paths const &tile_paths, double resolution, std::vector<int> const &discard_ints, bool water, int threads) {
 		auto discard = Discard(discard_ints.begin(), discard_ints.end());
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();
