@@ -52,7 +52,7 @@ public:
 	void operator()(Function function) {
 		auto const unfilled = std::accumulate(empty.begin(), empty.end(), 0ull);
 		auto const filled = empty.size() - unfilled;
-		if (unfilled > 10 * filled && unfilled + filled > 500'000'000)
+		if (unfilled > 10 * filled && unfilled / 2 + filled > 500'000'000)
 			throw std::runtime_error("tileset too sparse");
 
 		auto queue = Queue();
@@ -66,9 +66,11 @@ public:
 				int const column = (here - empty.begin()) % columns;
 				auto const i = row - margin + imin;
 				auto const j = column - margin + jmin;
-				auto const x = resolution * (j + 0.5);
-				auto const y = resolution * (i + 0.5);
-				function(x, y);
+				if ((i + j) % 2) {
+					auto const x = resolution * (j + 0.5);
+					auto const y = resolution * (i + 0.5);
+					function(x, y);
+				}
 				if (!above && empty.end() - here > columns && *(here + columns))
 					above = !above, queue.push(here + columns);
 				if (!below && here >= empty.begin() + columns && *(here - columns))
