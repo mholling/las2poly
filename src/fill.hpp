@@ -11,6 +11,8 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <numeric>
+#include <stdexcept>
 
 class Fill {
 	using Empty = std::vector<bool>;
@@ -48,6 +50,11 @@ public:
 
 	template <typename Function>
 	void operator()(Function function) {
+		auto const unfilled = std::accumulate(empty.begin(), empty.end(), 0ull);
+		auto const filled = empty.size() - unfilled;
+		if (unfilled > 10 * filled && unfilled + filled > 500'000'000)
+			throw std::runtime_error("tileset too sparse");
+
 		auto queue = Queue();
 		for (queue.push(empty.begin()); !queue.empty(); queue.pop()) {
 			auto here = queue.front();
