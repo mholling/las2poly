@@ -17,7 +17,7 @@ LAS2LAND(1) - General Commands Manual
 **las2land**
 delineates land and water areas from a classified lidar point cloud.
 Airborne lidar data exhibits voids in areas where surface water is present.
-These voids are detected by triangulating the lidar point cloud; groups of large triangles are likely to indicate the presence of water.
+These voids are detected by triangulating the lidar point cloud: groups of large triangles are likely to indicate the presence of water.
 Slope analysis of each group is performed to reject non-horizontal voids, which can occur in steep terrain.
 Land polygons are formed from the outline of the remaining triangles.
 
@@ -82,7 +82,7 @@ option is required to calibrate the void detection process.
 
 > Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
 
-**-g**, **--angle**
+**-g**, **--angle** *degrees*
 
 > Apply line smoothing using the specified smoothing angle.
 

@@ -14,7 +14,7 @@
 .Nm
 delineates land and water areas from a classified lidar point cloud.
 Airborne lidar data exhibits voids in areas where surface water is present.
-These voids are detected by triangulating the lidar point cloud; groups of large triangles are likely to indicate the presence of water.
+These voids are detected by triangulating the lidar point cloud: groups of large triangles are likely to indicate the presence of water.
 Slope analysis of each group is performed to reject non-horizontal voids, which can occur in steep terrain.
 Land polygons are formed from the outline of the remaining triangles.
 .Pp
@@ -64,7 +64,7 @@ Tile extents should be continguous when using this option.
 Simplify the output polygons using Visvalingam's algorithm.
 .It Fl m , -smooth
 Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
-.It Fl g , -angle
+.It Fl g , -angle Ar degrees
 Apply line smoothing using the specified smoothing angle.
 .It Fl d , -discard Ar class,...
 Choose a list of lidar point classes to discard.
