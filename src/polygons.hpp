@@ -102,8 +102,8 @@ public:
 	}
 
 	auto ring_count() const {
-		return std::accumulate(begin(), end(), 0ul, [](auto const &sum, auto const &ring) {
-			return sum + ring.size();
+		return std::accumulate(begin(), end(), 0ul, [](auto const &sum, auto const &polygon) {
+			return sum + polygon.size();
 		});
 	}
 };
