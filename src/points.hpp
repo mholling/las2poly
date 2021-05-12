@@ -19,6 +19,7 @@
 #include <utility>
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <mutex>
 #include <iostream>
 #include <fstream>
@@ -87,16 +88,21 @@ class Points : public std::vector<Point> {
 		void operator()(Points &points, Points &points1, Points &points2) const {
 			points.reserve(points1.size() + points2.size());
 
-			for (auto here1 = points1.begin(), here2 = points2.begin(), end1 = points1.end(), end2 = points2.end(); here1 != end1 || here2 != end2; ) {
-				for (; here1 != end1 && (here2 == end2 || (*this)(*here1, *here2)); ++here1)
-					points.push_back(*here1);
-				for (; here2 != end2 && (here1 == end1 || (*this)(*here2, *here1)); ++here2)
-					points.push_back(*here2);
-				if (here1 != end1 && here2 != end2)
-					points.push_back(*here1 > *here2 ? *here1 : *here2);
-				if (here1 != end1) ++here1;
-				if (here2 != end2) ++here2;
-			}
+			auto point1 = points1.begin(), point2 = points2.begin();
+			auto const end1 = points1.end(), end2 = points2.end();
+			while (point1 != end1 && point2 != end2)
+				if ((*this)(*point1, *point2))
+					do { points.push_back(*point1); }
+					while (++point1 != end1 && (*this)(*point1, *point2));
+				else if ((*this)(*point2, *point1))
+					do { points.push_back(*point2); }
+					while (++point2 != end2 && (*this)(*point2, *point1));
+				else {
+					points.push_back(*point1 > *point2 ? *point1 : *point2);
+					++point1, ++point2;
+				}
+			std::copy(point1, end1, std::back_inserter(points));
+			std::copy(point2, end2, std::back_inserter(points));
 
 			points.update(points1);
 			points.update(points2);
