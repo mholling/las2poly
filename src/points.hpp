@@ -36,12 +36,12 @@ class Points : public std::vector<Point> {
 
 	Points() = default;
 
-	void update(Tile const &tile) {
+	void add_bounds(Tile const &tile) {
 		if (!tile.bounds.empty())
 			tile_bounds.push_back(tile.bounds);
 	}
 
-	void update(Points &points) {
+	void add_bounds(Points &points) {
 		tile_bounds.insert(tile_bounds.end(), points.tile_bounds.begin(), points.tile_bounds.end());
 	}
 
@@ -82,7 +82,7 @@ class Points : public std::vector<Point> {
 			}
 
 			points.erase(here, points_end);
-			points.update(tile);
+			points.add_bounds(tile);
 		}
 
 		void operator()(Points &points, Points &points1, Points &points2) const {
@@ -102,8 +102,8 @@ class Points : public std::vector<Point> {
 			std::copy(point1, end1, std::back_inserter(points));
 			std::copy(point2, end2, std::back_inserter(points));
 
-			points.update(points1);
-			points.update(points2);
+			points.add_bounds(points1);
+			points.add_bounds(points2);
 		}
 	};
 
