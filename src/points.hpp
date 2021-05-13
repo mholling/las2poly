@@ -92,11 +92,9 @@ class Points : public std::vector<Point> {
 			auto const end1 = points1.end(), end2 = points2.end();
 			while (point1 != end1 && point2 != end2)
 				if ((*this)(*point1, *point2))
-					do { points.push_back(*point1); }
-					while (++point1 != end1 && (*this)(*point1, *point2));
+					points.push_back(*point1++);
 				else if ((*this)(*point2, *point1))
-					do { points.push_back(*point2); }
-					while (++point2 != end2 && (*this)(*point2, *point1));
+					points.push_back(*point2++);
 				else {
 					points.push_back(*point1 > *point2 ? *point1 : *point2);
 					++point1, ++point2;
