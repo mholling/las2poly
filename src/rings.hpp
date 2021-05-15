@@ -20,8 +20,8 @@ struct Rings : std::vector<Ring> {
 	using PointsEdges = std::unordered_multimap<PointIterator, Edge>;
 	using Connections = std::unordered_map<Edge, Edge>;
 
-	template <typename Edges, bool outside = std::is_same_v<Edges, ::Edges>>
-	Rings(Edges const &edges) {
+	template <typename Edges, bool exterior = std::is_same_v<Edges, ::Edges>>
+	Rings(Edges const &edges, bool ogc) {
 		auto points_edges = PointsEdges();
 		for (auto const &edge: edges)
 			points_edges.emplace(edge.first, edge);
@@ -36,12 +36,13 @@ struct Rings : std::vector<Ring> {
 					: incoming > p2 && Edge(p1, p2) > incoming.second;
 			};
 			auto const [start, stop] = points_edges.equal_range(incoming.second);
-			auto const &[point, outgoing] = outside
+			auto const &[point, outgoing] = exterior
 				? *std::max_element(start, stop, ordering)
 				: *std::min_element(start, stop, ordering);
 			connections.emplace(incoming, outgoing);
 		}
 
+		auto interior_edges = std::vector<Edge>();
 		while (!connections.empty()) {
 			auto edges = std::vector<Edge>();
 			for (auto connection = connections.begin(); connection != connections.end(); ) {
@@ -50,11 +51,16 @@ struct Rings : std::vector<Ring> {
 				connection = connections.find(connection->second);
 			}
 
-			if constexpr (outside)
-				for (auto const &ring: Rings(edges))
-					push_back(ring);
+			auto const ring = Ring(edges);
+			if (!exterior || ring.anticlockwise() == ogc)
+				push_back(ring);
 			else
-				emplace_back(edges);
+				interior_edges.insert(interior_edges.end(), edges.begin(), edges.end());
+		}
+
+		if constexpr (exterior) {
+			auto const holes = Rings(interior_edges, ogc);
+			insert(end(), holes.begin(), holes.end());
 		}
 	}
 };

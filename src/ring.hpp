@@ -110,17 +110,17 @@ public:
 			push_back(*p1);
 	}
 
-	auto is_exterior() const {
+	auto anticlockwise() const {
 		auto const leftmost = std::min_element(list::begin(), list::end());
 		return ConstCornerIterator(this, leftmost).cross() > 0;
 	}
 
-	auto signed_area() const {
+	auto signed_area(bool ogc) const {
 		auto cross_product_sum = 0.0;
 		auto const v = *list::begin();
 		for (auto summation = Summation(cross_product_sum); auto const [v0, v1, v2]: *this)
 			summation += (v1 - v) ^ (v2 - v);
-		return cross_product_sum * 0.5;
+		return cross_product_sum * (ogc ? 0.5 : -0.5);
 	}
 
 	// ring <=> vertex  < 0 : vertex inside clockwise ring
@@ -139,9 +139,9 @@ public:
 		return winding <=> 0;
 	}
 
-	// ring1 <=> ring2  < 0 : ring1 contained by ring2
+	// ring1 <=> ring2  < 0 : ring1 is clockwise and contains ring2
 	// ring1 <=> ring2 == 0 : ring1 and ring2 are disjoint or the same
-	// ring1 <=> ring2  > 0 : ring1 contains ring2
+	// ring1 <=> ring2  > 0 : ring1 is anticlockwise and contains ring2
 
 	friend auto operator<=>(Ring const &ring1, Ring const &ring2) {
 		for (auto const &vertex: ring2.vertices())

@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
 		auto simplify   = std::optional<bool>();
 		auto smooth     = std::optional<bool>();
 		auto angle      = std::optional<double>();
+		auto esri       = std::optional<bool>();
 		auto discard    = std::optional<std::vector<int>>{{0,1,7,9,12,18}};
 		auto epsg       = std::optional<int>();
 		auto threads    = std::optional<std::vector<int>>{{default_threads}};
@@ -55,6 +56,7 @@ int main(int argc, char *argv[]) {
 		args.option("-i", "--simplify",                  "simplify output polygons",                  simplify);
 		args.option("-m", "--smooth",                    "smooth output polygons",                    smooth);
 		args.option("-g", "--angle",      "<degrees>",   "smooth output with given angle",            angle);
+		args.option("-c", "--esri",                      "use ESRI clockwise-polygon convention",     esri);
 		args.option("-d", "--discard",    "<class,...>", "discarded point classes",                   discard);
 		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",           epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",              threads);
@@ -137,12 +139,12 @@ int main(int argc, char *argv[]) {
 		auto mesh = Mesh(points, threads->front());
 
 		logger.time("extracting polygon rings");
-		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, water == true, threads->front());
+		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, water == true, esri != true, threads->front());
 
 		if (simplify || smooth) {
 			logger.time(smooth ? "smoothing" : "simplifying", polygons.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
-			polygons.simplify(tolerance, water == true);
+			polygons.simplify(tolerance, water != esri);
 		}
 
 		if (smooth) {

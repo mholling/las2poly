@@ -86,6 +86,12 @@ option is required to calibrate the void detection process.
 
 > Apply line smoothing using the specified smoothing angle.
 
+**-c**, **--esri**
+
+> Produce output polygons using the ESRI convention instead of the OGC convention.
+> Exterior rings are clockwise and interior rings anticlockwise.
+> Rings will not intersect other rings, but may self-intersect at vertices.
+
 **-d**, **--discard** *class,...*
 
 > Choose a list of lidar point classes to discard.
@@ -151,4 +157,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - May 10, 2021
+macOS 11.1 - May 15, 2021

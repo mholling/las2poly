@@ -66,6 +66,10 @@ Simplify the output polygons using Visvalingam's algorithm.
 Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
 .It Fl g , -angle Ar degrees
 Apply line smoothing using the specified smoothing angle.
+.It Fl c , -esri
+Produce output polygons using the ESRI convention instead of the OGC convention.
+Exterior rings are clockwise and interior rings anticlockwise.
+Rings will not intersect other rings, but may self-intersect at vertices.
 .It Fl d , -discard Ar class,...
 Choose a list of lidar point classes to discard.
 The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.

@@ -119,6 +119,16 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		return Iterator(*this, Edge(leftmost, *next), false);
 	}
 
+	auto exterior_clockwise() {
+		auto const rightmost = std::max_element(points_begin, points_begin + size());
+		return exterior_clockwise(rightmost);
+	}
+
+	auto exterior_anticlockwise() {
+		auto const leftmost = std::min_element(points_begin, points_begin + size());
+		return exterior_anticlockwise(leftmost);
+	}
+
 	template <bool rhs>
 	auto find_candidate(Iterator const &edge, PointIterator const &opposite) {
 		auto const &[prev, point] = *edge;
@@ -205,15 +215,15 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		}
 	}
 
-	void deconstruct(Triangles &triangles, PointIterator begin, PointIterator end, double length, int threads) {
+	void deconstruct(Triangles &triangles, PointIterator begin, PointIterator end, double length, bool anticlockwise, int threads) {
 		if (threads > 1) {
 			auto const middle = begin + (end - begin) / 2;
 			auto left_triangles = Triangles();
 			auto right_triangles = Triangles();
 			auto left_thread = std::thread([&]() {
-				deconstruct(left_triangles, begin, middle, length, threads/2);
+				deconstruct(left_triangles, begin, middle, length, anticlockwise, threads/2);
 			}), right_thread = std::thread([&]() {
-				deconstruct(right_triangles, middle, end, length, threads - threads/2);
+				deconstruct(right_triangles, middle, end, length, anticlockwise, threads - threads/2);
 			});
 			left_thread.join(), right_thread.join();
 			triangles.merge(left_triangles);
@@ -222,13 +232,13 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		for (auto point = begin; point < end; ++point) {
 			auto const &neighbours = adjacent(point);
 			for (auto neighbour = neighbours.rbegin(); neighbour != neighbours.rend(); ) {
-				auto const edge1 = Iterator(*this, Edge(point, *neighbour++), true);
+				auto const edge1 = Iterator(*this, Edge(point, *neighbour++), anticlockwise);
 				if (edge1->second < begin || !(edge1->second < end))
 					continue;
-				auto const edge2 = Iterator(*this, edge1.peek(), true);
+				auto const edge2 = Iterator(*this, edge1.peek(), anticlockwise);
 				if (edge2->second < begin || !(edge2->second < end))
 					continue;
-				auto const edge3 = Iterator(*this, edge2.peek(), true);
+				auto const edge3 = Iterator(*this, edge2.peek(), anticlockwise);
 				if (edge3->second != point)
 					throw std::runtime_error("corrupted mesh");
 				auto const triangle = Triangle{{*edge1, *edge2, *edge3}};
@@ -245,15 +255,15 @@ public:
 		triangulate(points.begin(), points.end(), threads);
 	}
 
-	void deconstruct(Triangles &triangles, Edges &edges, double length, int threads) {
-		auto const rightmost = std::max_element(points_begin, points_begin + size());
-		for (auto edge = exterior_clockwise(rightmost); ; ++edge) {
+	void deconstruct(Triangles &triangles, Edges &edges, double length, bool anticlockwise, int threads) {
+		auto const start = anticlockwise ? exterior_clockwise() : exterior_anticlockwise();
+		for (auto edge = start; ; ++edge) {
 			edges.insert(-*edge);
 			disconnect(*edge);
-			if (edge->second == rightmost)
+			if (edge->second == start->first)
 				break;
 		}
-		deconstruct(triangles, points_begin, points_begin + size(), length, threads);
+		deconstruct(triangles, points_begin, points_begin + size(), length, anticlockwise, threads);
 	}
 };
 

@@ -56,28 +56,30 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 		return count > 0 && delta_sum < delta * count && std::acos(std::abs(perp_sum[2] / perp_sum.norm())) < slope;
 	}
 
+	bool ogc;
+
 public:
-	Polygons(Mesh &mesh, double length, double width, double slope, bool water, int threads) {
+	Polygons(Mesh &mesh, double length, double width, double slope, bool water, bool ogc, int threads) : ogc(ogc) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 		auto const delta = width * std::tan(slope);
 
-		mesh.deconstruct(large_triangles, outside_edges, length, threads);
+		mesh.deconstruct(large_triangles, outside_edges, length, ogc != water, threads);
 		if (water)
 			outside_edges.clear();
 
 		large_triangles.explode([=, &outside_edges](auto const &&triangles) {
 			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope)))
 				for (auto const &triangle: triangles)
-					water ? outside_edges += triangle : outside_edges -= triangle;
+					outside_edges -= triangle;
 		});
 
-		auto rings = Rings(outside_edges);
-		auto holes_begin = std::partition(rings.begin(), rings.end(), [](auto const &ring) {
-			return ring.is_exterior();
+		auto rings = Rings(outside_edges, ogc);
+		auto holes_begin = std::partition(rings.begin(), rings.end(), [ogc](auto const &ring) {
+			return ring.anticlockwise() == ogc;
 		});
-		std::sort(rings.begin(), holes_begin, [](auto const &ring1, auto const &ring2) {
-			return ring1.signed_area() < ring2.signed_area();
+		std::sort(rings.begin(), holes_begin, [ogc](auto const &ring1, auto const &ring2) {
+			return ring1.signed_area(ogc) < ring2.signed_area(ogc);
 		});
 
 		auto remaining = holes_begin;
@@ -85,7 +87,7 @@ public:
 			auto polygon = Polygon{{exterior}};
 			auto old_remaining = remaining;
 			remaining = std::partition(remaining, rings.end(), [&](auto const &hole) {
-				return exterior > hole;
+				return exterior <=> hole != 0;
 			});
 			std::copy(old_remaining, remaining, std::back_inserter(polygon));
 			emplace_back(polygon);
@@ -93,11 +95,11 @@ public:
 	}
 
 	void filter(double area) {
-		erase(std::remove_if(begin(), end(), [=](auto &polygon) {
-			polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [=](auto const &ring) {
-				return ring.signed_area() > -area;
+		erase(std::remove_if(begin(), end(), [area, this](auto &polygon) {
+			polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [area, this](auto const &ring) {
+				return ring.signed_area(ogc) > -area;
 			}), polygon.end());
-			return polygon.front().signed_area() < area;
+			return polygon.front().signed_area(ogc) < area;
 		}), end());
 	}
 

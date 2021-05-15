@@ -50,10 +50,14 @@ class Simplify {
 			auto const vertices = *corner;
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
-				if (other == corner || other == prev || other == next)
+				if (other == corner)
 					return false;
 				auto const [v0, v1, v2] = vertices;
 				auto const [u0, u1, u2] = *other;
+				if (other == prev)
+					return u0 == v2;
+				if (other == next)
+					return u2 == v0;
 				auto const cross01 = (u1 - v0) ^ (u1 - v1);
 				auto const cross12 = (u1 - v1) ^ (u1 - v2);
 				auto const cross20 = (u1 - v2) ^ (u1 - v0);
