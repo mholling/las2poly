@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		if (*area > 0)
-			polygons.filter_by_area(*area);
+			polygons.filter(*area);
 
 		auto json = std::stringstream();
 		json.precision(15);
