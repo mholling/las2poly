@@ -12,7 +12,7 @@
 #include "tile.hpp"
 #include "fill.hpp"
 #include <vector>
-#include <string>
+#include <filesystem>
 #include <unordered_set>
 #include <limits>
 #include <stdexcept>
@@ -28,7 +28,7 @@
 #include <cstddef>
 
 class Points : public std::vector<Point> {
-	using Paths = std::vector<std::string>;
+	using Paths = std::vector<std::filesystem::path>;
 	using PathIterator = Paths::const_iterator;
 	using Discard = std::unordered_set<unsigned char>;
 
@@ -125,9 +125,9 @@ class Points : public std::vector<Point> {
 						thin(*this, Tile(input), discard);
 					}
 				} catch (std::ios_base::failure &) {
-					throw std::runtime_error(path + ": problem reading file");
+					throw std::runtime_error(path.string() + ": problem reading file");
 				} catch (std::runtime_error &error) {
-					throw std::runtime_error(path + ": " + error.what());
+					throw std::runtime_error(path.string() + ": " + error.what());
 				}
 			} catch (std::runtime_error &) {
 				auto lock = std::lock_guard(mutex);

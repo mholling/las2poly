@@ -13,7 +13,7 @@
 #include "vector.hpp"
 #include <optional>
 #include <sstream>
-#include <string>
+#include <filesystem>
 #include <utility>
 #include <iostream>
 #include <fstream>
@@ -22,7 +22,7 @@ struct GeoJSON {
 	using EPSG = std::optional<int>;
 
 	std::stringstream stream;
-	std::string json_path;
+	std::filesystem::path json_path;
 	EPSG epsg;
 
 	template <typename Value>
@@ -64,7 +64,7 @@ struct GeoJSON {
 	}
 
 public:
-	GeoJSON(std::string const &json_path, EPSG const &epsg) : json_path(json_path), epsg(epsg) {
+	GeoJSON(std::filesystem::path const &json_path, EPSG const &epsg) : json_path(json_path), epsg(epsg) {
 		stream.precision(15);
 	}
 

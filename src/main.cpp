@@ -14,10 +14,10 @@
 #include <thread>
 #include <optional>
 #include <vector>
-#include <string>
+#include <filesystem>
 #include <stdexcept>
 #include <fstream>
-#include <filesystem>
+#include <string>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -39,12 +39,12 @@ int main(int argc, char *argv[]) {
 		auto discard    = std::optional<std::vector<int>>{{0,1,7,9,12,18}};
 		auto epsg       = std::optional<int>();
 		auto threads    = std::optional<std::vector<int>>{{default_threads}};
-		auto tiles_path = std::optional<std::string>();
+		auto tiles_path = std::optional<std::filesystem::path>();
 		auto overwrite  = std::optional<bool>();
 		auto progress   = std::optional<bool>();
 
-		auto tile_paths = std::vector<std::string>();
-		auto output_path = std::string();
+		auto tile_paths = std::vector<std::filesystem::path>();
+		auto output_path = std::filesystem::path();
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
 		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                   width);
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 				auto input = std::ifstream(*tiles_path);
 				input.exceptions(std::ifstream::badbit);
 				for (std::string line; std::getline(input, line); )
-					tile_paths.push_back(line);
+					tile_paths.emplace_back(line);
 			}
 			if (tile_paths.empty())
 				throw std::runtime_error("missing argument: LAS input path");

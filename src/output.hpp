@@ -9,15 +9,15 @@
 
 #include "geojson.hpp"
 #include <variant>
-#include <string>
+#include <filesystem>
 #include <utility>
-// #include <filesystem>
+#include <stdexcept>
 
 class Output {
 	using Variant = std::variant<GeoJSON>;
 
 	template <typename ...Args>
-	auto static from(std::string const &path, Args const &...args) {
+	auto static from(std::filesystem::path const &path, Args const &...args) {
 		// TODO: detect output variant from path extension
 		return Variant(std::in_place_type_t<GeoJSON>(), path, args...);
 	}
