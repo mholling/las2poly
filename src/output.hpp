@@ -8,18 +8,24 @@
 #define OUTPUT_HPP
 
 #include "geojson.hpp"
+#include "shapefile.hpp"
 #include <variant>
 #include <filesystem>
 #include <utility>
 #include <stdexcept>
 
 class Output {
-	using Variant = std::variant<GeoJSON>;
+	using Variant = std::variant<GeoJSON, Shapefile>;
 
 	template <typename ...Args>
 	auto static from(std::filesystem::path const &path, Args const &...args) {
-		// TODO: detect output variant from path extension
-		return Variant(std::in_place_type_t<GeoJSON>(), path, args...);
+		if (path == "-")
+			return Variant(std::in_place_type_t<GeoJSON>(), path, args...);
+		if (path.extension() == ".json")
+			return Variant(std::in_place_type_t<GeoJSON>(), path, args...);
+		if (path.extension() == ".shp")
+			return Variant(std::in_place_type_t<Shapefile>(), path, args...);
+		throw std::runtime_error("output file extension must be .json or .shp");
 	}
 
 	Variant variant;
@@ -27,6 +33,10 @@ class Output {
 public:
 	template <typename ...Args>
 	Output(Args const &...args) : variant(from(args...)) { }
+
+	auto ogc() const {
+		return std::holds_alternative<GeoJSON>(variant);
+	}
 
 	template <typename ...Args>
 	void operator()(Args const &...args) {

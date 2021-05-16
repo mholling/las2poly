@@ -33,8 +33,11 @@ and specular water reflections
 (class 9)
 are discarded.
 
-Output from the program is a polygon file in GeoJSON format, representing all land areas present in the lidar tiles.
-Polygons conform to OGC standard, with non-self-intersecting rings and anticlockwise exteriors.
+Output from the program is a polygon file in GeoJSON or shapefile format, representing all land areas present in the lidar tiles.
+File format is chosen according to the filename extension: .json for GeoJSON, and .shp for shapefile.
+
+For GeoJSON output, polygons conform to OGC standard, with anticlockwise exteriors and non-self-intersecting rings which may touch at vertices.
+For shapefile output, polygons conform to ESRI standard, with clockwise exteriors and non-touching rings which may self-intersect at vertices.
 
 A single
 **--width**
@@ -86,16 +89,15 @@ option is required to calibrate the void detection process.
 
 > Apply line smoothing using the specified smoothing angle.
 
-**-c**, **--esri**
-
-> Produce output polygons using the ESRI convention instead of the OGC convention.
-> Exterior rings are clockwise and interior rings anticlockwise.
-> Rings will not intersect other rings, but may self-intersect at vertices.
-
 **-d**, **--discard** *class,...*
 
 > Choose a list of lidar point classes to discard.
 > The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
+
+**-c**, **--convention** *ogc|esri*
+
+> Force polygon orientation according to OGC or ESRI convention.
+> By default, GeoJSON files use the OGC convention, and shapefiles use the ESRI convention.
 
 **-e**, **--epsg** *number*
 
@@ -157,4 +159,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - May 15, 2021
+macOS 11.1 - May 16, 2021
