@@ -16,9 +16,8 @@
 #include <utility>
 #include <algorithm>
 #include <compare>
-#include <ostream>
 
-class Ring : std::list<Vector<2>> {
+struct Ring : std::list<Vector<2>> {
 	using Vertex = Vector<2>;
 	using Vertices = std::list<Vertex>;
 	using VertexIterator = typename Vertices::const_iterator;
@@ -95,7 +94,6 @@ class Ring : std::list<Vector<2>> {
 		}
 	};
 
-public:
 	using ConstCornerIterator = Iterator<true>;
 	using CornerIterator = Iterator<false>;
 
@@ -148,13 +146,6 @@ public:
 			if (auto const result = ring1 <=> vertex; !(result == 0))
 				return result;
 		return 0 <=> 0;
-	}
-
-	friend auto &operator<<(std::ostream &json, Ring const &ring) {
-		json << '[';
-		for (auto const &vertex: ring.vertices())
-			json << vertex << ',';
-		return json << ring.front() << ']';
 	}
 };
 

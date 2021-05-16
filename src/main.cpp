@@ -5,23 +5,22 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "args.hpp"
+#include "output.hpp"
 #include "logger.hpp"
 #include "points.hpp"
 #include "mesh.hpp"
 #include "polygons.hpp"
-#include <optional>
-#include <vector>
 #include <algorithm>
 #include <thread>
+#include <optional>
+#include <vector>
 #include <string>
 #include <stdexcept>
-#include <filesystem>
 #include <fstream>
-#include <algorithm>
+#include <filesystem>
 #include <cmath>
-#include <sstream>
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
 int main(int argc, char *argv[]) {
 	auto static constexpr pi = 3.14159265358979324;
@@ -45,7 +44,7 @@ int main(int argc, char *argv[]) {
 		auto progress   = std::optional<bool>();
 
 		auto tile_paths = std::vector<std::string>();
-		auto json_path = std::string();
+		auto output_path = std::string();
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
 		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                   width);
@@ -67,7 +66,7 @@ int main(int argc, char *argv[]) {
 		args.version(VERSION);
 #endif
 		args.position("<tile.las>", "LAS input path", tile_paths);
-		args.position("<land.json>", "GeoJSON output path", json_path);
+		args.position("<land.shp>", "shapefile or GeoJSON output path", output_path);
 
 		auto const proceed = args.parse([&]() {
 			if (!length && !width)
@@ -113,7 +112,7 @@ int main(int argc, char *argv[]) {
 		for (auto count: *threads)
 			if (count < 1)
 				throw std::runtime_error("number of threads must be positive");
-		if (!overwrite && json_path != "-" && std::filesystem::exists(json_path))
+		if (!overwrite && output_path != "-" && std::filesystem::exists(output_path))
 			throw std::runtime_error("output file already exists");
 
 		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
@@ -130,6 +129,7 @@ int main(int argc, char *argv[]) {
 		if (!angle)
 			angle = 15.0;
 
+		auto output = Output(output_path, epsg);
 		auto logger = Logger(progress == true);
 
 		logger.time("reading", tile_paths.size(), "file");
@@ -156,21 +156,9 @@ int main(int argc, char *argv[]) {
 		if (*area > 0)
 			polygons.filter(*area);
 
-		auto json = std::stringstream();
-		json.precision(15);
-		json << "{\"type\":\"FeatureCollection\",";
-		if (epsg)
-			json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << *epsg << "\"}},";
-		json << "\"features\":" << polygons << "}";
-
 		logger.time("saving", polygons.size(), "polygon");
-		if (json_path == "-")
-			std::cout << json.str() << std::endl;
-		else {
-			auto file = std::ofstream(json_path);
-			file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-			file << json.str() << std::endl;
-		}
+		output(polygons);
+
 		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {
 		std::cerr << "error: problem reading or writing file" << std::endl;

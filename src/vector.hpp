@@ -13,8 +13,6 @@
 #include <functional>
 #include <numeric>
 #include <cmath>
-#include <ostream>
-#include <utility>
 #include <tuple>
 #include <type_traits>
 
@@ -64,13 +62,6 @@ Vector<3> operator^(Vector<3> const &v1, Vector<3> const &v2) {
 
 auto operator^(Vector<2> const &v1, Vector<2> const &v2) {
 	return v1[0] * v2[1] - v1[1] * v2[0];
-}
-
-auto &operator<<(std::ostream &json, Vector<2> const &vector) {
-	auto separator = '[';
-	for (auto const &coord: vector)
-		json << std::exchange(separator, ',') << coord;
-	return json << ']';
 }
 
 template <std::size_t N>

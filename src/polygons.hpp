@@ -21,8 +21,6 @@
 #include <cmath>
 #include <iterator>
 #include <numeric>
-#include <ostream>
-#include <utility>
 
 class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public Smooth<Polygons> {
 	auto static is_water(Triangles const &triangles, double delta, double slope) {
@@ -109,12 +107,5 @@ public:
 		});
 	}
 };
-
-auto &operator<<(std::ostream &json, Polygons const &polygons) {
-	auto separator = '[';
-	for (auto const &polygon: polygons)
-		json << std::exchange(separator, ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
-	return json << (separator == '[' ? "[]" : "]");
-}
 
 #endif
