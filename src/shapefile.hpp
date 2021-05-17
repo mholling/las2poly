@@ -150,6 +150,10 @@ class Shapefile {
 				shp_file.write(coords.data(), coords.size());
 			}
 		}
+
+		operator bool() const {
+			return std::filesystem::exists(shp_path) || std::filesystem::exists(shx_path);
+		}
 	};
 
 	class DBF {
@@ -196,6 +200,10 @@ class Shapefile {
 				file << '\x20' << std::setfill(' ') << std::setw(field_width) << fid;
 			file << '\x1a';
 		}
+
+		operator bool() const {
+			return std::filesystem::exists(dbf_path);
+		}
 	};
 
 	SHPX shpx;
@@ -212,6 +220,10 @@ public:
 			throw std::runtime_error("too many polygons for shapefile format");
 		shpx(polygons);
 		dbf(polygons);
+	}
+
+	operator bool() const {
+		return shpx || dbf;
 	}
 };
 

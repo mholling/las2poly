@@ -114,8 +114,6 @@ int main(int argc, char *argv[]) {
 		for (auto count: *threads)
 			if (count < 1)
 				throw std::runtime_error("number of threads must be positive");
-		if (!overwrite && output_path != "-" && std::filesystem::exists(output_path))
-			throw std::runtime_error("output file already exists");
 
 		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
 			throw std::runtime_error("can't read standard input more than once");
@@ -132,6 +130,9 @@ int main(int argc, char *argv[]) {
 			angle = 15.0;
 
 		auto output = Output(output_path, epsg);
+		if (!overwrite && output_path != "-" && output)
+			throw std::runtime_error("output file already exists");
+
 		auto const ogc = convention ? *convention == "ogc" : output.ogc();
 		auto logger = Logger(progress == true);
 

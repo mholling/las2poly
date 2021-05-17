@@ -38,6 +38,10 @@ public:
 		return std::holds_alternative<GeoJSON>(variant);
 	}
 
+	operator bool() const {
+		return std::visit([](auto const &output) -> bool { return output; }, variant);
+	}
+
 	template <typename ...Args>
 	void operator()(Args const &...args) {
 		std::visit([&](auto &output) { output(args...); }, variant);

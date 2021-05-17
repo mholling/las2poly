@@ -83,6 +83,9 @@ public:
 		}
 	}
 
+	operator bool() const {
+		return std::filesystem::exists(json_path);
+	}
 };
 
 #endif
