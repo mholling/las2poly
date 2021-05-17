@@ -7,6 +7,8 @@
 #ifndef BOUNDS_HPP
 #define BOUNDS_HPP
 
+#include "vector.hpp"
+#include "point.hpp"
 #include <limits>
 #include <algorithm>
 #include <utility>
@@ -23,7 +25,11 @@ struct Bounds {
 
 	Bounds(Bounds const &bounds) = default;
 
-	template <typename Point>
+	Bounds(Vector<2> const &vector) {
+		auto const &[x, y] = vector;
+		xmin = xmax = x, ymin = ymax = y;
+	}
+
 	Bounds(Point const &point) {
 		auto const &[x, y] = point;
 		xmin = xmax = x, ymin = ymax = y;
@@ -56,6 +62,12 @@ struct Bounds {
 		return
 			bounds1.xmax >= bounds2.xmin && bounds1.xmin <= bounds2.xmax &&
 			bounds1.ymax >= bounds2.ymin && bounds1.ymin <= bounds2.ymax;
+	}
+
+	template <typename Container>
+	Bounds(Container const &container) : Bounds() {
+		for (auto const &element: container)
+			*this += Bounds(element);
 	}
 
 	auto empty() const {
