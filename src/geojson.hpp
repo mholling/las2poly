@@ -40,7 +40,7 @@ struct GeoJSON {
 
 	friend auto &operator<<(GeoJSON &json, Ring const &ring) {
 		json << '[';
-		for (auto const &vertex: ring.vertices())
+		for (auto const &vertex: ring)
 			json << vertex << ',';
 		return json << ring.front() << ']';
 	}

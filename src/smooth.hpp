@@ -109,7 +109,7 @@ public:
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
 			for (auto &ring: polygon)
-				for (auto corner = ring.begin(); corner != ring.end(); ++corner)
+				for (auto corner = ring.corners_begin(); corner != ring.corners_end(); ++corner)
 					corners.push_back(corner);
 		auto rtree = RTree(corners);
 		for (auto const &corner: corners)

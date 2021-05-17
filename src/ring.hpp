@@ -22,10 +22,6 @@ struct Ring : std::list<Vector<2>> {
 	using Vertices = std::list<Vertex>;
 	using VertexIterator = typename Vertices::const_iterator;
 
-	Vertices const &vertices() const {
-		return *this;
-	}
-
 	template <bool is_const, typename Ring = std::conditional_t<is_const, Ring const, Ring>>
 	struct Iterator {
 		Ring *ring;
@@ -52,11 +48,11 @@ struct Ring : std::list<Vector<2>> {
 		}
 
 		auto next() const {
-			return *this != --ring->end() ? ++Iterator(ring, here) : ring->begin();
+			return *this != --ring->corners_end() ? ++Iterator(ring, here) : ring->corners_begin();
 		}
 
 		auto prev() const {
-			return *this != ring->begin() ? --Iterator(ring, here) : --ring->end();
+			return *this != ring->corners_begin() ? --Iterator(ring, here) : --ring->corners_end();
 		}
 
 		auto operator*() const {
@@ -97,10 +93,18 @@ struct Ring : std::list<Vector<2>> {
 	using ConstCornerIterator = Iterator<true>;
 	using CornerIterator = Iterator<false>;
 
-	auto begin() const { return ConstCornerIterator(this, Vertices::begin()); }
-	auto   end() const { return ConstCornerIterator(this, Vertices::end()); }
-	auto begin() { return CornerIterator(this, Vertices::begin()); }
-	auto   end() { return CornerIterator(this, Vertices::end()); }
+	auto corners_begin() const { return ConstCornerIterator(this, Vertices::begin()); }
+	auto corners_end() const { return ConstCornerIterator(this, Vertices::end()); }
+	auto corners_begin() { return CornerIterator(this, Vertices::begin()); }
+	auto corners_end() { return CornerIterator(this, Vertices::end()); }
+
+	struct Corners {
+		Ring const &ring;
+
+		Corners(Ring const &ring) : ring(ring) { }
+		auto begin() { return ring.corners_begin(); }
+		auto end() { return ring.corners_end(); }
+	};
 
 	template <typename Edges>
 	Ring(Edges const &edges) {
@@ -116,7 +120,7 @@ struct Ring : std::list<Vector<2>> {
 	auto signed_area(bool ogc) const {
 		auto cross_product_sum = 0.0;
 		auto const v = *list::begin();
-		for (auto summation = Summation(cross_product_sum); auto const [v0, v1, v2]: *this)
+		for (auto summation = Summation(cross_product_sum); auto const [v0, v1, v2]: Corners(*this))
 			summation += (v1 - v) ^ (v2 - v);
 		return cross_product_sum * (ogc ? 0.5 : -0.5);
 	}
@@ -127,7 +131,7 @@ struct Ring : std::list<Vector<2>> {
 
 	friend auto operator<=>(Ring const &ring, Vertex const &v) {
 		auto winding = 0;
-		for (auto const [v0, v1, v2]: ring)
+		for (auto const [v0, v1, v2]: Corners(ring))
 			if (v1 == v)
 				return 0 <=> 0;
 			else if ((v1 < v) && !(v2 < v) && ((v1 - v) ^ (v2 - v)) > 0)
@@ -142,7 +146,7 @@ struct Ring : std::list<Vector<2>> {
 	// ring1 <=> ring2  > 0 : ring1 is anticlockwise and contains ring2
 
 	friend auto operator<=>(Ring const &ring1, Ring const &ring2) {
-		for (auto const &vertex: ring2.vertices())
+		for (auto const &vertex: ring2)
 			if (auto const result = ring1 <=> vertex; !(result == 0))
 				return result;
 		return 0 <=> 0;
