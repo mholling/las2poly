@@ -42,14 +42,13 @@ class Shapefile {
 			std::reverse(data + offset, data + offset + sizeof(Value));
 	}
 
-	class SHPX {
+	struct SHPX {
 		using Integer = std::int32_t;
 		using Double = double;
 
 		std::filesystem::path shp_path;
 		std::filesystem::path shx_path;
 
-	public:
 		SHPX(std::filesystem::path const &shp_path) : shp_path(shp_path), shx_path(shp_path) {
 			shx_path.replace_extension(".shx");
 		}
@@ -150,16 +149,11 @@ class Shapefile {
 				shp_file.write(coords.data(), coords.size());
 			}
 		}
-
-		operator bool() const {
-			return std::filesystem::exists(shp_path) || std::filesystem::exists(shx_path);
-		}
 	};
 
-	class DBF {
+	struct DBF {
 		std::filesystem::path dbf_path;
 
-	public:
 		DBF(std::filesystem::path const &shp_path) : dbf_path(shp_path) {
 			dbf_path.replace_extension(".dbf");
 		}
@@ -197,10 +191,6 @@ class Shapefile {
 				file << '\x20' << std::setfill(' ') << std::setw(field_width) << fid;
 			file << '\x1a';
 		}
-
-		operator bool() const {
-			return std::filesystem::exists(dbf_path);
-		}
 	};
 
 	SHPX shpx;
@@ -220,7 +210,8 @@ public:
 	}
 
 	operator bool() const {
-		return shpx || dbf;
+		using std::filesystem::exists;
+		return exists(shpx.shp_path) || exists(shpx.shx_path) || exists(dbf.dbf_path);
 	}
 };
 
