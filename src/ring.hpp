@@ -11,7 +11,6 @@
 #include "bounds.hpp"
 #include "summation.hpp"
 #include <list>
-#include <type_traits>
 #include <tuple>
 #include <utility>
 #include <algorithm>
@@ -20,9 +19,9 @@
 struct Ring : std::list<Vector<2>> {
 	using Vertex = Vector<2>;
 	using Vertices = std::list<Vertex>;
-	using VertexIterator = typename Vertices::const_iterator;
+	using VertexIterator = Vertices::const_iterator;
 
-	template <bool is_const, typename Ring = std::conditional_t<is_const, Ring const, Ring>>
+	template <typename Ring>
 	struct Iterator {
 		Ring *ring;
 		VertexIterator here;
@@ -48,11 +47,11 @@ struct Ring : std::list<Vector<2>> {
 		}
 
 		auto next() const {
-			return *this != --ring->corners_end() ? ++Iterator(ring, here) : ring->corners_begin();
+			return here != --ring->end() ? ++Iterator(ring, here) : Iterator(ring, ring->begin());
 		}
 
 		auto prev() const {
-			return *this != ring->corners_begin() ? --Iterator(ring, here) : --ring->corners_end();
+			return here != ring->begin() ? --Iterator(ring, here) : --Iterator(ring, ring->end());
 		}
 
 		auto operator*() const {
@@ -90,20 +89,16 @@ struct Ring : std::list<Vector<2>> {
 		}
 	};
 
-	using ConstCornerIterator = Iterator<true>;
-	using CornerIterator = Iterator<false>;
+	using CornerIterator = Iterator<Ring>;
 
-	auto corners_begin() const { return ConstCornerIterator(this, Vertices::begin()); }
-	auto corners_end() const { return ConstCornerIterator(this, Vertices::end()); }
-	auto corners_begin() { return CornerIterator(this, Vertices::begin()); }
-	auto corners_end() { return CornerIterator(this, Vertices::end()); }
+	auto corners_begin() { return Iterator(this, begin()); }
+	auto   corners_end() { return Iterator(this, end()); }
 
 	struct Corners {
-		Ring const &ring;
-
-		Corners(Ring const &ring) : ring(ring) { }
-		auto begin() { return ring.corners_begin(); }
-		auto end() { return ring.corners_end(); }
+		Ring const *ring;
+		Corners(Ring const *ring) : ring(ring) { }
+		auto begin() const { return Iterator(ring, ring->begin()); }
+		auto   end() const { return Iterator(ring, ring->end()); }
 	};
 
 	template <typename Edges>
@@ -113,14 +108,14 @@ struct Ring : std::list<Vector<2>> {
 	}
 
 	auto anticlockwise() const {
-		auto const leftmost = std::min_element(list::begin(), list::end());
-		return ConstCornerIterator(this, leftmost).cross() > 0;
+		auto const leftmost = std::min_element(begin(), end());
+		return Iterator(this, leftmost).cross() > 0;
 	}
 
 	auto signed_area(bool ogc) const {
 		auto cross_product_sum = 0.0;
-		auto const v = *list::begin();
-		for (auto summation = Summation(cross_product_sum); auto const [v0, v1, v2]: Corners(*this))
+		auto const v = *begin();
+		for (auto summation = Summation(cross_product_sum); auto const [v0, v1, v2]: Corners(this))
 			summation += (v1 - v) ^ (v2 - v);
 		return cross_product_sum * (ogc ? 0.5 : -0.5);
 	}
@@ -131,7 +126,7 @@ struct Ring : std::list<Vector<2>> {
 
 	friend auto operator<=>(Ring const &ring, Vertex const &v) {
 		auto winding = 0;
-		for (auto const [v0, v1, v2]: Corners(ring))
+		for (auto const [v0, v1, v2]: Corners(&ring))
 			if (v1 == v)
 				return 0 <=> 0;
 			else if ((v1 < v) && !(v2 < v) && ((v1 - v) ^ (v2 - v)) > 0)
