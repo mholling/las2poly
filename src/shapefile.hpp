@@ -170,16 +170,13 @@ class Shapefile {
 
 			auto const now = std::chrono::system_clock::now();
 			auto const time = std::chrono::system_clock::to_time_t(now);
-			auto const local = std::localtime(&time);
-			auto const year = local->tm_year;
-			auto const month = local->tm_mon + 1;
-			auto const day = local->tm_mday;
+			auto const &local = *std::localtime(&time);
 
 			char header[header_size] = {0};
 			header[0] = 0x03;                // version number
-			header[1] = year;                // year
-			header[2] = month;               // month
-			header[3] = day;                 // day
+			header[1] = local.tm_year;       // year
+			header[2] = local.tm_mon + 1;    // month
+			header[3] = local.tm_mday;       // day
 			header[8] = header_size;         // length of header
 			header[10] = field_width + 1;    // length of record
 			header[29] = 0x57;               // ANSI language driver
