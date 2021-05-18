@@ -10,7 +10,7 @@ LAS2LAND(1) - General Commands Manual
 \[options]
 *tile.las*
 \[*tile.las&nbsp;...*]
-*land.json*
+*land.shp*
 
 # DESCRIPTION
 
@@ -159,4 +159,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - May 17, 2021
+macOS 11.1 - May 18, 2021
