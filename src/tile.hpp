@@ -13,44 +13,35 @@
 #include <variant>
 #include <istream>
 #include <array>
+#include <utility>
 #include <stdexcept>
 #include <cstddef>
 
 class Tile {
-	using TileVariant = std::variant<PLY, LAS>;
+	using Variant = std::variant<PLY, LAS>;
 
 	auto static from(std::istream &input) {
 		std::array<char, 4> static constexpr las_magic = {'L','A','S','F'};
 		std::array<char, 4> static constexpr ply_magic = {'p','l','y','\n'};
 
 		auto magic = std::array<char, 4>();
-		input.read(magic.data(), sizeof(magic));
+		input.read(magic.data(), magic.size());
 
 		if (magic == ply_magic)
-			return TileVariant(PLY(input));
-		else if (magic == las_magic)
-			return TileVariant(LAS(input));
-		else
-			throw std::runtime_error("unrecognised file format");
+			return Variant(std::in_place_type_t<PLY>(), input);
+		if (magic == las_magic)
+			return Variant(std::in_place_type_t<LAS>(), input);
+		throw std::runtime_error("unrecognised file format");
 	}
 
-	struct Read {
-		auto operator()(PLY &ply) const { return ply.read(); }
-		auto operator()(LAS &las) const { return las.read(); }
-	};
-
-	struct Size {
-		auto operator()(PLY const &ply) const { return ply.size; }
-		auto operator()(LAS const &las) const { return las.size; }
-	};
-
 	auto read() {
-		auto point = std::visit(Read(), tile_variant);
+		auto const read = [](auto &tile) { return tile.read(); };
+		auto const point = std::visit(read, variant);
 		bounds += Bounds(point);
 		return point;
 	}
 
-	TileVariant tile_variant;
+	Variant variant;
 
 	struct Iterator {
 		Tile &tile;
@@ -75,9 +66,12 @@ class Tile {
 public:
 	Bounds bounds;
 
-	Tile(std::istream &input) : tile_variant(from(input)) { }
+	Tile(std::istream &input) : variant(from(input)) { }
 
-	auto size() const { return std::visit(Size(), tile_variant); }
+	auto size() const {
+		auto const size = [](auto const &tile) { return tile.size; };
+		return std::visit(size, variant);
+	}
 
 	auto begin() { return Iterator(*this, 0); }
 	auto   end() { return Iterator(*this, size()); }

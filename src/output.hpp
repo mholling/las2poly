@@ -17,14 +17,14 @@
 class Output {
 	using Variant = std::variant<GeoJSON, Shapefile>;
 
-	template <typename ...Args>
-	auto static from(std::filesystem::path const &path, Args const &...args) {
+	template <typename EPSG>
+	auto static from(std::filesystem::path const &path, EPSG const &epsg) {
 		if (path == "-")
-			return Variant(std::in_place_type_t<GeoJSON>(), path, args...);
+			return Variant(std::in_place_type_t<GeoJSON>(), path, epsg);
 		if (path.extension() == ".json")
-			return Variant(std::in_place_type_t<GeoJSON>(), path, args...);
+			return Variant(std::in_place_type_t<GeoJSON>(), path, epsg);
 		if (path.extension() == ".shp")
-			return Variant(std::in_place_type_t<Shapefile>(), path, args...);
+			return Variant(std::in_place_type_t<Shapefile>(), path, epsg);
 		throw std::runtime_error("output file extension must be .json or .shp");
 	}
 
@@ -39,12 +39,13 @@ public:
 	}
 
 	operator bool() const {
-		return std::visit([](auto const &output) -> bool { return output; }, variant);
+		auto const exists = [](auto const &output) -> bool { return output; };
+		return std::visit(exists, variant);
 	}
 
-	template <typename ...Args>
-	void operator()(Args const &...args) {
-		std::visit([&](auto &output) { output(args...); }, variant);
+	template <typename Polygons>
+	void operator()(Polygons const &polygons) {
+		std::visit([&](auto &output) { output(polygons); }, variant);
 	}
 };
 
