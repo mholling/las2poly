@@ -187,7 +187,7 @@ class Shapefile {
 			file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 			file.write(header, header_size);
 
-			for (auto fid = 0ul; fid <= polygons.size(); ++fid)
+			for (auto fid = 0ul; fid < polygons.size(); ++fid)
 				file << '\x20' << std::setfill(' ') << std::setw(field_width) << fid;
 			file << '\x1a';
 		}
