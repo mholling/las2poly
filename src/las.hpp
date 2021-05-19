@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cstddef>
 #include <cstdint>
+#include <array>
 #include <algorithm>
 #include <stdexcept>
 #include <string>
@@ -26,6 +27,13 @@ class LAS {
 	std::uint8_t point_data_record_format;
 
 	void read_values() { }
+
+	template <int N, typename ...Args>
+	void read_values(std::array<char, N> &arg, Args &...args) {
+		input.read(arg.data(), N);
+		position += N;
+		read_values(args...);
+	}
 
 	template <typename Arg, typename ...Args>
 	void read_values(Arg &arg, Args &...args) {
@@ -45,16 +53,18 @@ class LAS {
 
 public:
 	std::size_t size;
+	std::optional<int> epsg;
 
 	LAS(std::istream &input) : input(input), position(4) {
 		std::uint8_t version_major, version_minor;
+		std::uint16_t header_size;
 		std::uint32_t offset_to_point_data;
+		std::uint32_t number_of_variable_length_records;
 		std::uint32_t legacy_number_of_point_records;
 		std::uint64_t number_of_point_records;
 
 		read_ahead(20, version_major, version_minor);
-		read_ahead(70, offset_to_point_data);
-		read_ahead(4, point_data_record_format);
+		read_ahead(68, header_size, offset_to_point_data, number_of_variable_length_records, point_data_record_format);
 		read_ahead(2, legacy_number_of_point_records);
 		read_ahead(20, x_scale, y_scale, z_scale, x_offset, y_offset, z_offset);
 
@@ -70,6 +80,33 @@ public:
 		else {
 			read_ahead(68, number_of_point_records);
 			size = number_of_point_records;
+		}
+
+		read_ahead(header_size - position);
+		for (auto record = 0ul; !epsg && record < number_of_variable_length_records; ++record) {
+			std::array<char, 16> static constexpr lasf_projection_user_id = {'L','A','S','F','_','P','r','o','j','e','c','t','i','o','n','\0'};
+			std::array<char, 16> user_id;
+			std::uint16_t record_id;
+			std::uint16_t record_length_after_header;
+			read_ahead(2, user_id, record_id, record_length_after_header);
+			read_ahead(32);
+
+			if (lasf_projection_user_id != user_id)
+				read_ahead(record_length_after_header);
+			else if (2112 == record_id) // OGC coordinate system WKT
+				read_ahead(record_length_after_header);
+			else if (34735 == record_id) { // GeoKeyDirectoryTag
+				std::uint16_t key_directory_version, key_revision, minor_revision, number_of_keys;
+				read_values(key_directory_version, key_revision, minor_revision, number_of_keys);
+				for (auto key = 0u; key < number_of_keys; ++key) {
+					std::uint16_t key_id, tiff_tag_location, count, value_offset;
+					read_values(key_id, tiff_tag_location, count, value_offset);
+					if (3072 == key_id && value_offset >= 1024 && value_offset <= 32767) // ProjectedCSTypeGeoKey
+						epsg = value_offset;
+				}
+				read_ahead(record_length_after_header - 8 * (number_of_keys + 1));
+			} else
+				read_ahead(record_length_after_header);
 		}
 
 		read_ahead(offset_to_point_data - position);

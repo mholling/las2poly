@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <cstddef>
+#include <optional>
 #include <bit>
 
 class PLY {
@@ -40,6 +41,7 @@ class PLY {
 
 public:
 	std::size_t size;
+	std::optional<int> epsg;
 
 	PLY(std::istream &input) : input(input) {
 		if constexpr (std::endian::native == std::endian::big)

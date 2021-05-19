@@ -73,6 +73,11 @@ public:
 		return std::visit(size, variant);
 	}
 
+	auto epsg() const {
+		auto const epsg = [](auto const &tile) { return tile.epsg; };
+		return std::visit(epsg, variant);
+	}
+
 	auto begin() { return Iterator(*this, 0); }
 	auto   end() { return Iterator(*this, size()); }
 };
