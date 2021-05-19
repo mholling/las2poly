@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
 		if (!angle)
 			angle = 15.0;
 
-		auto output = Output(output_path, epsg);
+		auto output = Output(output_path);
 		if (!overwrite && output_path != "-" && output)
 			throw std::runtime_error("output file already exists");
 
@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
 			polygons.filter(*area);
 
 		logger.time("saving", polygons.size(), "polygon");
-		output(polygons);
+		output(polygons, epsg);
 
 		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {

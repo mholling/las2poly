@@ -64,11 +64,11 @@ struct GeoJSON {
 	}
 
 public:
-	GeoJSON(std::filesystem::path const &json_path, EPSG const &epsg) : json_path(json_path), epsg(epsg) {
+	GeoJSON(std::filesystem::path const &json_path) : json_path(json_path) {
 		stream.precision(15);
 	}
 
-	void operator()(Polygons const &polygons) {
+	void operator()(Polygons const &polygons, EPSG const &epsg) {
 		*this << "{\"type\":\"FeatureCollection\",";
 		if (epsg)
 			*this << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << *epsg << "\"}},";

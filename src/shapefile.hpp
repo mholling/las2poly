@@ -197,12 +197,9 @@ class Shapefile {
 	DBF dbf;
 
 public:
-	Shapefile(std::filesystem::path const &shp_path, EPSG const &epsg) : shpx(shp_path), dbf(shp_path) {
-		if (epsg)
-			throw std::runtime_error("can't store EPSG for shapefile format");
-	}
+	Shapefile(std::filesystem::path const &shp_path) : shpx(shp_path), dbf(shp_path) { }
 
-	void operator()(Polygons const &polygons) {
+	void operator()(Polygons const &polygons, EPSG const &) {
 		if (polygons.size() >= INT32_MAX)
 			throw std::runtime_error("too many polygons for shapefile format");
 		shpx(polygons);
