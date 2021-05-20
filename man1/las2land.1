@@ -77,7 +77,7 @@ Force polygon orientation according to OGC or ESRI convention.
 By default, GeoJSON files use the OGC convention and shapefiles use the ESRI convention.
 .It Fl e , -epsg Ar number
 Specify an EPSG code to set in the GeoJSON output file.
-This should be the same EPSG as the input data, since no reprojection occurs.
+Use this option to override missing or incorrect projection information in the lidar tiles.
 .It Fl t , -threads Ar number
 Select the number of threads to use when processing.
 Defaults to the number of available hardware threads.

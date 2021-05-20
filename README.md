@@ -102,7 +102,7 @@ option is required to calibrate the void detection process.
 **-e**, **--epsg** *number*
 
 > Specify an EPSG code to set in the GeoJSON output file.
-> This should be the same EPSG as the input data, since no reprojection occurs.
+> Use this option to override missing or incorrect projection information in the lidar tiles.
 
 **-t**, **--threads** *number*
 
@@ -159,4 +159,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - May 18, 2021
+macOS 11.1 - May 20, 2021

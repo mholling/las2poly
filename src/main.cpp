@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 		args.option("-g", "--angle",      "<degrees>",   "smooth output with given angle",            angle);
 		args.option("-d", "--discard",    "<class,...>", "discard point classes",                     discard);
 		args.option("-c", "--convention", "<ogc|esri>",  "force polygon convention to OGC or ESRI",   convention);
-		args.option("-e", "--epsg",       "<number>",    "EPSG code to set in output file",           epsg);
+		args.option("-e", "--epsg",       "<number>",    "override missing or incorrect EPSG codes",  epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",              threads);
 		args.option("-x", "--tiles",      "<tiles.txt>", "list of input tiles as a text file",        tiles_path);
 		args.option("-o", "--overwrite",                 "overwrite existing output file",            overwrite);
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
 		auto logger = Logger(progress == true);
 
 		logger.time("reading", tile_paths.size(), "file");
-		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, threads->back());
+		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, epsg, threads->back());
 
 		logger.time("triangulating", points.size(), "point");
 		auto mesh = Mesh(points, threads->front());
@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
 			polygons.filter(*area);
 
 		logger.time("saving", polygons.size(), "polygon");
-		output(polygons, epsg);
+		output(polygons, points.epsg());
 
 		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {

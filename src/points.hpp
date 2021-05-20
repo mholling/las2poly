@@ -14,6 +14,8 @@
 #include <vector>
 #include <filesystem>
 #include <unordered_set>
+#include <optional>
+#include <set>
 #include <limits>
 #include <stdexcept>
 #include <utility>
@@ -24,6 +26,8 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
+#include <sstream>
+#include <string>
 #include <numeric>
 #include <cstddef>
 
@@ -31,23 +35,29 @@ class Points : public std::vector<Point> {
 	using Paths = std::vector<std::filesystem::path>;
 	using PathIterator = Paths::const_iterator;
 	using Discard = std::unordered_set<unsigned char>;
+	using EPSG = std::optional<int>;
 
 	std::vector<Bounds> tile_bounds;
+	std::set<EPSG> epsgs;
 
 	Points() = default;
 
-	void add_bounds(Tile const &tile) {
-		if (!tile.bounds.empty())
-			tile_bounds.push_back(tile.bounds);
+	void update(Tile const &tile) {
+		if (tile.bounds.empty())
+			return;
+		tile_bounds.push_back(tile.bounds);
+		epsgs.insert(tile.epsg());
 	}
 
-	void add_bounds(Points &points) {
+	void update(Points &points) {
 		tile_bounds.insert(tile_bounds.end(), points.tile_bounds.begin(), points.tile_bounds.end());
+		epsgs.insert(points.epsgs.begin(), points.epsgs.end());
 	}
 
 	void swap(Points &other) {
 		vector::swap(other);
 		std::swap(tile_bounds, other.tile_bounds);
+		std::swap(epsgs, other.epsgs);
 	}
 
 	struct Thin {
@@ -82,7 +92,7 @@ class Points : public std::vector<Point> {
 			}
 
 			points.erase(here, points_end);
-			points.add_bounds(tile);
+			points.update(tile);
 		}
 
 		void operator()(Points &points, Points &points1, Points &points2) const {
@@ -102,18 +112,18 @@ class Points : public std::vector<Point> {
 			std::copy(point1, end1, std::back_inserter(points));
 			std::copy(point2, end2, std::back_inserter(points));
 
-			points.add_bounds(points1);
-			points.add_bounds(points2);
+			points.update(points1);
+			points.update(points2);
 		}
 	};
 
-	Points(PathIterator begin, PathIterator end, double resolution, Discard const &discard, std::mutex &mutex, std::exception_ptr &exception, int threads) {
+	Points(PathIterator begin, PathIterator end, double resolution, Discard const &discard, EPSG const &epsg, std::mutex &mutex, std::exception_ptr &exception, int threads) {
 		if (auto lock = std::lock_guard(mutex); exception)
 			return;
-		auto thin = Thin(resolution);
-		auto const middle = begin + (end - begin) / 2;
-		if (begin + 1 == end)
-			try {
+		try {
+			auto thin = Thin(resolution);
+			auto const middle = begin + (end - begin) / 2;
+			if (begin + 1 == end) {
 				auto const &path = *begin;
 				try {
 					if (path == "-") {
@@ -129,35 +139,42 @@ class Points : public std::vector<Point> {
 				} catch (std::runtime_error &error) {
 					throw std::runtime_error(path.string() + ": " + error.what());
 				}
-			} catch (std::runtime_error &) {
-				auto lock = std::lock_guard(mutex);
-				exception = std::current_exception();
-				return;
+			} else if (1 == threads) {
+				auto points1 = Points(begin, middle, resolution, discard, epsg, mutex, exception, 1);
+				auto points2 = Points(middle, end, resolution, discard, epsg, mutex, exception, 1);
+				thin(*this, points1, points2);
+			} else {
+				auto points1 = Points();
+				auto points2 = Points();
+				auto thread1 = std::thread([&]() {
+					Points(begin, middle, resolution, discard, epsg, mutex, exception, threads/2).swap(points1);
+				}), thread2 = std::thread([&]() {
+					Points(middle, end, resolution, discard, epsg, mutex, exception, threads - threads/2).swap(points2);
+				});
+				thread1.join(), thread2.join();
+				thin(*this, points1, points2);
 			}
-		else if (1 == threads) {
-			auto points1 = Points(begin, middle, resolution, discard, mutex, exception, 1);
-			auto points2 = Points(middle, end, resolution, discard, mutex, exception, 1);
-			thin(*this, points1, points2);
-		} else {
-			auto points1 = Points();
-			auto points2 = Points();
-			auto thread1 = std::thread([&]() {
-				Points(begin, middle, resolution, discard, mutex, exception, threads/2).swap(points1);
-			}), thread2 = std::thread([&]() {
-				Points(middle, end, resolution, discard, mutex, exception, threads - threads/2).swap(points2);
-			});
-			thread1.join(), thread2.join();
-			thin(*this, points1, points2);
+			if (epsg)
+				epsgs = {epsg};
+			if (epsgs.size() > 1) {
+				auto message = std::stringstream();
+				for (auto prefix = "dissimilar EPSG codes detected: "; auto const &epsg: epsgs)
+					message << std::exchange(prefix, ", ") << (epsg ? std::to_string(*epsg) : "none");
+				throw std::runtime_error(message.str());
+			}
+		} catch (std::runtime_error &) {
+			auto lock = std::lock_guard(mutex);
+			exception = std::current_exception();
 		}
 	}
 
 public:
-	Points(Paths const &tile_paths, double resolution, std::vector<int> const &discard_ints, bool water, int threads) {
+	Points(Paths const &tile_paths, double resolution, std::vector<int> const &discard_ints, bool water, EPSG const &epsg, int threads) {
 		auto discard = Discard(discard_ints.begin(), discard_ints.end());
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();
 
-		Points(tile_paths.begin(), tile_paths.end(), resolution, discard, mutex, exception, threads).swap(*this);
+		Points(tile_paths.begin(), tile_paths.end(), resolution, discard, epsg, mutex, exception, threads).swap(*this);
 
 		if (exception)
 			std::rethrow_exception(exception);
@@ -173,6 +190,10 @@ public:
 				emplace_back(x, y, 0.0, 2, false, true, false);
 			});
 		}
+	}
+
+	auto epsg() const {
+		return epsgs.empty() ? EPSG() : *epsgs.begin();
 	}
 };
 
