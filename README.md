@@ -140,9 +140,13 @@ Process tiles from an input file list:
 
 	$ las2land --width 8 --tiles tiles.txt land.json
 
-Tag output with an EPSG and pipe to another command for conversion:
+Extract water areas and save as a shapefile:
 
-	$ las2land -w 8 -e 28355 *.las - | ogr2ogr land.shp /vsistdin/
+	$ las2land --water --width 10 *.las water.shp
+
+Pipe GeoJSON output to another command for conversion:
+
+	$ las2land --width 8 *.las - | ogr2ogr land.kml /vsistdin/
 
 Apply line smoothing:
 

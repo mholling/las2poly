@@ -99,8 +99,10 @@ Show a brief help summary.
 .Dl $ las2land --width 8 *.las land.json
 .It Process tiles from an input file list:
 .Dl $ las2land --width 8 --tiles tiles.txt land.json
-.It Tag output with an EPSG and pipe to another command for conversion:
-.Dl $ las2land -w 8 -e 28355 *.las - | ogr2ogr land.shp /vsistdin/
+.It Extract water areas and save as a shapefile:
+.Dl $ las2land --water --width 10 *.las water.shp
+.It Pipe GeoJSON output to another command for conversion:
+.Dl $ las2land --width 8 *.las - | ogr2ogr land.kml /vsistdin/
 .It Apply line smoothing:
 .Dl $ las2land --width 8 --smooth *.las land.json
 .It Use a smaller triangle length to keep finer detail:
