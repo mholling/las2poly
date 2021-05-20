@@ -10,7 +10,7 @@ LAS2LAND(1) - General Commands Manual
 \[options]
 *tile.las*
 \[*tile.las&nbsp;...*]
-*land.shp*
+*land.json*
 
 # DESCRIPTION
 
@@ -35,6 +35,7 @@ are discarded.
 
 Output from the program is a polygon file in GeoJSON or shapefile format, representing all land areas present in the lidar tiles.
 File format is chosen according to the filename extension: .json for GeoJSON and .shp for shapefile.
+Spatial referencing metadata is included only for GeoJSON output.
 
 For GeoJSON output, polygons conform to OGC standard, with anticlockwise exteriors and non-self-intersecting rings which may touch at vertices.
 For shapefile output, polygons conform to ESRI standard, with clockwise exteriors and non-touching rings which may self-intersect at vertices.

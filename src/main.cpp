@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 		args.version(VERSION);
 #endif
 		args.position("<tile.las>", "LAS input path", tile_paths);
-		args.position("<land.shp>", "shapefile or GeoJSON output path", output_path);
+		args.position("<land.json>", "GeoJSON or shapefile output path", output_path);
 
 		auto const proceed = args.parse([&]() {
 			if (!length && !width)
