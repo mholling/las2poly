@@ -4,8 +4,8 @@
 // See LICENSE file for full license information.
 ////////////////////////////////////////////////////////////////////////////////
 
-// #ifndef WKTS_HPP
-// #define WKTS_HPP
+#ifndef WKTS_HPP
+#define WKTS_HPP
 
 #include <utility>
 
@@ -4771,4 +4771,4 @@ std::pair<int, char const *> static const wkts[] = {
 	{32766, "PROJCS[\"WGS 84 / TM 36 SE\",GEOGCS[\"WGS 84\",DATUM[\"World Geodetic System 1984 ensemble\",SPHEROID[\"WGS 84\",6378137,298.2572236,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9102\"]],AXIS[\"Lat\",north],AXIS[\"Lon\",east],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Transverse Mercator\",AUTHORITY[\"EPSG\",\"16636\"]],PARAMETER[\"Latitude of natural origin\",0],PARAMETER[\"Longitude of natural origin\",36],PARAMETER[\"Scale factor at natural origin\",0.9996],PARAMETER[\"False easting\",500000],PARAMETER[\"False northing\",10000000],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"E\",east],AXIS[\"N\",north],AUTHORITY[\"EPSG\",\"32766\"]]"},
 };
 
-// #endif
+#endif
