@@ -7,6 +7,7 @@
 #ifndef SHAPEFILE_HPP
 #define SHAPEFILE_HPP
 
+#include "wkts.hpp"
 #include "polygons.hpp"
 #include <limits>
 #include <bit>
@@ -193,22 +194,45 @@ class Shapefile {
 		}
 	};
 
+	struct PRJ {
+		std::filesystem::path prj_path;
+
+		PRJ(std::filesystem::path const &shp_path) : prj_path(shp_path) {
+			prj_path.replace_extension(".prj");
+		}
+
+		void operator()(int code) {
+			auto [begin, end] = std::equal_range(std::begin(wkts), std::end(wkts), std::pair(code, ""), [](auto const &pair1, auto const &pair2) {
+				return pair1.first < pair2.first;
+			});
+			if (begin != end) {
+				auto const &[code, wkt] = *begin;
+				auto file = std::ofstream(prj_path);
+				file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+				file << wkt;
+			}
+		}
+	};
+
 	SHPX shpx;
 	DBF dbf;
+	PRJ prj;
 
 public:
-	Shapefile(std::filesystem::path const &shp_path) : shpx(shp_path), dbf(shp_path) { }
+	Shapefile(std::filesystem::path const &shp_path) : shpx(shp_path), dbf(shp_path), prj(shp_path) { }
 
-	void operator()(Polygons const &polygons, EPSG const &) {
+	void operator()(Polygons const &polygons, EPSG const &epsg) {
 		if (polygons.size() >= INT32_MAX)
 			throw std::runtime_error("too many polygons for shapefile format");
 		shpx(polygons);
 		dbf(polygons);
+		if (epsg)
+			prj(*epsg);
 	}
 
 	operator bool() const {
 		using std::filesystem::exists;
-		return exists(shpx.shp_path) || exists(shpx.shx_path) || exists(dbf.dbf_path);
+		return exists(shpx.shp_path) || exists(shpx.shx_path) || exists(dbf.dbf_path) || exists(prj.prj_path);
 	}
 };
 
