@@ -7,7 +7,7 @@
 #ifndef POLYGONS_HPP
 #define POLYGONS_HPP
 
-#include "polygon.hpp"
+#include "ring.hpp"
 #include "simplify.hpp"
 #include "smooth.hpp"
 #include "triangles.hpp"
@@ -21,6 +21,8 @@
 #include <cmath>
 #include <iterator>
 #include <numeric>
+
+using Polygon = std::vector<Ring>;
 
 class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public Smooth<Polygons> {
 	auto static is_water(Triangles const &triangles, double delta, double slope) {

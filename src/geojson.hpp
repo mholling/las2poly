@@ -8,7 +8,6 @@
 #define GEOJSON_HPP
 
 #include "polygons.hpp"
-#include "polygon.hpp"
 #include "ring.hpp"
 #include "vector.hpp"
 #include <optional>
