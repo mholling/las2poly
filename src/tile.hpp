@@ -10,6 +10,7 @@
 #include "ply.hpp"
 #include "las.hpp"
 #include "bounds.hpp"
+#include "srs.hpp"
 #include <variant>
 #include <istream>
 #include <array>
@@ -73,9 +74,9 @@ public:
 		return std::visit(size, variant);
 	}
 
-	auto epsg() const {
-		auto const epsg = [](auto const &tile) { return tile.epsg; };
-		return std::visit(epsg, variant);
+	auto &srs() const {
+		auto const srs = [](auto const &tile) -> OptionalSRS const & { return tile.srs; };
+		return std::visit(srs, variant);
 	}
 
 	auto begin() { return Iterator(*this, 0); }

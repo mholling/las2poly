@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "args.hpp"
+#include "srs.hpp"
 #include "output.hpp"
 #include "logger.hpp"
 #include "points.hpp"
@@ -107,8 +108,6 @@ int main(int argc, char *argv[]) {
 		for (auto klass: *discard)
 			if (klass < 0 || klass > 255)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
-		if (epsg && (*epsg < 1024 || *epsg > 32767))
-			throw std::runtime_error("invalid EPSG code");
 		if (threads->size() > 2)
 			throw std::runtime_error("at most two thread count values allowed");
 		for (auto count: *threads)
@@ -129,6 +128,10 @@ int main(int argc, char *argv[]) {
 		if (!angle)
 			angle = 15.0;
 
+		auto srs = OptionalSRS();
+		if (epsg)
+			srs.emplace(*epsg);
+
 		auto output = Output(output_path);
 		if (!overwrite && output_path != "-" && output)
 			throw std::runtime_error("output file already exists");
@@ -137,7 +140,7 @@ int main(int argc, char *argv[]) {
 		auto logger = Logger(progress == true);
 
 		logger.time("reading", tile_paths.size(), "file");
-		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, epsg, threads->back());
+		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, srs, threads->back());
 
 		logger.time("triangulating", points.size(), "point");
 		auto mesh = Mesh(points, threads->front());
@@ -161,7 +164,7 @@ int main(int argc, char *argv[]) {
 			polygons.filter(*area);
 
 		logger.time("saving", polygons.size(), "polygon");
-		output(polygons, points.epsg());
+		output(polygons, points.srs());
 
 		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {

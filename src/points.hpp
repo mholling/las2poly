@@ -9,6 +9,7 @@
 
 #include "point.hpp"
 #include "bounds.hpp"
+#include "srs.hpp"
 #include "tile.hpp"
 #include "fill.hpp"
 #include <vector>
@@ -35,10 +36,9 @@ class Points : public std::vector<Point> {
 	using Paths = std::vector<std::filesystem::path>;
 	using PathIterator = Paths::const_iterator;
 	using Discard = std::unordered_set<unsigned char>;
-	using EPSG = std::optional<int>;
 
 	std::vector<Bounds> tile_bounds;
-	std::set<EPSG> epsgs;
+	std::set<OptionalSRS> distinct_srs;
 
 	Points() = default;
 
@@ -46,18 +46,18 @@ class Points : public std::vector<Point> {
 		if (tile.bounds.empty())
 			return;
 		tile_bounds.push_back(tile.bounds);
-		epsgs.insert(tile.epsg());
+		distinct_srs.insert(tile.srs());
 	}
 
 	void update(Points &points) {
 		tile_bounds.insert(tile_bounds.end(), points.tile_bounds.begin(), points.tile_bounds.end());
-		epsgs.insert(points.epsgs.begin(), points.epsgs.end());
+		distinct_srs.insert(points.distinct_srs.begin(), points.distinct_srs.end());
 	}
 
 	void swap(Points &other) {
 		vector::swap(other);
 		std::swap(tile_bounds, other.tile_bounds);
-		std::swap(epsgs, other.epsgs);
+		std::swap(distinct_srs, other.distinct_srs);
 	}
 
 	struct Thin {
@@ -117,7 +117,7 @@ class Points : public std::vector<Point> {
 		}
 	};
 
-	Points(PathIterator begin, PathIterator end, double resolution, Discard const &discard, EPSG const &epsg, std::mutex &mutex, std::exception_ptr &exception, int threads) {
+	Points(PathIterator begin, PathIterator end, double resolution, Discard const &discard, OptionalSRS const &srs, std::mutex &mutex, std::exception_ptr &exception, int threads) {
 		if (auto lock = std::lock_guard(mutex); exception)
 			return;
 		try {
@@ -140,28 +140,24 @@ class Points : public std::vector<Point> {
 					throw std::runtime_error(path.string() + ": " + error.what());
 				}
 			} else if (1 == threads) {
-				auto points1 = Points(begin, middle, resolution, discard, epsg, mutex, exception, 1);
-				auto points2 = Points(middle, end, resolution, discard, epsg, mutex, exception, 1);
+				auto points1 = Points(begin, middle, resolution, discard, srs, mutex, exception, 1);
+				auto points2 = Points(middle, end, resolution, discard, srs, mutex, exception, 1);
 				thin(*this, points1, points2);
 			} else {
 				auto points1 = Points();
 				auto points2 = Points();
 				auto thread1 = std::thread([&]() {
-					Points(begin, middle, resolution, discard, epsg, mutex, exception, threads/2).swap(points1);
+					Points(begin, middle, resolution, discard, srs, mutex, exception, threads/2).swap(points1);
 				}), thread2 = std::thread([&]() {
-					Points(middle, end, resolution, discard, epsg, mutex, exception, threads - threads/2).swap(points2);
+					Points(middle, end, resolution, discard, srs, mutex, exception, threads - threads/2).swap(points2);
 				});
 				thread1.join(), thread2.join();
 				thin(*this, points1, points2);
 			}
-			if (epsg)
-				epsgs = {epsg};
-			if (epsgs.size() > 1) {
-				auto message = std::stringstream();
-				for (auto prefix = "dissimilar EPSG codes detected: "; auto const &epsg: epsgs)
-					message << std::exchange(prefix, ", ") << (epsg ? std::to_string(*epsg) : "none");
-				throw std::runtime_error(message.str());
-			}
+			if (srs)
+				distinct_srs = {srs};
+			if (distinct_srs.size() > 1)
+				throw std::runtime_error("dissimilar SRS or EPSG codes detected");
 		} catch (std::runtime_error &) {
 			auto lock = std::lock_guard(mutex);
 			exception = std::current_exception();
@@ -169,12 +165,12 @@ class Points : public std::vector<Point> {
 	}
 
 public:
-	Points(Paths const &tile_paths, double resolution, std::vector<int> const &discard_ints, bool water, EPSG const &epsg, int threads) {
+	Points(Paths const &tile_paths, double resolution, std::vector<int> const &discard_ints, bool water, OptionalSRS const &srs, int threads) {
 		auto discard = Discard(discard_ints.begin(), discard_ints.end());
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();
 
-		Points(tile_paths.begin(), tile_paths.end(), resolution, discard, epsg, mutex, exception, threads).swap(*this);
+		Points(tile_paths.begin(), tile_paths.end(), resolution, discard, srs, mutex, exception, threads).swap(*this);
 
 		if (exception)
 			std::rethrow_exception(exception);
@@ -192,8 +188,8 @@ public:
 		}
 	}
 
-	auto epsg() const {
-		return epsgs.empty() ? EPSG() : *epsgs.begin();
+	auto srs() const {
+		return distinct_srs.empty() ? OptionalSRS() : *distinct_srs.begin();
 	}
 };
 

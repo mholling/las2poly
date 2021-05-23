@@ -8,21 +8,19 @@
 #define GEOJSON_HPP
 
 #include "polygons.hpp"
+#include "srs.hpp"
 #include "ring.hpp"
 #include "vector.hpp"
-#include <optional>
 #include <sstream>
 #include <filesystem>
 #include <utility>
 #include <iostream>
+#include <string>
 #include <fstream>
 
-struct GeoJSON {
-	using EPSG = std::optional<int>;
-
+class GeoJSON {
 	std::stringstream stream;
 	std::filesystem::path json_path;
-	EPSG epsg;
 
 	template <typename Value>
 	auto &operator<<(Value const &value) {
@@ -58,6 +56,19 @@ struct GeoJSON {
 		return json << (separator == '[' ? "[]" : "]");
 	}
 
+	friend auto &operator<<(GeoJSON &json, SRS const &srs) {
+		json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"";
+		if (srs.epsg)
+			json << "urn:ogc:def:crs:EPSG::" << *srs.epsg;
+		else {
+			auto wkt = srs.wkt;
+			for (auto pos = wkt.find('"'); pos != std::string::npos; pos = wkt.find('"', ++pos))
+				wkt.insert(pos++, 1, '\\');
+			json << wkt;
+		}
+		return json << "\"}}";
+	}
+
 	friend auto &operator<<(std::ostream &stream, GeoJSON &json) {
 		return stream << json.stream.str();
 	}
@@ -67,10 +78,10 @@ public:
 		stream.precision(15);
 	}
 
-	void operator()(Polygons const &polygons, EPSG const &epsg) {
+	void operator()(Polygons const &polygons, OptionalSRS const &srs) {
 		*this << "{\"type\":\"FeatureCollection\",";
-		if (epsg)
-			*this << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" << *epsg << "\"}},";
+		if (srs)
+			*this << *srs << ",";
 		*this << "\"features\":" << polygons << "}";
 
 		if (json_path == "-")

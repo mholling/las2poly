@@ -7,12 +7,14 @@
 #ifndef LAS_HPP
 #define LAS_HPP
 
+#include "srs.hpp"
 #include "point.hpp"
 #include <bit>
 #include <iostream>
 #include <cstddef>
 #include <cstdint>
 #include <array>
+#include <string>
 #include <algorithm>
 #include <stdexcept>
 #include <string>
@@ -35,6 +37,13 @@ class LAS {
 		read_values(args...);
 	}
 
+	template <typename ...Args>
+	void read_values(std::string &arg, Args &...args) {
+		input.read(arg.data(), arg.size());
+		position += arg.size();
+		read_values(args...);
+	}
+
 	template <typename Arg, typename ...Args>
 	void read_values(Arg &arg, Args &...args) {
 		input.read(reinterpret_cast<char *>(&arg), sizeof(arg));
@@ -53,7 +62,7 @@ class LAS {
 
 public:
 	std::size_t size;
-	std::optional<int> epsg;
+	OptionalSRS srs;
 
 	LAS(std::istream &input) : input(input), position(4) {
 		std::uint8_t version_major, version_minor;
@@ -83,7 +92,7 @@ public:
 		}
 
 		read_ahead(header_size - position);
-		for (auto record = 0ul; !epsg && record < number_of_variable_length_records; ++record) {
+		for (auto record = 0ul; !srs && record < number_of_variable_length_records; ++record) {
 			std::array<char, 16> static constexpr lasf_projection_user_id = {'L','A','S','F','_','P','r','o','j','e','c','t','i','o','n','\0'};
 			std::array<char, 16> user_id;
 			std::uint16_t record_id;
@@ -93,16 +102,28 @@ public:
 
 			if (lasf_projection_user_id != user_id)
 				read_ahead(record_length_after_header);
-			else if (2112 == record_id) // OGC coordinate system WKT
-				read_ahead(record_length_after_header);
-			else if (34735 == record_id) { // GeoKeyDirectoryTag
+			else if (2112 == record_id) { // OGC coordinate system WKT
+				auto compound_wkt = std::string(record_length_after_header, '\0');
+				read_values(compound_wkt);
+				if (auto const projcs = compound_wkt.find("PROJCS["); projcs != std::string::npos) {
+					auto begin = compound_wkt.begin() + projcs, end = begin + 7;
+					for (auto count = 1; ; '[' == *end ? ++count : ']' == *end ? --count : 0, ++end) {
+						if (0 == count)
+							srs.emplace(begin, end);
+						else if (compound_wkt.end() != end)
+							continue;
+						break;
+					}
+				}
+			} else if (34735 == record_id) { // GeoKeyDirectoryTag
 				std::uint16_t key_directory_version, key_revision, minor_revision, number_of_keys;
 				read_values(key_directory_version, key_revision, minor_revision, number_of_keys);
 				for (auto key = 0u; key < number_of_keys; ++key) {
 					std::uint16_t key_id, tiff_tag_location, count, value_offset;
 					read_values(key_id, tiff_tag_location, count, value_offset);
-					if (3072 == key_id && value_offset >= 1024 && value_offset <= 32767) // ProjectedCSTypeGeoKey
-						epsg = value_offset;
+					if (3072 == key_id) // ProjectedCSTypeGeoKey
+						try { srs.emplace(value_offset); }
+						catch (SRS::InvalidEPSG &) { }
 				}
 				read_ahead(record_length_after_header - 8 * (number_of_keys + 1));
 			} else

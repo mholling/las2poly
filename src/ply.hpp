@@ -7,13 +7,13 @@
 #ifndef PLY_HPP
 #define PLY_HPP
 
+#include "srs.hpp"
 #include "point.hpp"
 #include <istream>
 #include <string>
 #include <stdexcept>
 #include <sstream>
 #include <cstddef>
-#include <optional>
 #include <bit>
 
 class PLY {
@@ -41,7 +41,7 @@ class PLY {
 
 public:
 	std::size_t size;
-	std::optional<int> epsg;
+	OptionalSRS srs;
 
 	PLY(std::istream &input) : input(input) {
 		if constexpr (std::endian::native == std::endian::big)

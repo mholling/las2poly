@@ -41,9 +41,9 @@ public:
 		return std::visit(exists, variant);
 	}
 
-	template <typename Polygons, typename EPSG>
-	void operator()(Polygons const &polygons, EPSG const &epsg) {
-		std::visit([&](auto &output) { output(polygons, epsg); }, variant);
+	template <typename Polygons, typename OptionalSRS>
+	void operator()(Polygons const &polygons, OptionalSRS const &srs) {
+		std::visit([&](auto &output) { output(polygons, srs); }, variant);
 	}
 };
 

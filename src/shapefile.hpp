@@ -7,11 +7,10 @@
 #ifndef SHAPEFILE_HPP
 #define SHAPEFILE_HPP
 
-#include "wkts.hpp"
 #include "polygons.hpp"
+#include "srs.hpp"
 #include <limits>
 #include <bit>
-#include <optional>
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>
@@ -27,8 +26,6 @@ static_assert(std::numeric_limits<double>::is_iec559);
 static_assert(std::endian::native == std::endian::big || std::endian::native == std::endian::little);
 
 class Shapefile {
-	using EPSG = std::optional<int>;
-
 	template <typename Value, unsigned offset>
 	void static little(char *data, Value value) {
 		*reinterpret_cast<Value *>(data + offset) = value;
@@ -201,16 +198,10 @@ class Shapefile {
 			prj_path.replace_extension(".prj");
 		}
 
-		void operator()(int code) {
-			auto [begin, end] = std::equal_range(std::begin(wkts), std::end(wkts), std::pair(code, ""), [](auto const &pair1, auto const &pair2) {
-				return pair1.first < pair2.first;
-			});
-			if (begin != end) {
-				auto const &[code, wkt] = *begin;
-				auto file = std::ofstream(prj_path);
-				file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-				file << wkt;
-			}
+		void operator()(SRS const &srs) {
+			auto file = std::ofstream(prj_path);
+			file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+			file << srs.wkt;
 		}
 	};
 
@@ -221,13 +212,13 @@ class Shapefile {
 public:
 	Shapefile(std::filesystem::path const &shp_path) : shpx(shp_path), dbf(shp_path), prj(shp_path) { }
 
-	void operator()(Polygons const &polygons, EPSG const &epsg) {
+	void operator()(Polygons const &polygons, OptionalSRS const &srs) {
 		if (polygons.size() >= INT32_MAX)
 			throw std::runtime_error("too many polygons for shapefile format");
 		shpx(polygons);
 		dbf(polygons);
-		if (epsg)
-			prj(*epsg);
+		if (srs)
+			prj(*srs);
 	}
 
 	operator bool() const {
