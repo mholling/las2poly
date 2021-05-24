@@ -76,7 +76,7 @@ class LAS {
 	template <typename LengthType>
 	void read_vlrs(std::uint32_t number_of_variable_length_records) {
 		for (auto record = 0ul; !srs && record < number_of_variable_length_records; ++record) {
-			std::array<char, 16> static constexpr lasf_projection_user_id = {'L','A','S','F','_','P','r','o','j','e','c','t','i','o','n','\0'};
+			std::array<char, 16> static constexpr lasf_projection_user_id = {"LASF_Projection"};
 			std::array<char, 16> user_id;
 			std::uint16_t record_id;
 			LengthType record_length_after_header;
