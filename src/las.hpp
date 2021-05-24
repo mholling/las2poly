@@ -24,9 +24,18 @@ static_assert(std::endian::native == std::endian::big || std::endian::native == 
 class LAS {
 	std::istream &input;
 	std::size_t position;
+
+	std::uint8_t version_major, version_minor;
+	std::uint16_t header_size;
+	std::uint32_t offset_to_point_data;
+	std::uint32_t number_of_variable_length_records;
+	std::uint8_t point_data_record_format;
+	std::uint32_t legacy_number_of_point_records;
 	double x_scale, y_scale, z_scale;
 	double x_offset, y_offset, z_offset;
-	std::uint8_t point_data_record_format;
+	std::uint64_t start_of_extended_variable_length_records;
+	std::uint32_t number_of_extended_variable_length_records;
+	std::uint64_t number_of_point_records;
 
 	void read_values() { }
 
@@ -60,43 +69,17 @@ class LAS {
 		read_values(args...);
 	}
 
-public:
-	std::size_t size;
-	OptionalSRS srs;
+	void read_to(std::size_t absolute_position) {
+		read_ahead(absolute_position - position);
+	}
 
-	LAS(std::istream &input) : input(input), position(4) {
-		std::uint8_t version_major, version_minor;
-		std::uint16_t header_size;
-		std::uint32_t offset_to_point_data;
-		std::uint32_t number_of_variable_length_records;
-		std::uint32_t legacy_number_of_point_records;
-		std::uint64_t number_of_point_records;
-
-		read_ahead(20, version_major, version_minor);
-		read_ahead(68, header_size, offset_to_point_data, number_of_variable_length_records, point_data_record_format);
-		read_ahead(2, legacy_number_of_point_records);
-		read_ahead(20, x_scale, y_scale, z_scale, x_offset, y_offset, z_offset);
-
-		if (point_data_record_format > 127)
-			throw std::runtime_error("LAZ format not supported");
-		if (point_data_record_format > 10)
-			throw std::runtime_error("unsupported LAS point data record format");
-		if (version_major != 1)
-			throw std::runtime_error("unsupported LAS version " + std::to_string(version_major) + "." + std::to_string(version_minor));
-
-		if (version_minor < 4)
-			size = legacy_number_of_point_records;
-		else {
-			read_ahead(68, number_of_point_records);
-			size = number_of_point_records;
-		}
-
-		read_ahead(header_size - position);
+	template <typename LengthType>
+	void read_vlrs(std::uint32_t number_of_variable_length_records) {
 		for (auto record = 0ul; !srs && record < number_of_variable_length_records; ++record) {
 			std::array<char, 16> static constexpr lasf_projection_user_id = {'L','A','S','F','_','P','r','o','j','e','c','t','i','o','n','\0'};
 			std::array<char, 16> user_id;
 			std::uint16_t record_id;
-			std::uint16_t record_length_after_header;
+			LengthType record_length_after_header;
 			read_ahead(2, user_id, record_id, record_length_after_header);
 			read_ahead(32);
 
@@ -129,8 +112,35 @@ public:
 			} else
 				read_ahead(record_length_after_header);
 		}
+	}
 
-		read_ahead(offset_to_point_data - position);
+public:
+	std::size_t size;
+	OptionalSRS srs;
+
+	LAS(std::istream &input) : input(input), position(4) {
+		read_ahead(20, version_major, version_minor);
+		read_ahead(68, header_size, offset_to_point_data, number_of_variable_length_records, point_data_record_format);
+		read_ahead(2, legacy_number_of_point_records);
+		read_ahead(20, x_scale, y_scale, z_scale, x_offset, y_offset, z_offset);
+
+		if (point_data_record_format > 127)
+			throw std::runtime_error("LAZ format not supported");
+		if (point_data_record_format > 10)
+			throw std::runtime_error("unsupported LAS point data record format");
+		if (version_major != 1)
+			throw std::runtime_error("unsupported LAS version " + std::to_string(version_major) + "." + std::to_string(version_minor));
+
+		if (version_minor < 4)
+			size = legacy_number_of_point_records;
+		else {
+			read_ahead(56, start_of_extended_variable_length_records, number_of_extended_variable_length_records, number_of_point_records);
+			size = number_of_point_records;
+		}
+
+		read_to(header_size);
+		read_vlrs<std::uint16_t>(number_of_variable_length_records);
+		read_to(offset_to_point_data);
 	}
 
 	auto read() {
@@ -140,17 +150,17 @@ public:
 		char buffer[67];
 
 		switch (point_data_record_format) {
-		case 0:  input.read(buffer, 20); break;
-		case 1:  input.read(buffer, 28); break;
-		case 2:  input.read(buffer, 26); break;
-		case 3:  input.read(buffer, 34); break;
-		case 4:  input.read(buffer, 57); break;
-		case 5:  input.read(buffer, 63); break;
-		case 6:  input.read(buffer, 30); break;
-		case 7:  input.read(buffer, 36); break;
-		case 8:  input.read(buffer, 38); break;
-		case 9:  input.read(buffer, 59); break;
-		case 10: input.read(buffer, 67); break;
+		case 0:  input.read(buffer, 20); position += 20; break;
+		case 1:  input.read(buffer, 28); position += 28; break;
+		case 2:  input.read(buffer, 26); position += 26; break;
+		case 3:  input.read(buffer, 34); position += 34; break;
+		case 4:  input.read(buffer, 57); position += 57; break;
+		case 5:  input.read(buffer, 63); position += 63; break;
+		case 6:  input.read(buffer, 30); position += 30; break;
+		case 7:  input.read(buffer, 36); position += 36; break;
+		case 8:  input.read(buffer, 38); position += 38; break;
+		case 9:  input.read(buffer, 59); position += 59; break;
+		case 10: input.read(buffer, 67); position += 67; break;
 		}
 
 		if constexpr (std::endian::native == std::endian::big) {
@@ -187,6 +197,13 @@ public:
 		}
 
 		return Point(x, y, z, classification, key_point, withheld, overlap);
+	}
+
+	void finalise() {
+		if (version_minor < 4)
+			return;
+		read_to(start_of_extended_variable_length_records);
+		read_vlrs<std::uint64_t>(number_of_extended_variable_length_records);
 	}
 };
 

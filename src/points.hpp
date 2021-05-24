@@ -42,7 +42,7 @@ class Points : public std::vector<Point> {
 
 	Points() = default;
 
-	void update(Tile const &tile) {
+	void update(Tile &tile) {
 		if (tile.bounds.empty())
 			return;
 		tile_bounds.push_back(tile.bounds);
