@@ -95,7 +95,8 @@ class RTree {
 		};
 
 		Search(Bounds const &bounds, RTree const *root) : bounds(bounds) {
-			this->push(root);
+			if (!root->bounds.empty())
+				this->push(root);
 		}
 
 		auto begin() { return Iterator(*this).next(); }
@@ -112,7 +113,7 @@ public:
 	RTree(Iterator begin, Iterator end, bool horizontal = true) {
 		switch (end - begin) {
 		case 0:
-			throw std::runtime_error("not enough points");
+			break;
 		case 1:
 			bounds = begin->bounds();
 			value = *begin;
