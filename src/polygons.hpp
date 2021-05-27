@@ -48,8 +48,8 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 				perp_sum_z  += perp[2];
 
 				for (auto edge = edges.begin() + 1; edge != edges.end(); ++edge)
-					if (edge->first->ground() && edge->second->ground())
-						++count, abs_sum += std::abs(edge->second->elevation - edge->first->elevation);
+					if (auto const &[p0, p1] = *edge; p0->is_ground() && p1->is_ground())
+						++count, abs_sum += std::abs(p1->elevation - p0->elevation);
 			}
 		}
 

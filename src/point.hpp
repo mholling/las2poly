@@ -24,7 +24,7 @@ struct Point : Vector<2> {
 		overlap(overlap)
 	{ }
 
-	auto ground() const {
+	auto is_ground() const {
 		return 2 == classification || 3 == classification;
 	}
 };
