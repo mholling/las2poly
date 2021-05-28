@@ -8,7 +8,6 @@
 #define RING_HPP
 
 #include "vector.hpp"
-#include "bounds.hpp"
 #include "summation.hpp"
 #include <list>
 #include <tuple>
@@ -81,11 +80,6 @@ struct Ring : std::list<Vector<2>> {
 
 		auto ring_size() const {
 			return ring->size();
-		}
-
-		auto bounds() const {
-			auto const [v0, v1, v2] = **this;
-			return Bounds(v0, v1, v2);
 		}
 	};
 

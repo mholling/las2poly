@@ -27,7 +27,7 @@ class Simplify {
 
 		Candidate(Corner const &corner) :
 			corner(corner),
-			bounds(corner.bounds()),
+			bounds(corner),
 			cross(corner.cross())
 		{ }
 
@@ -82,8 +82,8 @@ class Simplify {
 		void erase(RTree &rtree) const {
 			auto const next = corner.next();
 			auto const prev = corner.prev();
-			auto const next_bounds = next.bounds();
-			auto const prev_bounds = prev.bounds();
+			auto const next_bounds = Bounds(next);
+			auto const prev_bounds = Bounds(prev);
 			corner.erase();
 			rtree.update(next, next_bounds);
 			rtree.update(prev, prev_bounds);

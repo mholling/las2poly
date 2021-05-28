@@ -29,7 +29,7 @@ class Smooth {
 
 		Candidate(Corner const &corner) :
 			corner(corner),
-			bounds(corner.bounds()),
+			bounds(corner),
 			cosine(corner.cosine())
 		{ }
 
@@ -87,8 +87,8 @@ class Smooth {
 		void replace(RTree &rtree, Updates &updates) const {
 			auto const next = corner.next();
 			auto const prev = corner.prev();
-			auto const next_bounds = next.bounds();
-			auto const prev_bounds = prev.bounds();
+			auto const next_bounds = Bounds(next);
+			auto const prev_bounds = Bounds(prev);
 			auto const [corner1, corner2] = corner.replace(v01, v12);
 			rtree.replace(corner, bounds, corner1, corner2);
 			rtree.update(next, next_bounds);

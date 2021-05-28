@@ -9,9 +9,10 @@
 
 #include "vector.hpp"
 #include "point.hpp"
+#include "ring.hpp"
 #include <limits>
 #include <algorithm>
-#include <utility>
+#include <tuple>
 
 struct Bounds {
 	double xmin, ymin, xmax, ymax;
@@ -35,11 +36,13 @@ struct Bounds {
 		xmin = xmax = x, ymin = ymax = y;
 	}
 
-	template <typename Point, typename ...Points>
-	Bounds(Point const &point, Points const &...points) : Bounds(points...) {
-		auto const &[x, y] = point;
-		xmin = std::min(xmin, x), xmax = std::max(xmax, x);
-		ymin = std::min(ymin, y), ymax = std::max(ymax, y);
+	Bounds(Ring::CornerIterator const &corner) {
+		auto const [v0, v1, v2] = *corner;
+		auto const &[x0, y0] = v0;
+		auto const &[x1, y1] = v1;
+		auto const &[x2, y2] = v2;
+		std::tie(xmin, xmax) = std::minmax({x0, x1, x2});
+		std::tie(ymin, ymax) = std::minmax({y0, y1, y2});
 	}
 
 	auto &operator+=(Bounds const &other) {

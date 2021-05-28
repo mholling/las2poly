@@ -105,7 +105,7 @@ class RTree {
 
 public:
 	RTree(Element const &element) :
-		bounds(element.bounds()),
+		bounds(element),
 		value(element)
 	{ }
 
@@ -115,16 +115,16 @@ public:
 		case 0:
 			break;
 		case 1:
-			bounds = begin->bounds();
+			bounds = Bounds(*begin);
 			value = *begin;
 			break;
 		default:
 			auto const middle = begin + (end - begin) / 2;
 			std::nth_element(begin, middle, end, [=](auto const &element1, auto const &element2) {
 				if (horizontal)
-					return element1.bounds().xmin < element2.bounds().xmin;
+					return Bounds(element1).xmin < Bounds(element2).xmin;
 				else
-					return element1.bounds().ymin < element2.bounds().ymin;
+					return Bounds(element1).ymin < Bounds(element2).ymin;
 			});
 			auto rtree1 = std::make_unique<RTree>(begin, middle, !horizontal);
 			auto rtree2 = std::make_unique<RTree>(middle,   end, !horizontal);
@@ -196,7 +196,7 @@ public:
 	auto update(Element const &element, Bounds const &old_bounds) {
 		if (is_leaf()) {
 			if (this->element() == element) {
-				bounds = element.bounds();
+				bounds = Bounds(element);
 				return true;
 			}
 		} else if (old_bounds <= bounds) {
