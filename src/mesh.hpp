@@ -129,11 +129,11 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		return exterior_anticlockwise(leftmost);
 	}
 
-	template <typename Function>
-	void strip_exterior(PointIterator begin, PointIterator end, Function function, bool anticlockwise = true) {
+	template <typename ...Functions>
+	void strip_exterior(PointIterator begin, PointIterator end, bool anticlockwise, Functions ...functions) {
 		auto const start = anticlockwise ? exterior_clockwise(begin, end) : exterior_anticlockwise(begin, end);
 		for (auto edge = start; ; ++edge) {
-			function(*edge);
+			(functions(*edge), ...);
 			disconnect(*edge);
 			if (edge->second == start->first)
 				break;
@@ -296,9 +296,9 @@ public:
 	}
 
 	void deconstruct(Triangles &triangles, Edges &edges, double length, bool anticlockwise, int threads) {
-		strip_exterior(points_begin, points_begin + size(), [&](auto const &edge) {
+		strip_exterior(points_begin, points_begin + size(), anticlockwise, [&](auto const &edge) {
 			edges.insert(-edge);
-		}, anticlockwise);
+		});
 		deconstruct(triangles, points_begin, points_begin + size(), length, anticlockwise, threads);
 	}
 
@@ -310,7 +310,7 @@ public:
 			iterators.push_back(point);
 		auto rtree = RTree(iterators);
 
-		strip_exterior(begin, end, [](auto const &) {});
+		strip_exterior(begin, end, true);
 		deconstruct(begin, end, threads, [&](auto const &triangle) {
 			auto const &[edge0, edge1, edge2] = triangle;
 			auto const &p0 = edge0.first;
