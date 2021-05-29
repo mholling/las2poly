@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
 		if (simplify || smooth) {
 			logger.time(smooth ? "smoothing" : "simplifying", polygons.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
-			polygons.simplify(tolerance, water == ogc);
+			polygons.simplify(tolerance, water ? ogc : !ogc);
 		}
 
 		if (smooth) {
