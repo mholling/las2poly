@@ -139,28 +139,9 @@ int main(int argc, char *argv[]) {
 		auto const ogc = convention ? *convention == "ogc" : output.ogc();
 		auto logger = Logger(progress == true);
 
-		logger.time("reading", tile_paths.size(), "file");
-		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, srs, threads->back());
-		auto mesh = Mesh(points);
-
-		auto const ground_begin = std::partition(points.begin(), points.end(), [](auto const &point) {
-			return point.withheld;
-		});
-		auto const ground_end = std::partition(ground_begin, points.end(), [](auto const &point) {
-			return point.ground();
-		});
-
-		logger.time("triangulating", ground_end - ground_begin, "ground point");
-		mesh.triangulate(ground_begin, ground_end, threads->front());
-
-		logger.time("interpolating", points.end() - ground_end, "non-ground point");
-		mesh.interpolate(ground_begin, ground_end, ground_end, points.end(), threads->front());
-
-		logger.time("triangulating", points.size(), "point");
-		mesh.triangulate(points.begin(), points.end(), threads->front());
-
-		logger.time("extracting polygon rings");
-		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, water == true, ogc, threads->front());
+		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, srs, threads->back(), logger);
+		auto mesh = Mesh(points, threads->front(), logger);
+		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, water == true, ogc, threads->front(), logger);
 
 		if (simplify || smooth) {
 			logger.time(smooth ? "smoothing" : "simplifying", polygons.ring_count(), "ring");

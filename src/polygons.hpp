@@ -55,11 +55,13 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 	bool ogc;
 
 public:
-	Polygons(Mesh &mesh, double length, double width, double slope, bool water, bool ogc, int threads) : ogc(ogc) {
+	Polygons(Mesh &mesh, double length, double width, double slope, bool water, bool ogc, int threads, Logger &logger) : ogc(ogc) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 
+		logger.time("extracting polygon rings");
 		mesh.deconstruct(large_triangles, outside_edges, length, ogc != water, threads);
+
 		if (water)
 			outside_edges.clear();
 
