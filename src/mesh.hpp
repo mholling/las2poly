@@ -130,7 +130,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 	template <typename ...Functions>
-	void strip_exterior(PointIterator begin, PointIterator end, bool anticlockwise, Functions ...functions) {
+	void strip_exterior(PointIterator begin, PointIterator end, bool anticlockwise, Functions const &...functions) {
 		auto const start = anticlockwise ? exterior_clockwise(begin, end) : exterior_anticlockwise(begin, end);
 		for (auto edge = start; ; ++edge) {
 			(functions(*edge), ...);
@@ -176,7 +176,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 	template <typename Function>
-	void deconstruct(PointIterator begin, PointIterator end, int threads, Function function) {
+	void deconstruct(PointIterator begin, PointIterator end, int threads, Function const &function) {
 		if (threads > 1) {
 			auto const middle = begin + (end - begin) / 2;
 			auto left_thread = std::thread([&]() {

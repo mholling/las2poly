@@ -49,7 +49,7 @@ public:
 	}
 
 	template <typename Function>
-	void operator()(Function function) {
+	void operator()(Function const &function) {
 		auto const unfilled = std::accumulate(empty.begin(), empty.end(), 0ull);
 		auto const filled = empty.size() - unfilled;
 		if (unfilled > 10 * filled && unfilled / 2 + filled > 500'000'000)

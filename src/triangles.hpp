@@ -46,7 +46,7 @@ public:
 	Triangles() = default;
 
 	template <typename Function>
-	void explode(Function function) {
+	void explode(Function const &function) {
 		auto neighbours = Neighbours(*this);
 		while (!empty())
 			function(Triangles(*this, neighbours));
