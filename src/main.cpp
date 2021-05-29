@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
 			srs.emplace(*epsg);
 
 		auto output = Output(output_path);
-		if (!overwrite && output_path != "-" && output)
+		if (!overwrite && output)
 			throw std::runtime_error("output file already exists");
 
 		auto const ogc = convention ? *convention == "ogc" : output.ogc();

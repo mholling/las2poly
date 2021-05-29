@@ -94,7 +94,7 @@ public:
 	}
 
 	operator bool() const {
-		return std::filesystem::exists(json_path);
+		return json_path != "-" && std::filesystem::exists(json_path);
 	}
 };
 
