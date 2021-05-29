@@ -25,35 +25,31 @@
 using Polygon = std::vector<Ring>;
 
 class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public Smooth<Polygons> {
-	auto static is_water(Triangles const &triangles, double delta, double slope) {
+	auto static is_water(Triangles const &triangles, double slope) {
 		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
-		auto delta_sum = 0.0;
-		auto count = 0ul;
-
 		auto perp_sum_z = Summation(perp_sum[2]);
-		auto abs_sum = Summation(delta_sum);
 
 		for (auto edges: triangles) {
 			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end(), [](auto const &edge1, auto const &edge2) {
 				return (*edge1.second - *edge1.first).sqnorm() < (*edge2.second - *edge2.first).sqnorm();
 			}), edges.end());
-			auto const perp = edges[1] ^ edges[2];
 
-			if (edges[0].first->withheld || edges[1].first->withheld || edges[2].first->withheld) {
+			auto const perp = edges[1] ^ edges[2];
+			auto const &p0 = *edges[0].first;
+			auto const &p1 = *edges[1].first;
+			auto const &p2 = *edges[2].first;
+
+			if (p0.withheld || p1.withheld || p2.withheld)
 				perp_sum_z += perp.norm();
-				count += 2;
-			} else {
+			else if (p0.is_ground() && p1.is_ground() && p2.is_ground()) {
 				perp_sum[0] += perp[0];
 				perp_sum[1] += perp[1];
 				perp_sum_z  += perp[2];
-
-				for (auto edge = edges.begin() + 1; edge != edges.end(); ++edge)
-					if (auto const &[p0, p1] = *edge; p0->is_ground() && p1->is_ground())
-						++count, abs_sum += std::abs(p1->elevation - p0->elevation);
 			}
 		}
 
-		return count > 0 && delta_sum < delta * count && std::acos(std::abs(perp_sum[2] / perp_sum.norm())) < slope;
+		auto const perp_norm = perp_sum.norm();
+		return perp_norm > 0 && std::acos(std::abs(perp_sum[2] / perp_norm)) < slope;
 	}
 
 	bool ogc;
@@ -62,14 +58,13 @@ public:
 	Polygons(Mesh &mesh, double length, double width, double slope, bool water, bool ogc, int threads) : ogc(ogc) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
-		auto const delta = width * std::tan(slope);
 
 		mesh.deconstruct(large_triangles, outside_edges, length, ogc != water, threads);
 		if (water)
 			outside_edges.clear();
 
 		large_triangles.explode([=, &outside_edges](auto const &&triangles) {
-			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope)))
+			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, slope)))
 				for (auto const &triangle: triangles)
 					outside_edges -= triangle;
 		});

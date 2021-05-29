@@ -27,6 +27,11 @@ struct Point : Vector<2> {
 	auto is_ground() const {
 		return 2 == classification;
 	}
+
+	void set_ground(float new_elevation) {
+		elevation = new_elevation;
+		classification = 2;
+	}
 };
 
 auto operator+(Point const &point) {

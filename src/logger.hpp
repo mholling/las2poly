@@ -10,7 +10,7 @@
 #include <streambuf>
 #include <iostream>
 #include <chrono>
-#include <cstddef>
+#include <type_traits>
 #include <iomanip>
 
 class Logger {
@@ -44,8 +44,8 @@ public:
 		info(args...);
 	}
 
-	template <typename ...Args>
-	void info(std::size_t arg, char const *word, Args const &...args) {
+	template <typename Arg, typename = std::enable_if_t<std::is_integral_v<Arg>>, typename ...Args>
+	void info(Arg arg, char const *word, Args const &...args) {
 		auto static constexpr suffixes = {"","k","M","G"};
 		auto suffix = suffixes.begin();
 		double decimal = arg;

@@ -141,9 +141,23 @@ int main(int argc, char *argv[]) {
 
 		logger.time("reading", tile_paths.size(), "file");
 		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, srs, threads->back());
+		auto mesh = Mesh(points);
+
+		auto const ground_begin = std::partition(points.begin(), points.end(), [](auto const &point) {
+			return point.withheld;
+		});
+		auto const ground_end = std::partition(ground_begin, points.end(), [](auto const &point) {
+			return point.is_ground();
+		});
+
+		logger.time("triangulating", ground_end - ground_begin, "ground point");
+		mesh.triangulate(ground_begin, ground_end, threads->front());
+
+		logger.time("interpolating", points.end() - ground_end, "non-ground point");
+		mesh.interpolate(ground_begin, ground_end, ground_end, points.end(), threads->front());
 
 		logger.time("triangulating", points.size(), "point");
-		auto mesh = Mesh(points, threads->front());
+		mesh.triangulate(points.begin(), points.end(), threads->front());
 
 		logger.time("extracting polygon rings");
 		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, water == true, ogc, threads->front());

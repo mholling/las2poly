@@ -11,8 +11,9 @@
 #include "point.hpp"
 #include "ring.hpp"
 #include <limits>
-#include <algorithm>
+#include <vector>
 #include <tuple>
+#include <algorithm>
 
 struct Bounds {
 	double xmin, ymin, xmax, ymax;
@@ -35,6 +36,8 @@ struct Bounds {
 		auto const &[x, y] = point;
 		xmin = xmax = x, ymin = ymax = y;
 	}
+
+	Bounds(std::vector<Point>::iterator const &point) : Bounds(*point) { }
 
 	Bounds(Ring::CornerIterator const &corner) {
 		auto const [v0, v1, v2] = *corner;
