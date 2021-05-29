@@ -145,9 +145,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 			auto const middle = begin + (end - begin) / 2;
 			auto left_triangles = Triangles();
 			auto right_triangles = Triangles();
-			auto left_thread = std::thread([&]() {
+			auto left_thread = std::thread([&, this]() {
 				deconstruct(left_triangles, begin, middle, length, anticlockwise, threads/2);
-			}), right_thread = std::thread([&]() {
+			}), right_thread = std::thread([&, this]() {
 				deconstruct(right_triangles, middle, end, length, anticlockwise, threads - threads/2);
 			});
 			left_thread.join(), right_thread.join();
@@ -179,9 +179,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	void deconstruct(PointIterator begin, PointIterator end, int threads, Function const &function) {
 		if (threads > 1) {
 			auto const middle = begin + (end - begin) / 2;
-			auto left_thread = std::thread([&]() {
+			auto left_thread = std::thread([&, this]() {
 				deconstruct(begin, middle, threads/2, function);
-			}), right_thread = std::thread([&]() {
+			}), right_thread = std::thread([&, this]() {
 				deconstruct(middle, end, threads - threads/2, function);
 			});
 			left_thread.join(), right_thread.join();
@@ -250,9 +250,9 @@ public:
 			break;
 		default:
 			if (threads > 1) {
-				auto left_thread = std::thread([&]() {
+				auto left_thread = std::thread([&, this]() {
 					triangulate<!horizontal>(begin, middle, threads/2);
-				}), right_thread = std::thread([&]() {
+				}), right_thread = std::thread([&, this]() {
 					triangulate<!horizontal>(middle, end, threads - threads/2);
 				});
 				left_thread.join(), right_thread.join();

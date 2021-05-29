@@ -78,7 +78,7 @@ public:
 		});
 
 		auto remaining = holes_begin;
-		std::for_each(rings.begin(), holes_begin, [&](auto const &exterior) {
+		std::for_each(rings.begin(), holes_begin, [&, this](auto const &exterior) {
 			auto polygon = Polygon{{exterior}};
 			auto old_remaining = remaining;
 			remaining = std::partition(remaining, rings.end(), [&](auto const &hole) {

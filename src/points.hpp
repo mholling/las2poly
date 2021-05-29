@@ -182,7 +182,7 @@ public:
 			for (auto const &bounds: tile_bounds)
 				fill(bounds);
 
-			fill([&](auto x, auto y) {
+			fill([this](auto x, auto y) {
 				emplace_back(x, y, 0.0, 2, false, true, false);
 			});
 		}
