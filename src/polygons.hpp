@@ -41,7 +41,7 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 
 			if (p0.withheld || p1.withheld || p2.withheld)
 				perp_sum_z += perp.norm();
-			else if (p0.is_ground() && p1.is_ground() && p2.is_ground()) {
+			else if (p0.ground() && p1.ground() && p2.ground()) {
 				perp_sum[0] += perp[0];
 				perp_sum[1] += perp[1];
 				perp_sum_z  += perp[2];

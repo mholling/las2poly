@@ -27,7 +27,7 @@ class RTree {
 	Bounds bounds;
 	Value value;
 
-	auto is_leaf() const {
+	auto leaf() const {
 		return std::holds_alternative<Element>(value);
 	}
 
@@ -61,7 +61,7 @@ class RTree {
 					auto const &rtree = *search.top();
 					if (!(rtree.bounds && search.bounds))
 						search.pop();
-					else if (rtree.is_leaf())
+					else if (rtree.leaf())
 						break;
 					else {
 						auto const &[rtree1, rtree2] = rtree.children();
@@ -142,7 +142,7 @@ public:
 	enum { found_none = 0, found_leaf, found_branch };
 
 	auto erase(Element const &element, Bounds const &element_bounds) {
-		if (is_leaf())
+		if (leaf())
 			return this->element() == element ? found_leaf : found_none;
 		if (element_bounds <= bounds) {
 			auto const &[rtree1, rtree2] = children();
@@ -175,7 +175,7 @@ public:
 	}
 
 	auto replace(Element const &element, Bounds const &old_bounds, Element const &element1, Element const &element2) {
-		if (is_leaf()) {
+		if (leaf()) {
 			if (this->element() == element) {
 				auto rtree1 = std::make_unique<RTree>(element1);
 				auto rtree2 = std::make_unique<RTree>(element2);
@@ -194,7 +194,7 @@ public:
 	}
 
 	auto update(Element const &element, Bounds const &old_bounds) {
-		if (is_leaf()) {
+		if (leaf()) {
 			if (this->element() == element) {
 				bounds = Bounds(element);
 				return true;

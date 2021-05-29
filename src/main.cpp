@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
 			return point.withheld;
 		});
 		auto const ground_end = std::partition(ground_begin, points.end(), [](auto const &point) {
-			return point.is_ground();
+			return point.ground();
 		});
 
 		logger.time("triangulating", ground_end - ground_begin, "ground point");

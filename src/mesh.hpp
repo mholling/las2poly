@@ -322,7 +322,7 @@ public:
 				auto const w1 = (edge2 ^ point) / (edge2 ^ p1);
 				auto const w2 = (edge0 ^ point) / (edge0 ^ p2);
 				if (w0 >= 0 && w1 >= 0 && w2 >= 0)
-					point->set_ground(w0 * p0->elevation + w1 * p1->elevation + w2 * p2->elevation);
+					point->ground(w0 * p0->elevation + w1 * p1->elevation + w2 * p2->elevation);
 			}
 		});
 	}

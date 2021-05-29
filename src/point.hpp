@@ -24,11 +24,11 @@ struct Point : Vector<2> {
 		overlap(overlap)
 	{ }
 
-	auto is_ground() const {
+	auto ground() const {
 		return 2 == classification;
 	}
 
-	void set_ground(float new_elevation) {
+	void ground(float new_elevation) {
 		elevation = new_elevation;
 		classification = 2;
 	}
