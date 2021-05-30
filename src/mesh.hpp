@@ -299,7 +299,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 
 		for (auto point = ground_end; point != points.end(); ++point)
 			iterators.push_back(point);
-		auto rtree = RTree(iterators);
+		auto rtree = RTree(iterators, threads);
 
 		strip_exterior(ground_begin, ground_end, true);
 		deconstruct(ground_begin, ground_end, threads, [&](auto const &triangle) {

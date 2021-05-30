@@ -103,7 +103,7 @@ class Smooth {
 	using Corners = std::vector<Corner>;
 
 public:
-	void smooth(double tolerance, double angle) {
+	void smooth(double tolerance, double angle, int threads) {
 		auto const cosine = std::cos(angle);
 		auto corners = Corners();
 		auto ordered = Ordered();
@@ -111,7 +111,7 @@ public:
 			for (auto &ring: polygon)
 				for (auto corner = ring.corners_begin(); corner != ring.corners_end(); ++corner)
 					corners.push_back(corner);
-		auto rtree = RTree(corners);
+		auto rtree = RTree(corners, threads);
 		for (auto const &corner: corners)
 			if (auto const candidate = Candidate(corner, tolerance); candidate.smoothable(rtree, cosine))
 				ordered.insert(candidate);

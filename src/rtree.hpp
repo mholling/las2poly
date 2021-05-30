@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <algorithm>
+#include <thread>
 #include <vector>
 
 template <typename Element>
@@ -110,7 +111,7 @@ public:
 	{ }
 
 	template <typename Iterator>
-	RTree(Iterator begin, Iterator end, bool horizontal = true) {
+	RTree(Iterator begin, Iterator end, bool horizontal, int threads) {
 		switch (end - begin) {
 		case 0:
 			break;
@@ -126,14 +127,25 @@ public:
 				else
 					return Bounds(element1).ymin < Bounds(element2).ymin;
 			});
-			auto rtree1 = std::make_unique<RTree>(begin, middle, !horizontal);
-			auto rtree2 = std::make_unique<RTree>(middle,   end, !horizontal);
+			auto rtree1 = RTreePtr();
+			auto rtree2 = RTreePtr();
+			if (1 == threads) {
+				rtree1 = std::make_unique<RTree>(begin, middle, !horizontal, 1);
+				rtree2 = std::make_unique<RTree>(middle,   end, !horizontal, 1);
+			} else {
+				auto thread1 = std::thread([&]() {
+					rtree1 = std::make_unique<RTree>(begin, middle, !horizontal, threads/2);
+				}), thread2 = std::thread([&]() {
+					rtree2 = std::make_unique<RTree>(middle,   end, !horizontal, threads - threads/2);
+				});
+				thread1.join(), thread2.join();
+			}
 			bounds = rtree1->bounds + rtree2->bounds;
 			value = Children(std::move(rtree1), std::move(rtree2));
 		}
 	}
 
-	RTree(std::vector<Element> &elements) : RTree(elements.begin(), elements.end()) { }
+	RTree(std::vector<Element> &elements, int threads) : RTree(elements.begin(), elements.end(), true, threads) { }
 
 	auto search(Bounds const &bounds) const {
 		return Search(bounds, this);

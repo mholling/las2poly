@@ -146,13 +146,13 @@ int main(int argc, char *argv[]) {
 		if (simplify || smooth) {
 			logger.time(smooth ? "smoothing" : "simplifying", polygons.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
-			polygons.simplify(tolerance, water ? ogc : !ogc);
+			polygons.simplify(tolerance, water ? ogc : !ogc, threads->front());
 		}
 
 		if (smooth) {
 			auto const radians = *angle * pi / 180;
 			auto const tolerance = 0.5 * *width / std::sin(radians);
-			polygons.smooth(tolerance, radians);
+			polygons.smooth(tolerance, radians, threads->front());
 		}
 
 		if (*area > 0)
