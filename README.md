@@ -51,17 +51,17 @@ option is required to calibrate the void detection process.
 > The value should be comfortably larger than the linear point density of the lidar data.
 > Choose a value according to the scale you're working at.
 
+**-a**, **--area** *metres&#178;*
+
+> Set a minimum area for waterbodies and islands to be retained.
+> A sensible default value is used according to the minimum waterbody width.
+
 **-s**, **--slope** *degrees*
 
 > Set the maximum slope for a void area to be considered a potential waterbody.
 > Some leeway is required to accommodate situations such as steep-sided river banks.
 > Too lenient a value risks capturing non-water voids, such as steep cliffs, which can occlude a lidar sensor.
 > The default value of 10 degrees works well in practice.
-
-**-a**, **--area** *metres&#178;*
-
-> Set an area threshold for removal of small waterbodies and islands.
-> A sensible default value is used according to the minimum waterbody width.
 
 **-r**, **--water**
 

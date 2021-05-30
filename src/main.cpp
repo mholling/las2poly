@@ -29,8 +29,8 @@ int main(int argc, char *argv[]) {
 
 	try {
 		auto width      = std::optional<double>();
-		auto slope      = std::optional<double>(10.0);
 		auto area       = std::optional<double>();
+		auto slope      = std::optional<double>(10.0);
 		auto water      = std::optional<bool>();
 		auto simplify   = std::optional<bool>();
 		auto smooth     = std::optional<bool>();
@@ -48,8 +48,8 @@ int main(int argc, char *argv[]) {
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
 		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                   width);
-		args.option("-s", "--slope",      "<degrees>",   "maximum waterbody slope",                   slope);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",        area);
+		args.option("-s", "--slope",      "<degrees>",   "maximum waterbody slope",                   slope);
 		args.option("-r", "--water",                     "extract waterbodies instead of land areas", water);
 		args.option("-i", "--simplify",                  "simplify output polygons",                  simplify);
 		args.option("-m", "--smooth",                    "smooth output polygons",                    smooth);
@@ -91,10 +91,10 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("width must be positive");
 		if (*slope <= 0)
 			throw std::runtime_error("slope must be positive");
-		if (*slope >= 90)
-			throw std::runtime_error("slope must be less than 90");
 		if (area && *area < 0)
 			throw std::runtime_error("area can't be negative");
+		if (*slope >= 90)
+			throw std::runtime_error("slope must be less than 90");
 		if (angle && *angle <= 0)
 			throw std::runtime_error("smoothing angle must be positive");
 		if (angle && *angle >= 180)
