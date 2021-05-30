@@ -58,10 +58,9 @@ option is required to calibrate the void detection process.
 
 **-s**, **--slope** *degrees*
 
-> Set the maximum slope for a void area to be considered a potential waterbody.
-> Some leeway is required to accommodate situations such as steep-sided river banks.
-> Too lenient a value risks capturing non-water voids, such as steep cliffs, which can occlude a lidar sensor.
-> The default value of 10 degrees works well in practice.
+> Set the maximum slope for a minimum-width waterbody.
+> This value determines how much height variation is allowed along the edge of water voids.
+> (Some leeway is required to accommodate situations such as steep-sided river banks.)
 
 **-r**, **--water**
 
