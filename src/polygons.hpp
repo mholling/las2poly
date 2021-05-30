@@ -25,9 +25,13 @@
 using Polygon = std::vector<Ring>;
 
 class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public Smooth<Polygons> {
-	auto static is_water(Triangles const &triangles, double slope) {
+	auto static is_water(Triangles const &triangles, double delta, double slope) {
 		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
 		auto perp_sum_z = Summation(perp_sum[2]);
+
+		auto delta_sum = 0.0;
+		auto delta_count = 0ul;
+		auto delta_summer = Summation(delta_sum);
 
 		for (auto edges: triangles) {
 			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end(), [](auto const &edge1, auto const &edge2) {
@@ -39,17 +43,20 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 			auto const &p1 = *edges[1].first;
 			auto const &p2 = *edges[2].first;
 
-			if (p0.withheld || p1.withheld || p2.withheld)
+			if (p0.withheld || p1.withheld || p2.withheld) {
 				perp_sum_z += perp.norm();
-			else if (p0.ground() && p1.ground() && p2.ground()) {
+				delta_count += 2;
+			} else if (p0.ground() && p1.ground() && p2.ground()) {
 				perp_sum[0] += perp[0];
 				perp_sum[1] += perp[1];
 				perp_sum_z  += perp[2];
+				delta_summer += std::abs(p1.elevation - p2.elevation);
+				delta_summer += std::abs(p2.elevation - p0.elevation);
+				delta_count += 2;
 			}
 		}
 
-		auto const perp_norm = perp_sum.norm();
-		return perp_norm > 0 && std::acos(std::abs(perp_sum[2] / perp_norm)) < slope;
+		return delta_sum < delta * delta_count && std::acos(std::abs(perp_sum[2] / perp_sum.norm())) < slope;
 	}
 
 	bool ogc;
@@ -58,6 +65,7 @@ public:
 	Polygons(Mesh &mesh, double length, double width, double slope, bool water, bool ogc, int threads, Logger &logger) : ogc(ogc) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
+		auto const delta = width * std::tan(slope);
 
 		logger.time("extracting polygon rings");
 		mesh.deconstruct(large_triangles, outside_edges, length, ogc != water, threads);
@@ -66,7 +74,7 @@ public:
 			outside_edges.clear();
 
 		large_triangles.explode([=, &outside_edges](auto const &&triangles) {
-			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, slope)))
+			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope)))
 				for (auto const &triangle: triangles)
 					outside_edges -= triangle;
 		});
