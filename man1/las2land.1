@@ -38,8 +38,6 @@ For shapefile output, polygons conform to ESRI standard, with clockwise exterior
 .Pp
 A single
 .Fl -width
-or
-.Fl -length
 option is required to calibrate the void detection process.
 .Sh OPTIONS
 .Bl -tag -width 6n
@@ -55,10 +53,6 @@ The default value of 10 degrees works well in practice.
 .It Fl a , -area Ar metres²
 Set an area threshold for removal of small waterbodies and islands.
 A sensible default value is used according to the minimum waterbody width.
-.It Fl l , -length Ar metres
-Specify a triangle threshold length, if desired.
-Triangles larger than this threshold are added to potential water voids.
-By default, a value the same as the minimum waterbody width is used, however a somewhat smaller value can be used to capture more detail.
 .It Fl r , -water
 Extract polygons for waterbodies instead of land areas.
 Unexpected results may occur when using partly-covered tiles.
@@ -104,8 +98,6 @@ Show a brief help summary.
 .Dl $ las2land --width 8 *.las - | ogr2ogr land.kml /vsistdin/
 .It Apply line smoothing:
 .Dl $ las2land --width 8 --smooth *.las land.json
-.It Use a smaller triangle length to keep finer detail:
-.Dl $ las2land --width 12 --length 6 *.las land.json
 .It Add So bridge deck Sc points Po class 17 Pc to water areas:
 .Dl $ las2land --width 8 --discard 0,1,7,9,12,17,18 *.las land.json
 .El

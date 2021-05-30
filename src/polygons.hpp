@@ -63,19 +63,19 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 	bool ogc;
 
 public:
-	Polygons(Mesh &mesh, double length, double width, double slope, bool water, bool ogc, int threads, Log &log) : ogc(ogc) {
+	Polygons(Mesh &mesh, double width, double slope, bool water, bool ogc, int threads, Log &log) : ogc(ogc) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 		auto const delta = width * std::tan(slope);
 
 		log(Log::Time(), "extracting polygon rings");
-		mesh.deconstruct(large_triangles, outside_edges, length, ogc != water, threads);
+		mesh.deconstruct(large_triangles, outside_edges, width, ogc != water, threads);
 
 		if (water)
 			outside_edges.clear();
 
 		large_triangles.explode([=, &outside_edges](auto const &&triangles) {
-			if ((outside_edges || triangles) || ((width <= length || triangles > width) && is_water(triangles, delta, slope)))
+			if ((outside_edges || triangles) || is_water(triangles, delta, slope))
 				for (auto const &triangle: triangles)
 					outside_edges -= triangle;
 		});

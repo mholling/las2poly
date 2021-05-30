@@ -67,7 +67,7 @@ class Points : public std::vector<Point> {
 		Thin(double resolution) : resolution(resolution) {
 			auto static constexpr web_mercator_range = 40097932.2;
 			if (web_mercator_range / resolution > std::numeric_limits<int>::max())
-				throw std::runtime_error("width or length value too small");
+				throw std::runtime_error("width value too small");
 		}
 
 		auto operator()(Point const &p1, Point const &p2) const {

@@ -41,8 +41,6 @@ For shapefile output, polygons conform to ESRI standard, with clockwise exterior
 
 A single
 **--width**
-or
-**--length**
 option is required to calibrate the void detection process.
 
 # OPTIONS
@@ -64,12 +62,6 @@ option is required to calibrate the void detection process.
 
 > Set an area threshold for removal of small waterbodies and islands.
 > A sensible default value is used according to the minimum waterbody width.
-
-**-l**, **--length** *metres*
-
-> Specify a triangle threshold length, if desired.
-> Triangles larger than this threshold are added to potential water voids.
-> By default, a value the same as the minimum waterbody width is used, however a somewhat smaller value can be used to capture more detail.
 
 **-r**, **--water**
 
@@ -150,10 +142,6 @@ Pipe GeoJSON output to another command for conversion:
 Apply line smoothing:
 
 	$ las2land --width 8 --smooth *.las land.json
-
-Use a smaller triangle length to keep finer detail:
-
-	$ las2land --width 12 --length 6 *.las land.json
 
 Add 'bridge deck' points (class 17) to water areas:
 

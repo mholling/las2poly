@@ -216,15 +216,15 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		}
 	}
 
-	void deconstruct(Triangles &triangles, PointIterator begin, PointIterator end, double length, bool anticlockwise, int threads) {
+	void deconstruct(Triangles &triangles, PointIterator begin, PointIterator end, double width, bool anticlockwise, int threads) {
 		if (threads > 1) {
 			auto const middle = begin + (end - begin) / 2;
 			auto left_triangles = Triangles();
 			auto right_triangles = Triangles();
 			auto left_thread = std::thread([&, this]() {
-				deconstruct(left_triangles, begin, middle, length, anticlockwise, threads/2);
+				deconstruct(left_triangles, begin, middle, width, anticlockwise, threads/2);
 			}), right_thread = std::thread([&, this]() {
-				deconstruct(right_triangles, middle, end, length, anticlockwise, threads - threads/2);
+				deconstruct(right_triangles, middle, end, width, anticlockwise, threads - threads/2);
 			});
 			left_thread.join(), right_thread.join();
 			triangles.merge(left_triangles);
@@ -243,7 +243,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 				if (edge3->second != point)
 					throw std::runtime_error("corrupted mesh");
 				auto const triangle = Triangle{{*edge1, *edge2, *edge3}};
-				if (triangle > length)
+				if (triangle > width)
 					triangles.insert(triangle);
 				for (auto const &edge: triangle)
 					disconnect(edge);
@@ -337,11 +337,11 @@ public:
 		triangulate(points.begin(), points.end(), threads);
 	}
 
-	void deconstruct(Triangles &triangles, Edges &edges, double length, bool anticlockwise, int threads) {
+	void deconstruct(Triangles &triangles, Edges &edges, double width, bool anticlockwise, int threads) {
 		strip_exterior(points.begin(), points.end(), anticlockwise, [&](auto const &edge) {
 			edges.insert(-edge);
 		});
-		deconstruct(triangles, points.begin(), points.end(), length, anticlockwise, threads);
+		deconstruct(triangles, points.begin(), points.end(), width, anticlockwise, threads);
 	}
 };
 

@@ -9,9 +9,7 @@
 
 #include "triangle.hpp"
 #include "edge.hpp"
-#include "vector.hpp"
 #include <unordered_set>
-#include <algorithm>
 #include <unordered_map>
 
 class Triangles : public std::unordered_set<Triangle> {
@@ -50,12 +48,6 @@ public:
 		auto neighbours = Neighbours(*this);
 		while (!empty())
 			function(Triangles(*this, neighbours));
-	}
-
-	auto operator>(double length) const {
-		return std::any_of(begin(), end(), [=](auto const &triangle) {
-			return triangle > length;
-		});
 	}
 };
 

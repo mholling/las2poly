@@ -15,9 +15,9 @@
 
 using Triangle = std::array<Edge, 3>;
 
-auto operator>(Triangle const &triangle, double length) {
+auto operator>(Triangle const &triangle, double width) {
 	return std::any_of(triangle.begin(), triangle.end(), [=](auto const &edge) {
-		return edge > length;
+		return edge > width;
 	});
 }
 

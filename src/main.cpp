@@ -31,7 +31,6 @@ int main(int argc, char *argv[]) {
 		auto width      = std::optional<double>();
 		auto slope      = std::optional<double>(10.0);
 		auto area       = std::optional<double>();
-		auto length     = std::optional<double>();
 		auto water      = std::optional<bool>();
 		auto simplify   = std::optional<bool>();
 		auto smooth     = std::optional<bool>();
@@ -51,7 +50,6 @@ int main(int argc, char *argv[]) {
 		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                   width);
 		args.option("-s", "--slope",      "<degrees>",   "maximum waterbody slope",                   slope);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",        area);
-		args.option("-l", "--length",     "<metres>",    "minimum edge length for void triangles",    length);
 		args.option("-r", "--water",                     "extract waterbodies instead of land areas", water);
 		args.option("-i", "--simplify",                  "simplify output polygons",                  simplify);
 		args.option("-m", "--smooth",                    "smooth output polygons",                    smooth);
@@ -70,8 +68,8 @@ int main(int argc, char *argv[]) {
 		args.position("<land.json>", "GeoJSON or shapefile output path", output_path);
 
 		auto const proceed = args.parse([&]() {
-			if (!length && !width)
-				throw std::runtime_error("no width or length specified");
+			if (!width)
+				throw std::runtime_error("no width specified");
 			if (convention && *convention != "esri" && *convention != "ogc")
 				throw std::runtime_error("polygon convention must be 'ogc' or 'esri'");
 			if (tiles_path && !tile_paths.empty())
@@ -89,16 +87,12 @@ int main(int argc, char *argv[]) {
 		if (!proceed)
 			return EXIT_SUCCESS;
 
-		if (width && *width <= 0)
+		if (*width <= 0)
 			throw std::runtime_error("width must be positive");
 		if (*slope <= 0)
 			throw std::runtime_error("slope must be positive");
 		if (*slope >= 90)
 			throw std::runtime_error("slope must be less than 90");
-		if (length && *length <= 0)
-			throw std::runtime_error("edge length must be positive");
-		if (length && width && *length > *width)
-			throw std::runtime_error("edge length can't be more than width");
 		if (area && *area < 0)
 			throw std::runtime_error("area can't be negative");
 		if (angle && *angle <= 0)
@@ -117,10 +111,6 @@ int main(int argc, char *argv[]) {
 		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
 			throw std::runtime_error("can't read standard input more than once");
 
-		if (!width)
-			width = *length;
-		if (!length)
-			length = *width;
 		if (!area)
 			area = 4 * *width * *width;
 		if (angle)
@@ -139,9 +129,9 @@ int main(int argc, char *argv[]) {
 		auto const ogc = convention ? *convention == "ogc" : output.ogc();
 		auto log = Log(progress == true);
 
-		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, srs, threads->back(), log);
+		auto points = Points(tile_paths, *width / std::sqrt(8.0), *discard, water == true, srs, threads->back(), log);
 		auto mesh = Mesh(points, threads->front(), log);
-		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, water == true, ogc, threads->front(), log);
+		auto polygons = Polygons(mesh, *width, *slope * pi / 180, water == true, ogc, threads->front(), log);
 
 		if (simplify || smooth) {
 			log(Log::Time(), smooth ? "smoothing" : "simplifying", Log::Count(), polygons.ring_count(), "ring");
