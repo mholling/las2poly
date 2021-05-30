@@ -13,6 +13,7 @@
 #include "triangles.hpp"
 #include "summation.hpp"
 #include "mesh.hpp"
+#include "log.hpp"
 #include "edges.hpp"
 #include "rings.hpp"
 #include "ring.hpp"
@@ -62,12 +63,12 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 	bool ogc;
 
 public:
-	Polygons(Mesh &mesh, double length, double width, double slope, bool water, bool ogc, int threads, Logger &logger) : ogc(ogc) {
+	Polygons(Mesh &mesh, double length, double width, double slope, bool water, bool ogc, int threads, Log &log) : ogc(ogc) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 		auto const delta = width * std::tan(slope);
 
-		logger.time("extracting polygon rings");
+		log(Log::Time(), "extracting polygon rings");
 		mesh.deconstruct(large_triangles, outside_edges, length, ogc != water, threads);
 
 		if (water)

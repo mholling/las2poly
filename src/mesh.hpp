@@ -14,7 +14,7 @@
 #include "circle.hpp"
 #include "triangle.hpp"
 #include "triangles.hpp"
-#include "logger.hpp"
+#include "log.hpp"
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
@@ -319,7 +319,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 public:
-	Mesh(Points &points, int threads, Logger &logger) : vector(points.size()), points(points) {
+	Mesh(Points &points, int threads, Log &log) : vector(points.size()), points(points) {
 		auto const ground_begin = std::partition(points.begin(), points.end(), [](auto const &point) {
 			return point.withheld;
 		});
@@ -327,13 +327,13 @@ public:
 			return point.ground();
 		});
 
-		logger.time("triangulating", ground_end - ground_begin, "ground point");
+		log(Log::Time(), "triangulating", Log::Count(), ground_end - ground_begin, "ground point");
 		triangulate(ground_begin, ground_end, threads);
 
-		logger.time("interpolating", points.end() - ground_end, "remaining point");
+		log(Log::Time(), "interpolating", Log::Count(), points.end() - ground_end, "remaining point");
 		interpolate(ground_begin, ground_end, threads);
 
-		logger.time("triangulating", points.size(), "point");
+		log(Log::Time(), "triangulating", Log::Count(), points.size(), "point");
 		triangulate(points.begin(), points.end(), threads);
 	}
 

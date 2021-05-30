@@ -7,7 +7,7 @@
 #include "args.hpp"
 #include "srs.hpp"
 #include "output.hpp"
-#include "logger.hpp"
+#include "log.hpp"
 #include "points.hpp"
 #include "mesh.hpp"
 #include "polygons.hpp"
@@ -137,14 +137,14 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("output file already exists");
 
 		auto const ogc = convention ? *convention == "ogc" : output.ogc();
-		auto logger = Logger(progress == true);
+		auto log = Log(progress == true);
 
-		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, srs, threads->back(), logger);
-		auto mesh = Mesh(points, threads->front(), logger);
-		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, water == true, ogc, threads->front(), logger);
+		auto points = Points(tile_paths, *length / std::sqrt(8.0), *discard, water == true, srs, threads->back(), log);
+		auto mesh = Mesh(points, threads->front(), log);
+		auto polygons = Polygons(mesh, *length, *width, *slope * pi / 180, water == true, ogc, threads->front(), log);
 
 		if (simplify || smooth) {
-			logger.time(smooth ? "smoothing" : "simplifying", polygons.ring_count(), "ring");
+			log(Log::Time(), smooth ? "smoothing" : "simplifying", Log::Count(), polygons.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
 			polygons.simplify(tolerance, water ? ogc : !ogc, threads->front());
 		}
@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
 		if (*area > 0)
 			polygons.filter(*area);
 
-		logger.time("saving", polygons.size(), "polygon");
+		log(Log::Time(), "saving", Log::Count(), polygons.size(), "polygon");
 		output(polygons, points.srs());
 
 		std::exit(EXIT_SUCCESS);

@@ -11,7 +11,7 @@
 #include "bounds.hpp"
 #include "srs.hpp"
 #include "tile.hpp"
-#include "logger.hpp"
+#include "log.hpp"
 #include "fill.hpp"
 #include <vector>
 #include <filesystem>
@@ -166,12 +166,12 @@ class Points : public std::vector<Point> {
 	}
 
 public:
-	Points(Paths const &tile_paths, double resolution, std::vector<int> const &discard_ints, bool water, OptionalSRS const &srs, int threads, Logger &logger) {
+	Points(Paths const &tile_paths, double resolution, std::vector<int> const &discard_ints, bool water, OptionalSRS const &srs, int threads, Log &log) {
 		auto discard = Discard(discard_ints.begin(), discard_ints.end());
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();
 
-		logger.time("reading", tile_paths.size(), "file");
+		log(Log::Time(), "reading", Log::Count(), tile_paths.size(), "file");
 		Points(tile_paths.begin(), tile_paths.end(), resolution, discard, srs, mutex, exception, threads).swap(*this);
 
 		if (exception)
