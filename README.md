@@ -26,7 +26,7 @@ The tiles should share a common projected SRS, typically a UTM projection.
 Points are thinned before triangulation, so no pre-processing is required.
 
 The lidar tiles should be classified to indicate ground points.
-Non-ground points are used in the triangulation, but not for analysis of flatness.
+Ground heights of non-ground points are interpolated from neighbouring ground points before analysis of flatness.
 Spurious points, including low- and high-noise points
 (classes 7 and 18)
 and specular water reflections
@@ -163,4 +163,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - May 23, 2021
+macOS 11.1 - May 30, 2021

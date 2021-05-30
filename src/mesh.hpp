@@ -330,7 +330,7 @@ public:
 		logger.time("triangulating", ground_end - ground_begin, "ground point");
 		triangulate(ground_begin, ground_end, threads);
 
-		logger.time("interpolating", points.end() - ground_end, "non-ground point");
+		logger.time("interpolating", points.end() - ground_end, "remaining point");
 		interpolate(ground_begin, ground_end, threads);
 
 		logger.time("triangulating", points.size(), "point");
