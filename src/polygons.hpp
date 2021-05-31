@@ -63,10 +63,9 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 	bool ogc;
 
 public:
-	Polygons(Mesh &mesh, double width, double slope, bool water, bool ogc, int threads, Log &log) : ogc(ogc) {
+	Polygons(Mesh &mesh, double width, double delta, double slope, bool water, bool ogc, int threads, Log &log) : ogc(ogc) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
-		auto const delta = width * std::tan(slope);
 
 		log(Log::Time(), "extracting polygon rings");
 		mesh.deconstruct(large_triangles, outside_edges, width, ogc != water, threads);

@@ -56,11 +56,15 @@ option is required to calibrate the void detection process.
 > Set a minimum area for waterbodies and islands to be retained.
 > A sensible default value is used according to the minimum waterbody width.
 
+**-d**, **--delta** *metres*
+
+> Set an allowable average height difference across opposing edges of a watercourse or waterbody.
+> (Some leeway is required to accommodate situations such as steep-sided river banks.)
+
 **-s**, **--slope** *degrees*
 
-> Set the maximum slope for a minimum-width waterbody.
-> This value determines how much height variation is allowed along the edge of water voids.
-> (Some leeway is required to accommodate situations such as steep-sided river banks.)
+> Set the maximum slope for waterbodies.
+> This secondary filter ensures remaining non-horizontal voids are ignored.
 
 **-r**, **--water**
 
@@ -80,7 +84,7 @@ option is required to calibrate the void detection process.
 
 > Apply line smoothing using the specified smoothing angle.
 
-**-d**, **--discard** *class,...*
+**--discard** *class,...*
 
 > Choose a list of lidar point classes to discard.
 > The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
@@ -150,4 +154,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - May 30, 2021
+macOS 11.1 - May 31, 2021

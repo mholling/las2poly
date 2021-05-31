@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
 	try {
 		auto width      = std::optional<double>();
 		auto area       = std::optional<double>();
+		auto delta      = std::optional<double>(1.5);
 		auto slope      = std::optional<double>(10.0);
 		auto water      = std::optional<bool>();
 		auto simplify   = std::optional<bool>();
@@ -49,12 +50,13 @@ int main(int argc, char *argv[]) {
 		Args args(argc, argv, "extract land areas from lidar tiles");
 		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                   width);
 		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",        area);
+		args.option("-d", "--delta",      "<metres>",    "maximum waterbody height delta",            delta);
 		args.option("-s", "--slope",      "<degrees>",   "maximum waterbody slope",                   slope);
 		args.option("-r", "--water",                     "extract waterbodies instead of land areas", water);
 		args.option("-i", "--simplify",                  "simplify output polygons",                  simplify);
 		args.option("-m", "--smooth",                    "smooth output polygons",                    smooth);
 		args.option("-g", "--angle",      "<degrees>",   "smooth output with given angle",            angle);
-		args.option("-d", "--discard",    "<class,...>", "discard point classes",                     discard);
+		args.option("",   "--discard",    "<class,...>", "discard point classes",                     discard);
 		args.option("-c", "--convention", "<ogc|esri>",  "force polygon convention to OGC or ESRI",   convention);
 		args.option("-e", "--epsg",       "<number>",    "override missing or incorrect EPSG codes",  epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",              threads);
@@ -89,10 +91,12 @@ int main(int argc, char *argv[]) {
 
 		if (*width <= 0)
 			throw std::runtime_error("width must be positive");
-		if (*slope <= 0)
-			throw std::runtime_error("slope must be positive");
 		if (area && *area < 0)
 			throw std::runtime_error("area can't be negative");
+		if (*delta <= 0)
+			throw std::runtime_error("delta must be positive");
+		if (*slope <= 0)
+			throw std::runtime_error("slope must be positive");
 		if (*slope >= 90)
 			throw std::runtime_error("slope must be less than 90");
 		if (angle && *angle <= 0)
@@ -131,7 +135,7 @@ int main(int argc, char *argv[]) {
 
 		auto points = Points(tile_paths, *width / std::sqrt(8.0), *discard, water == true, srs, threads->back(), log);
 		auto mesh = Mesh(points, threads->front(), log);
-		auto polygons = Polygons(mesh, *width, *slope * pi / 180, water == true, ogc, threads->front(), log);
+		auto polygons = Polygons(mesh, *width, *delta, *slope * pi / 180, water == true, ogc, threads->front(), log);
 
 		if (simplify || smooth) {
 			log(Log::Time(), smooth ? "smoothing" : "simplifying", Log::Count(), polygons.ring_count(), "ring");

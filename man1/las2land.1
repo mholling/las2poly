@@ -48,10 +48,12 @@ Choose a value according to the scale you're working at.
 .It Fl a , -area Ar metres\[u00B2]
 Set a minimum area for waterbodies and islands to be retained.
 A sensible default value is used according to the minimum waterbody width.
-.It Fl s , -slope Ar degrees
-Set the maximum slope for a minimum-width waterbody.
-This value determines how much height variation is allowed along the edge of water voids.
+.It Fl d , -delta Ar metres
+Set an allowable average height difference across opposing edges of a watercourse or waterbody.
 .Pq Some leeway is required to accommodate situations such as steep-sided river banks.
+.It Fl s , -slope Ar degrees
+Set the maximum slope for waterbodies.
+This secondary filter ensures remaining non-horizontal voids are ignored.
 .It Fl r , -water
 Extract polygons for waterbodies instead of land areas.
 Unexpected results may occur when using partly-covered tiles.
@@ -62,7 +64,7 @@ Simplify the output polygons using Visvalingam's algorithm.
 Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
 .It Fl g , -angle Ar degrees
 Apply line smoothing using the specified smoothing angle.
-.It Fl d , -discard Ar class,...
+.It Fl -discard Ar class,...
 Choose a list of lidar point classes to discard.
 The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
 .It Fl c , -convention Ar ogc|esri
