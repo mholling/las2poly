@@ -294,13 +294,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 	void interpolate(PointIterator ground_begin, PointIterator ground_end, int threads) {
-		auto iterators = std::vector<PointIterator>();
-		iterators.reserve(points.end() - ground_end);
-
-		for (auto point = ground_end; point != points.end(); ++point)
-			iterators.push_back(point);
-		auto rtree = RTree(iterators, threads);
-
+		auto rtree = RTree(ground_end, points.end(), threads);
 		strip_exterior(ground_begin, ground_end, true);
 		deconstruct(ground_begin, ground_end, threads, [&](auto const &triangle) {
 			auto const &[edge0, edge1, edge2] = triangle;

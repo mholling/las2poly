@@ -8,6 +8,7 @@
 #define RTREE_HPP
 
 #include "bounds.hpp"
+#include <vector>
 #include <memory>
 #include <utility>
 #include <variant>
@@ -17,10 +18,11 @@
 #include <stdexcept>
 #include <algorithm>
 #include <thread>
-#include <vector>
 
 template <typename Element>
 class RTree {
+	using Elements = std::vector<Element>;
+	using ElementIterator = typename Elements::iterator;
 	using RTreePtr = std::unique_ptr<RTree>;
 	using Children = std::pair<RTreePtr, RTreePtr>;
 	using Value = std::variant<Children, Element>;
@@ -104,14 +106,21 @@ class RTree {
 		auto   end() { return Iterator(*this); }
 	};
 
+	auto static elements(Element const &begin, Element const &end) {
+		auto elements = Elements();
+		elements.reserve(end - begin);
+		for (auto element = begin; element != end; ++element)
+			elements.push_back(element);
+		return elements;
+	}
+
 public:
 	RTree(Element const &element) :
 		bounds(element),
 		value(element)
 	{ }
 
-	template <typename Iterator>
-	RTree(Iterator begin, Iterator end, bool horizontal, int threads) {
+	RTree(ElementIterator begin, ElementIterator end, bool horizontal, int threads) {
 		switch (end - begin) {
 		case 0:
 			break;
@@ -145,7 +154,9 @@ public:
 		}
 	}
 
-	RTree(std::vector<Element> &elements, int threads) : RTree(elements.begin(), elements.end(), true, threads) { }
+	RTree(Elements &elements, int threads) : RTree(elements.begin(), elements.end(), true, threads) { }
+	RTree(Elements &&elements, int threads) : RTree(elements.begin(), elements.end(), true, threads) { }
+	RTree(Element const &begin, Element const &end, int threads) : RTree(elements(begin, end), threads) { }
 
 	auto search(Bounds const &bounds) const {
 		return Search(bounds, this);
