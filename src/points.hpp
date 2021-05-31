@@ -148,9 +148,9 @@ class Points : public std::vector<Point> {
 				auto points1 = Points();
 				auto points2 = Points();
 				auto thread1 = std::thread([&]() {
-					Points(begin, middle, resolution, discard, srs, mutex, exception, threads/2).swap(points1);
+					points1 = Points(begin, middle, resolution, discard, srs, mutex, exception, threads/2);
 				}), thread2 = std::thread([&]() {
-					Points(middle, end, resolution, discard, srs, mutex, exception, threads - threads/2).swap(points2);
+					points2 = Points(middle, end, resolution, discard, srs, mutex, exception, threads - threads/2);
 				});
 				thread1.join(), thread2.join();
 				thin(*this, points1, points2);
