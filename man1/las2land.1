@@ -58,13 +58,13 @@ This secondary filter ensures remaining non-horizontal voids are ignored.
 Extract polygons for waterbodies instead of land areas.
 Unexpected results may occur when using partly-covered tiles.
 Tile extents should be continguous when using this option.
-.It Fl i , -simplify
+.It Fl y , -simplify
 Simplify the output polygons using Visvalingam's algorithm.
 .It Fl m , -smooth
 Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
 .It Fl g , -angle Ar degrees
 Apply line smoothing using the specified smoothing angle.
-.It Fl -discard Ar class,...
+.It Fl x , -discard Ar class,...
 Choose a list of lidar point classes to discard.
 The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
 .It Fl c , -convention Ar ogc|esri
@@ -76,7 +76,7 @@ Use this option to override missing or incorrect georeferencing in the lidar til
 .It Fl t , -threads Ar number
 Select the number of threads to use when processing.
 Defaults to the number of available hardware threads.
-.It Fl x , -tiles Ar tiles.txt
+.It Fl i , -tiles Ar tiles.txt
 Provide a text file containing a list of lidar tiles to be processed, in place of command-line arguments.
 .It Fl o , -overwrite
 Allow the output file to be overwritten if it already exists.

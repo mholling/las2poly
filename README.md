@@ -72,7 +72,7 @@ option is required to calibrate the void detection process.
 > Unexpected results may occur when using partly-covered tiles.
 > Tile extents should be continguous when using this option.
 
-**-i**, **--simplify**
+**-y**, **--simplify**
 
 > Simplify the output polygons using Visvalingam's algorithm.
 
@@ -84,7 +84,7 @@ option is required to calibrate the void detection process.
 
 > Apply line smoothing using the specified smoothing angle.
 
-**--discard** *class,...*
+**-x**, **--discard** *class,...*
 
 > Choose a list of lidar point classes to discard.
 > The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
@@ -104,7 +104,7 @@ option is required to calibrate the void detection process.
 > Select the number of threads to use when processing.
 > Defaults to the number of available hardware threads.
 
-**-x**, **--tiles** *tiles.txt*
+**-i**, **--tiles** *tiles.txt*
 
 > Provide a text file containing a list of lidar tiles to be processed, in place of command-line arguments.
 
