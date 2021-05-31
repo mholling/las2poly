@@ -16,7 +16,7 @@ _las2land() {
 	elif [[ ${cur} =~ ^- ]]; then
 		COMPREPLY=($(compgen -W "${arg_opts[*]} ${file_opts[*]} ${flag_opts[*]} ${ogc_opts[*]}"))
 	elif [[ ${cur} == * ]] ; then
-		COMPREPLY=($(compgen -A file -X '!*.(las|ply|json)' -- ${cur}))
+		COMPREPLY=($(compgen -A file -X '!*.(las|ply|json|shp)' -- ${cur}))
 	fi
 }
 
