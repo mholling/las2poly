@@ -57,7 +57,7 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 			}
 		}
 
-		return delta_sum < delta * delta_count && std::acos(std::abs(perp_sum[2] / perp_sum.norm())) < slope;
+		return delta_sum < delta * delta_count && std::abs(perp_sum[2]) > std::cos(slope) * perp_sum.norm();
 	}
 
 	bool ogc;
