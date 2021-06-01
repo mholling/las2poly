@@ -29,31 +29,25 @@ class GeoJSON {
 	}
 
 	friend auto &operator<<(GeoJSON &json, Vector<2> const &vector) {
-		auto separator = '[';
-		for (auto const &coord: vector)
-			json << std::exchange(separator, ',') << coord;
-		return json << ']';
+		return json << '[' << vector[0] << ',' << vector[1] << ']';
 	}
 
 	friend auto &operator<<(GeoJSON &json, Ring const &ring) {
-		json << '[';
-		for (auto const &vertex: ring)
+		for (json << '['; auto const &vertex: ring)
 			json << vertex << ',';
 		return json << ring.front() << ']';
 	}
 
 	friend auto &operator<<(GeoJSON &json, Polygon const &polygon) {
-		auto separator = '[';
-		for (auto const &ring: polygon)
+		for (auto separator = '['; auto const &ring: polygon)
 			json << std::exchange(separator, ',') << ring;
 		return json << ']';
 	}
 
 	friend auto &operator<<(GeoJSON &json, Polygons const &polygons) {
-		auto separator = '[';
-		for (auto const &polygon: polygons)
+		for (auto separator = '['; auto const &polygon: polygons)
 			json << std::exchange(separator, ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":" << polygon << "}}";
-		return json << (separator == '[' ? "[]" : "]");
+		return json << (polygons.empty() ? "[]" : "]");
 	}
 
 	friend auto &operator<<(GeoJSON &json, SRS const &srs) {
