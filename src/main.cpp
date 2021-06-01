@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 		auto threads    = std::optional<std::vector<int>>{{default_threads}};
 		auto tiles_path = std::optional<std::filesystem::path>();
 		auto overwrite  = std::optional<bool>();
-		auto progress   = std::optional<bool>();
+		auto quiet      = std::optional<bool>();
 
 		auto tile_paths = std::vector<std::filesystem::path>();
 		auto output_path = std::filesystem::path();
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",              threads);
 		args.option("-i", "--tiles",      "<tiles.txt>", "list of input tiles as a text file",        tiles_path);
 		args.option("-o", "--overwrite",                 "overwrite existing output file",            overwrite);
-		args.option("-p", "--progress",                  "show progress",                             progress);
+		args.option("-q", "--quiet",                     "don't show progress information",           quiet);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("output file already exists");
 
 		auto const ogc = convention ? *convention == "ogc" : output.ogc();
-		auto log = Log(progress == true);
+		auto log = Log(!quiet);
 
 		auto points = Points(tile_paths, *width / std::sqrt(8.0), *discard, water == true, srs, threads->back(), log);
 		auto mesh = Mesh(points, threads->front(), log);

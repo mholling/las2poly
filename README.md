@@ -112,9 +112,9 @@ option is required to calibrate the void detection process.
 
 > Allow the output file to be overwritten if it already exists.
 
-**-p**, **--progress**
+**-q**, **--quiet**
 
-> Show progress information while data is processed.
+> Don't show progress information.
 
 **-v**, **--version**
 
@@ -154,4 +154,4 @@ Add 'bridge deck' points (class 17) to water areas:
 
 Matthew Hollingworth
 
-macOS 11.1 - May 31, 2021
+macOS 11.1 - June 1, 2021

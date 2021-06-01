@@ -3,7 +3,7 @@ _las2land() {
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 	arg_opts=(-w --width -a --area -d --delta -s --slope -g --angle -x --discard -e --epsg -t --threads)
-	flag_opts=(-r --water -y --simplify -m --smooth -o --overwrite -p --progress -v --version -h --help)
+	flag_opts=(-r --water -y --simplify -m --smooth -o --overwrite -q --quiet -v --version -h --help)
 	file_opts=(-i --tiles)
 	ogc_opts=(-c --convention)
 
