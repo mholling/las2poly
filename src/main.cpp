@@ -74,13 +74,19 @@ int main(int argc, char *argv[]) {
 				throw std::runtime_error("no width specified");
 			if (convention && *convention != "esri" && *convention != "ogc")
 				throw std::runtime_error("polygon convention must be 'ogc' or 'esri'");
-			if (tiles_path && !tile_paths.empty())
-				throw std::runtime_error("can't specify tiles as arguments and also in a file");
 			if (tiles_path) {
-				auto input = std::ifstream(*tiles_path);
-				input.exceptions(std::ifstream::badbit);
-				for (std::string line; std::getline(input, line); )
-					tile_paths.emplace_back(line);
+				if (!tile_paths.empty())
+					throw std::runtime_error("can't specify tiles as arguments and also in a file");
+				if (*tiles_path == "-") {
+					std::cin.exceptions(std::ifstream::badbit);
+					for (std::string line; std::getline(std::cin, line); )
+						tile_paths.emplace_back(line);
+				} else {
+					auto input = std::ifstream(*tiles_path);
+					input.exceptions(std::ifstream::badbit);
+					for (std::string line; std::getline(input, line); )
+						tile_paths.emplace_back(line);
+				}
 			}
 			if (tile_paths.empty())
 				throw std::runtime_error("missing argument: LAS input path");
