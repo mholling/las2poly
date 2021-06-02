@@ -150,8 +150,30 @@ Add 'bridge deck' points (class 17) to water areas:
 
 	$ las2land --width 8 --discard 0,1,7,9,12,17,18 *.las land.json
 
+# LIMITATIONS
+
+Most voids in lidar data result from pulse absorbtion by waterbodies.
+However, other low-albedo surfaces can also produce voids: most commonly, roads, asphalt surfaces and rooftops.
+These may be incorrectly outlined as waterbodies if they are horizontal.
+
+Conversely, a true waterbody void may fail to be detected if its outline is insufficiently flat.
+This can occur in steep or densely vegetated terrain, where there is a paucity of ground points along the edge of the waterbody.
+Relaxing either or both of the
+**--delta**
+and
+**--slope**
+parameters may help in such situations.
+
+Steep terrain features such as cliffs can occlude lidar pulses, producing shadows in the point cloud.
+However, such voids are unlikely to appear horizontal and will likely be eliminated during processing.
+
+Finally, poor quality lidar data can contain void artifacts in areas of inconsistent point density.
+Increasing the
+**--width**
+threshold can eliminate such problems, at the cost of reduced fidelity.
+
 # AUTHORS
 
 Matthew Hollingworth
 
-macOS 11.1 - June 1, 2021
+macOS 11.1 - June 2, 2021
