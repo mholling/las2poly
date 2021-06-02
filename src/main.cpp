@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 		auto width      = std::optional<double>();
 		auto area       = std::optional<double>();
 		auto delta      = std::optional<double>(1.5);
-		auto slope      = std::optional<double>(10.0);
+		auto slope      = std::optional<double>(5.0);
 		auto water      = std::optional<bool>();
 		auto simplify   = std::optional<bool>();
 		auto smooth     = std::optional<bool>();
