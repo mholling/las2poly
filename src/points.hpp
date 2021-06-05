@@ -118,11 +118,10 @@ class Points : public std::vector<Point> {
 		}
 	};
 
-	Points(PathIterator begin, PathIterator end, double resolution, Discard const &discard, OptionalSRS const &srs, std::mutex &mutex, std::exception_ptr &exception, int threads) {
+	Points(PathIterator begin, PathIterator end, Thin const &thin, Discard const &discard, OptionalSRS const &srs, std::mutex &mutex, std::exception_ptr &exception, int threads) {
 		if (auto lock = std::lock_guard(mutex); exception)
 			return;
 		try {
-			auto thin = Thin(resolution);
 			auto const middle = begin + (end - begin) / 2;
 			if (begin + 1 == end) {
 				auto const &path = *begin;
@@ -141,16 +140,16 @@ class Points : public std::vector<Point> {
 					throw std::runtime_error(path.string() + ": " + error.what());
 				}
 			} else if (1 == threads) {
-				auto points1 = Points(begin, middle, resolution, discard, srs, mutex, exception, 1);
-				auto points2 = Points(middle, end, resolution, discard, srs, mutex, exception, 1);
+				auto points1 = Points(begin, middle, thin, discard, srs, mutex, exception, 1);
+				auto points2 = Points(middle, end, thin, discard, srs, mutex, exception, 1);
 				thin(*this, points1, points2);
 			} else {
 				auto points1 = Points();
 				auto points2 = Points();
 				auto thread1 = std::thread([&]() {
-					points1 = Points(begin, middle, resolution, discard, srs, mutex, exception, threads/2);
+					points1 = Points(begin, middle, thin, discard, srs, mutex, exception, threads/2);
 				}), thread2 = std::thread([&]() {
-					points2 = Points(middle, end, resolution, discard, srs, mutex, exception, threads - threads/2);
+					points2 = Points(middle, end, thin, discard, srs, mutex, exception, threads - threads/2);
 				});
 				thread1.join(), thread2.join();
 				thin(*this, points1, points2);
@@ -167,12 +166,13 @@ class Points : public std::vector<Point> {
 
 public:
 	Points(Paths const &tile_paths, double resolution, std::vector<int> const &discard_ints, bool water, OptionalSRS const &srs, int threads, Log &log) {
-		auto discard = Discard(discard_ints.begin(), discard_ints.end());
+		auto const thin = Thin(resolution);
+		auto const discard = Discard(discard_ints.begin(), discard_ints.end());
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();
 
 		log(Log::Time(), "reading", Log::Count(), tile_paths.size(), "file");
-		Points(tile_paths.begin(), tile_paths.end(), resolution, discard, srs, mutex, exception, threads).swap(*this);
+		Points(tile_paths.begin(), tile_paths.end(), thin, discard, srs, mutex, exception, threads).swap(*this);
 
 		if (exception)
 			std::rethrow_exception(exception);
