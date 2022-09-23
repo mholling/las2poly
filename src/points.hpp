@@ -176,6 +176,7 @@ public:
 			std::rethrow_exception(exception);
 
 		if (water && size() > 2) {
+			log(Log::Time(), "synthesising surrounding points");
 			auto const overall_bounds = std::accumulate(tile_bounds.begin(), tile_bounds.end(), Bounds());
 			auto fill = Fill(overall_bounds, resolution);
 
