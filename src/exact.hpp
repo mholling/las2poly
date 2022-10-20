@@ -11,7 +11,6 @@
 #include <cstddef>
 #include <array>
 #include <utility>
-#include <type_traits>
 #include <algorithm>
 #include <compare>
 
@@ -84,7 +83,7 @@ class Exact : std::array<double, N> {
 	Exact() = default;
 
 public:
-	template <typename ...Values, typename = std::enable_if_t<sizeof...(Values) == N>>
+	template <typename ...Values> requires (sizeof...(Values) == N)
 	Exact(Values ...values) : Array{{values...}} { }
 
 	friend auto operator<=>(Exact const &exact, int const &zero [[maybe_unused]]) {

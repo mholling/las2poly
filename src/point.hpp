@@ -9,6 +9,7 @@
 
 #include "vector.hpp"
 #include <tuple>
+#include <type_traits>
 
 struct Point : Vector<2> {
 	float elevation;
