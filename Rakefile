@@ -83,3 +83,35 @@ file "src/wkts.hpp" do |hpp|
     CPP
   end
 end
+
+# # download definitions from https://epsg.org/download-dataset.html
+# desc "generate src/wkts.hpp from epsg.org dataset ZIP"
+# file "src/wkts.hpp" => "EPSG-v10_076-WKT.Zip" do |hpp|
+#   %x[zipinfo -1 EPSG-v10_076-WKT.Zip].each_line.map(&:chomp).grep(/^EPSG-CRS-\d+\.wkt$/).map do |wkt|
+#     /^EPSG-CRS-(?<epsg>\d+)\.wkt$/ =~ wkt
+#     next Integer(epsg), %x[unzip -c -qq EPSG-v10_076-WKT.Zip #{wkt}]
+#   end.select do |epsg, wkt|
+#     /^PROJCRS/ === wkt
+#   end.sort_by(&:first).map do |epsg, wkt|
+#     %Q[\t{#{epsg}, #{wkt.inspect}},]
+#   end.join(?\n).tap do |entries|
+#     File.write hpp.name, <<~CPP
+#       ////////////////////////////////////////////////////////////////////////////////
+#       // Copyright 2021 Matthew Hollingworth.
+#       // Distributed under GNU General Public License version 3.
+#       // See LICENSE file for full license information.
+#       ////////////////////////////////////////////////////////////////////////////////
+
+#       #ifndef WKTS_HPP
+#       #define WKTS_HPP
+
+#       #include <utility>
+
+#       std::pair<int, char const *> static const wkts[] = {
+#       #{entries}
+#       };
+
+#       #endif
+#     CPP
+#   end
+# end
