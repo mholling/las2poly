@@ -7,6 +7,7 @@
 #ifndef SMOOTH_HPP
 #define SMOOTH_HPP
 
+#include "corner.hpp"
 #include "ring.hpp"
 #include "vector.hpp"
 #include "bounds.hpp"
@@ -18,7 +19,7 @@
 
 template <typename Polygons>
 class Smooth {
-	using Corner = Ring::CornerIterator;
+	using Corner = Corner<Ring>;
 	using Vertex = Vector<2>;
 
 	struct Candidate {
@@ -61,7 +62,7 @@ class Smooth {
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
 				if (other == corner || other == prev || other == next)
 					return false;
-				auto const [v0, v1, v2] = vertices;
+				auto const &[v0, v1, v2] = vertices;
 				auto const [u0, u1, u2] = *other;
 				auto const cross01 = (u1 - v01) ^ (u1 - v1);
 				auto const cross12 = (u1 - v1)  ^ (u1 - v12);
@@ -109,7 +110,7 @@ public:
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
 			for (auto &ring: polygon)
-				for (auto corner = ring.corners_begin(); corner != ring.corners_end(); ++corner)
+				for (auto corner = ring.corners_begin(), end = ring.corners_end(); corner != end; ++corner)
 					corners.push_back(corner);
 		auto rtree = RTree(corners, threads);
 		for (auto const &corner: corners)

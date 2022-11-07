@@ -7,6 +7,7 @@
 #ifndef SIMPLIFY_HPP
 #define SIMPLIFY_HPP
 
+#include "corner.hpp"
 #include "ring.hpp"
 #include "bounds.hpp"
 #include "rtree.hpp"
@@ -18,7 +19,7 @@
 template <typename Polygons>
 class Simplify {
 	auto static constexpr min_ring_size = 8;
-	using Corner = Ring::CornerIterator;
+	using Corner = Corner<Ring>;
 
 	struct Candidate {
 		Corner corner;
@@ -52,7 +53,7 @@ class Simplify {
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
 				if (other == corner)
 					return false;
-				auto const [v0, v1, v2] = vertices;
+				auto const &[v0, v1, v2] = vertices;
 				auto const [u0, u1, u2] = *other;
 				if (other == prev)
 					return u0 == v2;
@@ -98,7 +99,7 @@ class Simplify {
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
 			for (auto &ring: polygon)
-				for (auto corner = ring.corners_begin(); corner != ring.corners_end(); ++corner)
+				for (auto corner = ring.corners_begin(), end = ring.corners_end(); corner != end; ++corner)
 					corners.push_back(corner);
 		auto rtree = RTree(corners, threads);
 		for (auto const &corner: corners)

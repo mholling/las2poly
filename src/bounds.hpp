@@ -9,7 +9,7 @@
 
 #include "vector.hpp"
 #include "point.hpp"
-#include "ring.hpp"
+#include "corner.hpp"
 #include <limits>
 #include <vector>
 #include <tuple>
@@ -39,7 +39,8 @@ struct Bounds {
 
 	Bounds(std::vector<Point>::iterator const &point) : Bounds(*point) { }
 
-	Bounds(Ring::CornerIterator const &corner) {
+	template <typename Ring>
+	Bounds(Corner<Ring> const &corner) {
 		auto const [v0, v1, v2] = *corner;
 		auto const &[x0, y0] = v0;
 		auto const &[x1, y1] = v1;
