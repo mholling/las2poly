@@ -48,13 +48,14 @@ class Simplify {
 				return false;
 			auto const prev = corner.prev();
 			auto const next = corner.next();
-			auto const vertices = *corner;
+			auto const v0 = prev.vertex();
+			auto const v1 = corner.vertex();
+			auto const v2 = next.vertex();
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
 				if (other == corner)
 					return false;
-				auto const &[v0, v1, v2] = vertices;
-				auto const [u0, u1, u2] = *other;
+				auto const [u0, u1, u2] = other;
 				if (other == prev)
 					return u0 == v2;
 				if (other == next)
@@ -99,7 +100,7 @@ class Simplify {
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
 			for (auto &ring: polygon)
-				for (auto corner = ring.corners_begin(), end = ring.corners_end(); corner != end; ++corner)
+				for (auto corner: ring.corners())
 					corners.push_back(corner);
 		auto rtree = RTree(corners, threads);
 		for (auto const &corner: corners)

@@ -7,8 +7,10 @@
 #ifndef CORNER_HPP
 #define CORNER_HPP
 
-#include <tuple>
+#include <cstddef>
 #include <utility>
+#include <tuple>
+#include <type_traits>
 
 template <typename Ring>
 struct Corner {
@@ -47,16 +49,27 @@ struct Corner {
 	}
 
 	auto operator*() const {
-		return std::tuple(*prev().here, *here, *next().here);
+		return *this;
+	}
+
+	auto &vertex() const {
+		return *here;
+	}
+
+	template <std::size_t N>
+	auto &get() const {
+		if constexpr (N == 0) return *prev().here;
+		if constexpr (N == 1) return *here;
+		if constexpr (N == 2) return *next().here;
 	}
 
 	auto cross() const {
-		auto const [v0, v1, v2] = **this;
+		auto const [v0, v1, v2] = *this;
 		return (v1 - v0) ^ (v2 - v1);
 	}
 
 	auto cosine() const {
-		auto const [v0, v1, v2] = **this;
+		auto const [v0, v1, v2] = *this;
 		return (v1 - v0).normalise() * (v2 - v1).normalise();
 	}
 
@@ -75,5 +88,11 @@ struct Corner {
 		return ring->size();
 	}
 };
+
+template <typename Ring>
+struct std::tuple_size<Corner<Ring>> : std::integral_constant<std::size_t, 3> { };
+
+template <typename Ring, std::size_t N>
+struct std::tuple_element<N, Corner<Ring>> { using type = typename Corner<Ring>::Vertex; };
 
 #endif
