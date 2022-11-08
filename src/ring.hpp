@@ -40,7 +40,7 @@ struct Ring : std::list<Vector<2>> {
 	auto signed_area(bool ogc) const {
 		auto cross_product_sum = 0.0;
 		auto const v = *begin();
-		for (auto summation = Summation(cross_product_sum); auto const [v0, v1, v2]: corners())
+		for (auto summation = Summation(cross_product_sum); auto const &[v0, v1, v2]: corners())
 			summation += (v1 - v) ^ (v2 - v);
 		return cross_product_sum * (ogc ? 0.5 : -0.5);
 	}
@@ -51,7 +51,7 @@ struct Ring : std::list<Vector<2>> {
 
 	friend auto operator<=>(Ring const &ring, Vertex const &v) {
 		auto winding = 0;
-		for (auto const [v0, v1, v2]: ring.corners())
+		for (auto const &[v0, v1, v2]: ring.corners())
 			if (v1 == v)
 				return 0 <=> 0;
 			else if ((v1 < v) && !(v2 < v) && ((v1 - v) ^ (v2 - v)) > 0)

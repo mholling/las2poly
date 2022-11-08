@@ -41,7 +41,7 @@ struct Bounds {
 
 	template <typename Ring>
 	Bounds(Corner<Ring> const &corner) {
-		auto const [v0, v1, v2] = *corner;
+		auto const &[v0, v1, v2] = corner;
 		auto const &[x0, y0] = v0;
 		auto const &[x1, y1] = v1;
 		auto const &[x2, y2] = v2;

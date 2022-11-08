@@ -48,7 +48,7 @@ struct Corner {
 		return here != ring->begin() ? --Corner(ring, here) : --Corner(ring, ring->end());
 	}
 
-	auto operator*() const {
+	auto &operator*() const {
 		return *this;
 	}
 
@@ -64,12 +64,12 @@ struct Corner {
 	}
 
 	auto cross() const {
-		auto const [v0, v1, v2] = *this;
+		auto const &[v0, v1, v2] = *this;
 		return (v1 - v0) ^ (v2 - v1);
 	}
 
 	auto cosine() const {
-		auto const [v0, v1, v2] = *this;
+		auto const &[v0, v1, v2] = *this;
 		return (v1 - v0).normalise() * (v2 - v1).normalise();
 	}
 
