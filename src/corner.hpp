@@ -52,15 +52,15 @@ struct Corner {
 		return *this;
 	}
 
-	auto &vertex() const {
+	auto &operator()() const {
 		return *here;
 	}
 
 	template <std::size_t N>
 	auto &get() const {
-		if constexpr (N == 0) return *prev().here;
-		if constexpr (N == 1) return *here;
-		if constexpr (N == 2) return *next().here;
+		if constexpr (N == 0) return prev()();
+		if constexpr (N == 1) return (*this)();
+		if constexpr (N == 2) return next()();
 	}
 
 	auto cross() const {

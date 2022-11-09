@@ -57,7 +57,7 @@ class Smooth {
 			auto const cross = corner.cross();
 			auto const prev = corner.prev();
 			auto const next = corner.next();
-			auto const &v1 = corner.vertex();
+			auto const &v1 = corner();
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
 				if (other == corner || other == prev || other == next)

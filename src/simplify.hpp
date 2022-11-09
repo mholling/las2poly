@@ -48,9 +48,9 @@ class Simplify {
 				return false;
 			auto const prev = corner.prev();
 			auto const next = corner.next();
-			auto const &v0 = prev.vertex();
-			auto const &v1 = corner.vertex();
-			auto const &v2 = next.vertex();
+			auto const &v0 = prev();
+			auto const &v1 = corner();
+			auto const &v2 = next();
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
 				if (other == corner)
