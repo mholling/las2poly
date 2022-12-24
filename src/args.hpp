@@ -125,20 +125,18 @@ public:
 		option(letter, name, "", description, optional);
 	}
 
-	template <typename Value>
-	void position(std::string format, std::string description, Value &value) {
+	void position(std::string format, std::string description, std::filesystem::path &path) {
 		positions.emplace_back(false, format, description, [&](auto arg) {
-			std::stringstream(arg) >> value;
+			path.assign(arg);
 		});
 	}
 
-	template <typename Value>
-	void position(std::string format, std::string description, std::vector<Value> &values) {
+	void position(std::string format, std::string description, std::vector<std::filesystem::path> &paths) {
 		for (auto const &position: positions)
 			if (position.variadic)
 				throw std::runtime_error(format + ": only one variadic positional argument allowed");
 		positions.emplace_back(true, format, description, [&](auto arg) {
-			std::stringstream(arg) >> values.emplace_back();
+			paths.emplace_back(arg);
 		});
 	}
 
