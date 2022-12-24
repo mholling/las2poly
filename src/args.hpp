@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <optional>
 #include <filesystem>
+#include <type_traits>
 #include <utility>
 
 class Args {
@@ -97,7 +98,9 @@ public:
 		else
 			description_with_default << description;
 		options.emplace_back(letter, name, format, description_with_default.str(), [&](auto arg) {
-			if (auto parser = std::stringstream(arg); !(parser >> optional.emplace()) || !parser.eof())
+			if constexpr (std::is_same_v<Value, std::filesystem::path>)
+				optional.emplace(arg);
+			else if (auto parser = std::stringstream(arg); !(parser >> optional.emplace()) || !parser.eof())
 				throw std::runtime_error("invalid argument: " + arg);
 		});
 	}
