@@ -48,7 +48,7 @@ public:
 		auto suffix = suffixes.begin();
 		double decimal = value;
 		for (; decimal >= 999.95 && suffix + 1 < suffixes.end(); decimal *= 0.001, ++suffix) ;
-		(*this)(" ", std::fixed, std::setprecision(value < 1000 ? 0 : 1), decimal, *suffix, " ", name, value > 1 ? "s" : "", args...);
+		(*this)(" ", std::fixed, std::setprecision(value < 1000 ? 0 : 1), decimal, *suffix, " ", name, value == 1 ? "" : "s", args...);
 	}
 
 	template <typename ...Args>
