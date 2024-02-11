@@ -49,6 +49,8 @@ struct Bounds {
 		std::tie(ymin, ymax) = std::minmax({y0, y1, y2});
 	}
 
+	Bounds &operator=(Bounds const &bounds) = default;
+
 	auto &operator+=(Bounds const &other) {
 		xmin = std::min(xmin, other.xmin), xmax = std::max(xmax, other.xmax);
 		ymin = std::min(ymin, other.ymin), ymax = std::max(ymax, other.ymax);
