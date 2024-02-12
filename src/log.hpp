@@ -7,58 +7,67 @@
 #ifndef LOG_HPP
 #define LOG_HPP
 
-#include <streambuf>
-#include <iostream>
 #include <chrono>
-#include <iomanip>
+#include <iostream>
+#include <optional>
+#include <utility>
 
-class Log {
-	struct NullBuffer : std::streambuf {
-		int overflow(int c) { return c; }
-	};
-
-	NullBuffer null_buffer;
-	std::ostream null_stream;
-	std::ostream &output;
-	std::chrono::time_point<std::chrono::system_clock> start;
-
-	auto static now() {
-		return std::chrono::system_clock::now();
-	};
-
-public:
+struct Log {
 	struct Count { };
 	struct Time { };
 
-	Log(bool show) : null_stream(&null_buffer), output(show ? std::cerr : null_stream), start(now()) { }
+private:
+	class Loud {
+		auto static now() {
+			return std::chrono::system_clock::now();
+		};
 
-	void operator()() {
-		output << std::endl;
-	}
+		std::chrono::time_point<std::chrono::system_clock> start;
 
-	template <typename Arg, typename ...Args>
-	void operator()(Arg const &arg, Args const &...args) {
-		output << arg;
-		(*this)(args...);
-	}
+	public:
+		Loud() : start(now()) { }
 
-	template <typename Value, typename Name, typename ...Args>
-	void operator()(Count, Value value, Name const &name, Args const &...args) {
-		auto static constexpr suffixes = {"","k","M","G"};
-		auto suffix = suffixes.begin();
-		double decimal = value;
-		for (; decimal >= 999.95 && suffix + 1 < suffixes.end(); decimal *= 0.001, ++suffix) ;
-		(*this)(" ", std::fixed, std::setprecision(value < 1000 ? 0 : 1), decimal, *suffix, " ", name, value == 1 ? "" : "s", args...);
-	}
+		void operator()() const {
+			std::cerr << std::endl;
+		}
+
+		template <typename Arg, typename ...Args>
+		void operator()(Arg const &arg, Args const &...args) const {
+			std::cerr << arg;
+			(*this)(args...);
+		}
+
+		template <typename Value, typename Name, typename ...Args>
+		void operator()(Count, Value value, Name const &name, Args const &...args) const {
+			auto static constexpr suffixes = {"","k","M","G"};
+			auto suffix = suffixes.begin();
+			double decimal = value;
+			for (; decimal >= 999.95 && suffix + 1 < suffixes.end(); decimal *= 0.001, ++suffix) ;
+			(*this)(" ", std::fixed, std::setprecision(value < 1000 ? 0 : 1), decimal, *suffix, " ", name, value == 1 ? "" : "s", args...);
+		}
+
+		template <typename ...Args>
+		void operator()(Time, Args const &...args) const {
+			auto elapsed = std::chrono::duration<double>(now() - start);
+			auto minutes = std::chrono::duration_cast<std::chrono::minutes>(elapsed);
+			if (minutes.count() > 0)
+				(*this)(minutes.count(), "m", std::fixed, std::setw(2), std::setfill('0'), std::setprecision(0), (elapsed - minutes).count(), "s: ", args...);
+			else
+				(*this)(std::fixed, std::setprecision(1), elapsed.count(), "s: ", args...);
+		}
+	};
+
+	using Optional = std::optional<Loud>;
+
+	Optional optional;
+
+public:
+	Log(bool loud) : optional(loud ? Optional(std::in_place_t()) : Optional()) { }
 
 	template <typename ...Args>
-	void operator()(Time, Args const &...args) {
-		auto elapsed = std::chrono::duration<double>(now() - start);
-		auto minutes = std::chrono::duration_cast<std::chrono::minutes>(elapsed);
-		if (minutes.count() > 0)
-			(*this)(minutes.count(), "m", std::fixed, std::setw(2), std::setfill('0'), std::setprecision(0), (elapsed - minutes).count(), "s: ", args...);
-		else
-			(*this)(std::fixed, std::setprecision(1), elapsed.count(), "s: ", args...);
+	void operator()(Args const &...args) {
+		if (optional)
+			(*optional)(args...);
 	}
 };
 
