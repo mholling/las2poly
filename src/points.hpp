@@ -16,7 +16,6 @@
 #include <vector>
 #include <filesystem>
 #include <unordered_set>
-#include <optional>
 #include <set>
 #include <limits>
 #include <stdexcept>
@@ -51,12 +50,6 @@ class Points : public std::vector<Point> {
 	void update(Points &points) {
 		tile_bounds.insert(tile_bounds.end(), points.tile_bounds.begin(), points.tile_bounds.end());
 		distinct_srs.insert(points.distinct_srs.begin(), points.distinct_srs.end());
-	}
-
-	void swap(Points &other) {
-		vector::swap(other);
-		std::swap(tile_bounds, other.tile_bounds);
-		std::swap(distinct_srs, other.distinct_srs);
 	}
 
 	struct Thin {
@@ -170,7 +163,7 @@ public:
 		auto exception = std::exception_ptr();
 
 		log(Log::Time(), "reading", Log::Count(), tile_paths.size(), "file");
-		Points(tile_paths.begin(), tile_paths.end(), thin, discard, srs, mutex, exception, threads).swap(*this);
+		*this = Points(tile_paths.begin(), tile_paths.end(), thin, discard, srs, mutex, exception, threads);
 
 		if (exception)
 			std::rethrow_exception(exception);
