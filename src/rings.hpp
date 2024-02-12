@@ -47,8 +47,7 @@ struct Rings : std::vector<Ring> {
 			auto edges = std::vector<Edge>();
 			for (auto connection = connections.begin(); connection != connections.end(); ) {
 				edges.push_back(connection->first);
-				connections.erase(connection);
-				connection = connections.find(connection->second);
+				connections.erase(std::exchange(connection, connections.find(connection->second)));
 			}
 
 			auto const ring = Ring(edges);
