@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <type_traits>
 #include <algorithm>
+#include <utility>
 
 struct Rings : std::vector<Ring> {
 	using PointsEdges = std::unordered_multimap<PointIterator, Edge>;
