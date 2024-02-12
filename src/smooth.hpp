@@ -19,7 +19,7 @@
 
 template <typename Polygons>
 class Smooth {
-	using Corner = Corner<Ring>;
+	using Corner = ::Corner<Ring>;
 	using Vertex = Vector<2>;
 
 	struct Candidate {

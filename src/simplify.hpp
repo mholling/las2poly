@@ -19,7 +19,7 @@
 template <typename Polygons>
 class Simplify {
 	auto static constexpr min_ring_size = 8;
-	using Corner = Corner<Ring>;
+	using Corner = ::Corner<Ring>;
 
 	struct Candidate {
 		Corner corner;
