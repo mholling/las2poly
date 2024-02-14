@@ -1,5 +1,6 @@
 require "json"
 require "tmpdir"
+require "open3"
 
 desc "generate README from manpage"
 file "README.md" => "man1/las2land.1" do |md|
@@ -40,26 +41,21 @@ end
 desc "download WKT strings and generate src/wkts.hpp"
 file "src/wkts.hpp" do |hpp|
   epsgs, pairs, wkts = Queue.new, Queue.new, Array[]
-  12.times.map do
+  32.times.map do
     Thread.new do
       while epsg = epsgs.pop
         $stderr.print "\r#{pairs.size} done, #{epsgs.size} remain "
-        wkt = %x[curl --silent -X GET 'https://apps.epsg.org/api/v1/CoordRefSystem/#{epsg}/export/?format=wkt&formatVersion=1']
-        pairs << [epsg, wkt]
+        wkt, err, status = Open3.capture3 %Q[gdalsrsinfo -o wkt1 --single-line EPSG:#{epsg}]
+        pairs << [epsg, wkt] if status.success? && /^PROJCS/ === wkt
       end
     end
   end.tap do
-    (0..).each do |page|
-      json = %x[curl --silent -X GET --header 'Accept: application/json' 'https://apps.epsg.org/api/v1/ProjectedCoordRefSystem/?page=#{page}&pageSize=1000']
-      break epsgs unless JSON.parse(json).dig("Results").each do |result|
-        epsgs << result["Code"]
-      end.any?
-    end.close
+    (1024..32767).inject(epsgs, &:<<).close
   end.each(&:join)
-  $stderr.puts
   while !pairs.empty?
     wkts << pairs.pop
   end
+  puts "\r#{wkts.size} done, 0 remain"
   wkts.sort_by(&:first).map do |epsg, wkt|
     %Q[\t{#{epsg}, #{wkt.inspect}},]
   end.join(?\n).tap do |entries|
@@ -83,35 +79,3 @@ file "src/wkts.hpp" do |hpp|
     CPP
   end
 end
-
-# # download definitions from https://epsg.org/download-dataset.html
-# desc "generate src/wkts.hpp from epsg.org dataset ZIP"
-# file "src/wkts.hpp" => "EPSG-v10_076-WKT.Zip" do |hpp|
-#   %x[zipinfo -1 EPSG-v10_076-WKT.Zip].each_line.map(&:chomp).grep(/^EPSG-CRS-\d+\.wkt$/).map do |wkt|
-#     /^EPSG-CRS-(?<epsg>\d+)\.wkt$/ =~ wkt
-#     next Integer(epsg), %x[unzip -c -qq EPSG-v10_076-WKT.Zip #{wkt}]
-#   end.select do |epsg, wkt|
-#     /^PROJCRS/ === wkt
-#   end.sort_by(&:first).map do |epsg, wkt|
-#     %Q[\t{#{epsg}, #{wkt.inspect}},]
-#   end.join(?\n).tap do |entries|
-#     File.write hpp.name, <<~CPP
-#       ////////////////////////////////////////////////////////////////////////////////
-#       // Copyright 2021 Matthew Hollingworth.
-#       // Distributed under GNU General Public License version 3.
-#       // See LICENSE file for full license information.
-#       ////////////////////////////////////////////////////////////////////////////////
-
-#       #ifndef WKTS_HPP
-#       #define WKTS_HPP
-
-#       #include <utility>
-
-#       std::pair<int, char const *> static const wkts[] = {
-#       #{entries}
-#       };
-
-#       #endif
-#     CPP
-#   end
-# end
