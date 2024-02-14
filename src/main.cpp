@@ -10,7 +10,7 @@
 #include "log.hpp"
 #include "points.hpp"
 #include "mesh.hpp"
-#include "polygons.hpp"
+#include "multipolygon.hpp"
 #include <algorithm>
 #include <thread>
 #include <optional>
@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
 		auto angle      = std::optional<double>();
 		auto discard    = std::optional<std::vector<int>>{{0,1,7,9,12,18}};
 		auto convention = std::optional<std::string>();
+		auto multi      = std::optional<bool>();
 		auto epsg       = std::optional<int>();
 		auto threads    = std::optional<std::vector<int>>{{default_threads}};
 		auto tiles_path = std::optional<std::filesystem::path>();
@@ -58,6 +59,7 @@ int main(int argc, char *argv[]) {
 		args.option("-g", "--angle",      "<degrees>",   "smooth output with given angle",            angle);
 		args.option("-x", "--discard",    "<class,...>", "discard point classes",                     discard);
 		args.option("-c", "--convention", "<ogc|esri>",  "force polygon convention to OGC or ESRI",   convention);
+		args.option("-l", "--multi",                     "collect polygons into single multipolygon", multi);
 		args.option("-e", "--epsg",       "<number>",    "override missing or incorrect EPSG codes",  epsg);
 		args.option("-t", "--threads",    "<number>",    "number of processing threads",              threads);
 		args.option("-i", "--tiles",      "<tiles.txt>", "list of input tiles as a text file",        tiles_path);
@@ -141,25 +143,28 @@ int main(int argc, char *argv[]) {
 
 		auto points = Points(tile_paths, *width / std::sqrt(8.0), *discard, water == true, srs, threads->back(), log);
 		auto mesh = Mesh(points, threads->front(), log);
-		auto polygons = Polygons(mesh, *width, *delta, *slope * pi / 180, water == true, ogc, threads->front(), log);
+		auto multipolygon = MultiPolygon(mesh, *width, *delta, *slope * pi / 180, water == true, ogc, threads->front(), log);
 
 		if (simplify || smooth) {
-			log(Log::Time(), smooth ? "smoothing" : "simplifying", Log::Count(), polygons.ring_count(), "ring");
+			log(Log::Time(), smooth ? "smoothing" : "simplifying", Log::Count(), multipolygon.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
-			polygons.simplify(tolerance, water ? ogc : !ogc, threads->front());
+			multipolygon.simplify(tolerance, water ? ogc : !ogc, threads->front());
 		}
 
 		if (smooth) {
 			auto const radians = *angle * pi / 180;
 			auto const tolerance = 0.5 * *width / std::sin(radians);
-			polygons.smooth(tolerance, radians, threads->front());
+			multipolygon.smooth(tolerance, radians, threads->front());
 		}
 
 		if (*area > 0)
-			polygons.filter(*area);
+			multipolygon.filter(*area);
 
-		log(Log::Time(), "saving", Log::Count(), polygons.size(), "polygon");
-		output(polygons, points.srs());
+		log(Log::Time(), "saving", Log::Count(), multipolygon.size(), "polygon");
+		if (multi)
+			output(multipolygon, points.srs());
+		else
+			output(multipolygon.explode(), points.srs());
 
 		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {

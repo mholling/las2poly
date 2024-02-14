@@ -24,8 +24,9 @@
 #include <numeric>
 
 using Polygon = std::vector<Ring>;
+using Polygons = std::vector<Polygon>;
 
-class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public Smooth<Polygons> {
+class MultiPolygon : public Polygons, public Simplify<MultiPolygon>, public Smooth<MultiPolygon> {
 	auto static is_water(Triangles const &triangles, double delta, double slope) {
 		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
 		auto perp_sum_z = Summation(perp_sum[2]);
@@ -63,7 +64,7 @@ class Polygons : public std::vector<Polygon>, public Simplify<Polygons>, public 
 	bool ogc;
 
 public:
-	Polygons(Mesh &mesh, double width, double delta, double slope, bool water, bool ogc, int threads, Log &log) : ogc(ogc) {
+	MultiPolygon(Mesh &mesh, double width, double delta, double slope, bool water, bool ogc, int threads, Log &log) : ogc(ogc) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 
@@ -112,6 +113,10 @@ public:
 		return std::accumulate(begin(), end(), 0ul, [](auto const &sum, auto const &polygon) {
 			return sum + polygon.size();
 		});
+	}
+
+	auto &explode() const {
+		return static_cast<Polygons const &>(*this);
 	}
 };
 

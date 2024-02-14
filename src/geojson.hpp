@@ -7,7 +7,7 @@
 #ifndef GEOJSON_HPP
 #define GEOJSON_HPP
 
-#include "polygons.hpp"
+#include "multipolygon.hpp"
 #include "srs.hpp"
 #include "ring.hpp"
 #include "vector.hpp"
@@ -50,6 +50,12 @@ class GeoJSON {
 		return json << (polygons.empty() ? "[]" : "]");
 	}
 
+	friend auto &operator<<(GeoJSON &json, MultiPolygon const &multipolygon) {
+		for (auto separator = "[{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"MultiPolygon\",\"coordinates\":["; auto const &polygon: multipolygon)
+			json << std::exchange(separator, ",") << polygon;
+		return json << (multipolygon.empty() ? "[]" : "]}}]");
+	}
+
 	friend auto &operator<<(GeoJSON &json, SRS const &srs) {
 		json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"";
 		if (srs.epsg)
@@ -72,6 +78,7 @@ public:
 		stream.precision(15);
 	}
 
+	template <typename Polygons>
 	void operator()(Polygons const &polygons, OptionalSRS const &srs) {
 		*this << "{\"type\":\"FeatureCollection\",";
 		if (srs)

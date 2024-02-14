@@ -7,7 +7,7 @@
 #ifndef SHAPEFILE_HPP
 #define SHAPEFILE_HPP
 
-#include "polygons.hpp"
+#include "multipolygon.hpp"
 #include "srs.hpp"
 #include <limits>
 #include <bit>
@@ -219,6 +219,14 @@ public:
 		dbf(polygons);
 		if (srs)
 			prj(*srs);
+	}
+
+	void operator()(MultiPolygon const &multipolygon, OptionalSRS const &srs) {
+		auto polygons = Polygons();
+		auto &rings = polygons.emplace_back();
+		for (auto const &polygon: multipolygon)
+			rings.insert(rings.end(), polygon.begin(), polygon.end());
+		(*this)(polygons, srs);
 	}
 
 	operator bool() const {

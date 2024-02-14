@@ -94,6 +94,10 @@ option is required to calibrate the void detection process.
 > Force polygon orientation according to OGC or ESRI convention.
 > By default, GeoJSON files use the OGC convention and shapefiles use the ESRI convention.
 
+**-l**, **--multi**
+
+> Collect polygons into a single multipolygon.
+
 **-e**, **--epsg** *number*
 
 > Specify an EPSG code to set in the output file.
@@ -176,4 +180,4 @@ threshold can eliminate such problems, at the cost of reduced fidelity.
 
 Matthew Hollingworth
 
-macOS 11.1 - June 2, 2021
+macOS 13.1 - February 14, 2024

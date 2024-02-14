@@ -3,7 +3,7 @@ require "tmpdir"
 
 desc "generate README from manpage"
 file "README.md" => "man1/las2land.1" do |md|
-  sh %Q[mandoc -mdoc -T lint man1/las2land.1]
+  sh %Q[mandoc -mdoc -T lint -W warning man1/las2land.1]
   sh %Q[mandoc -mdoc -T markdown man1/las2land.1 > README.md]
 end
 
