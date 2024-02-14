@@ -4,8 +4,8 @@
 // See LICENSE file for full license information.
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef POLYGONS_HPP
-#define POLYGONS_HPP
+#ifndef MULTIPOLYGON_HPP
+#define MULTIPOLYGON_HPP
 
 #include "ring.hpp"
 #include "simplify.hpp"
@@ -61,10 +61,8 @@ class MultiPolygon : public Polygons, public Simplify<MultiPolygon>, public Smoo
 		return delta_sum < delta * delta_count && std::abs(perp_sum[2]) > std::cos(slope) * perp_sum.norm();
 	}
 
-	bool ogc;
-
 public:
-	MultiPolygon(Mesh &mesh, double width, double delta, double slope, bool water, bool ogc, int threads, Log &log) : ogc(ogc) {
+	MultiPolygon(Mesh &mesh, double width, double delta, double slope, bool water, bool ogc, int threads, Log &log) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 
@@ -100,9 +98,9 @@ public:
 		});
 	}
 
-	void filter(double area) {
-		erase(std::remove_if(begin(), end(), [area, this](auto &polygon) {
-			polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [area, this](auto const &ring) {
+	void filter(double area, bool ogc) {
+		erase(std::remove_if(begin(), end(), [=](auto &polygon) {
+			polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [=](auto const &ring) {
 				return ring.signed_area(ogc) > -area;
 			}), polygon.end());
 			return polygon.front().signed_area(ogc) < area;

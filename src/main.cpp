@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		if (*area > 0)
-			multipolygon.filter(*area);
+			multipolygon.filter(*area, ogc);
 
 		log(Log::Time(), "saving", Log::Count(), multipolygon.size(), "polygon");
 		if (multi)
