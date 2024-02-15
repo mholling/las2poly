@@ -37,9 +37,9 @@ struct Rings : std::vector<Ring> {
 					: incoming > p2 && Edge(p1, p2) > incoming.second;
 			};
 			auto const [start, stop] = points_edges.equal_range(incoming.second);
-			auto const &[point, outgoing] = exterior
-				? *std::max_element(start, stop, ordering)
-				: *std::min_element(start, stop, ordering);
+			auto const &outgoing = exterior
+				? std::max_element(start, stop, ordering)->second
+				: std::min_element(start, stop, ordering)->second;
 			connections.emplace(incoming, outgoing);
 		}
 
@@ -52,7 +52,9 @@ struct Rings : std::vector<Ring> {
 			}
 
 			auto const ring = Ring(edges);
-			if (!exterior || ring.anticlockwise() == ogc)
+			if (!exterior)
+				push_back(ring);
+			else if (ring.anticlockwise() == ogc)
 				push_back(ring);
 			else
 				interior_edges.insert(interior_edges.end(), edges.begin(), edges.end());
