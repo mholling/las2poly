@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
 		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                   width);
-		args.option("",   "--area",       "<metres²>",   "minimum waterbody and island area",        area);
+		args.option("",   "--area",       "<metres²>",   "minimum waterbody and island area",         area);
 		args.option("",   "--delta",      "<metres>",    "maximum waterbody height delta",            delta);
 		args.option("",   "--slope",      "<degrees>",   "maximum waterbody slope",                   slope);
 		args.option("",   "--water",                     "extract waterbodies instead of land areas", water);
