@@ -46,7 +46,7 @@ file "src/wkts.hpp" do |hpp|
       while epsg = epsgs.pop
         $stderr.print "\r#{pairs.size} done, #{epsgs.size} remain "
         wkt, err, status = Open3.capture3 %Q[gdalsrsinfo -o wkt1 --single-line EPSG:#{epsg}]
-        pairs << [epsg, wkt] if status.success? && /^PROJCS/ === wkt
+        pairs << [epsg, wkt.chomp] if status.success? && /^PROJCS/ === wkt
       end
     end
   end.tap do
