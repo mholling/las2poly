@@ -7,7 +7,7 @@
 #ifndef SHAPEFILE_HPP
 #define SHAPEFILE_HPP
 
-#include "multipolygon.hpp"
+#include "polygons.hpp"
 #include "srs.hpp"
 #include <limits>
 #include <bit>

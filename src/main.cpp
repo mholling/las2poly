@@ -10,7 +10,7 @@
 #include "log.hpp"
 #include "points.hpp"
 #include "mesh.hpp"
-#include "multipolygon.hpp"
+#include "polygons.hpp"
 #include <algorithm>
 #include <thread>
 #include <optional>
@@ -143,28 +143,28 @@ int main(int argc, char *argv[]) {
 
 		auto points = Points(tile_paths, *width / std::sqrt(8.0), *discard, water == true, srs, threads->back(), log);
 		auto mesh = Mesh(points, threads->front(), log);
-		auto multipolygon = MultiPolygon(mesh, *width, *delta, *slope * pi / 180, water == true, ogc, threads->front(), log);
+		auto polygons = Polygons(mesh, *width, *delta, *slope * pi / 180, water == true, ogc, threads->front(), log);
 
 		if (simplify || smooth) {
-			log(Log::Time(), smooth ? "smoothing" : "simplifying", Log::Count(), multipolygon.ring_count(), "ring");
+			log(Log::Time(), smooth ? "smoothing" : "simplifying", Log::Count(), polygons.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
-			multipolygon.simplify(tolerance, water ? ogc : !ogc, threads->front());
+			polygons.simplify(tolerance, water ? ogc : !ogc, threads->front());
 		}
 
 		if (smooth) {
 			auto const radians = *angle * pi / 180;
 			auto const tolerance = 0.5 * *width / std::sin(radians);
-			multipolygon.smooth(tolerance, radians, threads->front());
+			polygons.smooth(tolerance, radians, threads->front());
 		}
 
 		if (*area > 0)
-			multipolygon.filter(*area, ogc);
+			polygons.filter(*area, ogc);
 
-		log(Log::Time(), "saving", Log::Count(), multipolygon.size(), "polygon");
+		log(Log::Time(), "saving", Log::Count(), polygons.size(), "polygon");
 		if (multi)
-			output(multipolygon, points.srs());
+			output(polygons.multi(), points.srs());
 		else
-			output(multipolygon.explode(), points.srs());
+			output(polygons, points.srs());
 
 		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {

@@ -4,8 +4,8 @@
 // See LICENSE file for full license information.
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef MULTIPOLYGON_HPP
-#define MULTIPOLYGON_HPP
+#ifndef POLYGONS_HPP
+#define POLYGONS_HPP
 
 #include "ring.hpp"
 #include "simplify.hpp"
@@ -24,9 +24,9 @@
 #include <numeric>
 
 using Polygon = std::vector<Ring>;
-using Polygons = std::vector<Polygon>;
+using MultiPolygon = std::vector<Polygon>;
 
-class MultiPolygon : public Polygons, public Simplify<MultiPolygon>, public Smooth<MultiPolygon> {
+class Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<Polygons> {
 	auto static is_water(Triangles const &triangles, double delta, double slope) {
 		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
 		auto perp_sum_z = Summation(perp_sum[2]);
@@ -62,7 +62,9 @@ class MultiPolygon : public Polygons, public Simplify<MultiPolygon>, public Smoo
 	}
 
 public:
-	MultiPolygon(Mesh &mesh, double width, double delta, double slope, bool water, bool ogc, int threads, Log &log) {
+	Polygons() = default;
+
+	Polygons(Mesh &mesh, double width, double delta, double slope, bool water, bool ogc, int threads, Log &log) {
 		auto large_triangles = Triangles();
 		auto outside_edges = Edges();
 
@@ -113,8 +115,8 @@ public:
 		});
 	}
 
-	auto &explode() const {
-		return static_cast<Polygons const &>(*this);
+	auto &multi() const {
+		return static_cast<MultiPolygon const &>(*this);
 	}
 };
 

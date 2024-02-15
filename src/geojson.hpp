@@ -7,7 +7,7 @@
 #ifndef GEOJSON_HPP
 #define GEOJSON_HPP
 
-#include "multipolygon.hpp"
+#include "polygons.hpp"
 #include "srs.hpp"
 #include "ring.hpp"
 #include "vector.hpp"
