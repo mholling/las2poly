@@ -13,6 +13,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <codecvt>
 #include <cstddef>
 #include <algorithm>
 #include <iomanip>
@@ -33,9 +34,15 @@ class Args {
 		std::string name;
 		std::string format;
 		std::string description;
+		unsigned format_wsize;
+		unsigned format_delta;
 		Callback callback;
 
-		Option(std::string letter, std::string name, std::string format, std::string description, Callback callback) : letter(letter), name(name), format(format), description(description), callback(callback) { }
+		Option(std::string letter, std::string name, std::string format, std::string description, Callback callback) : letter(letter), name(name), format(format), description(description), callback(callback) {
+			auto convert = std::wstring_convert<std::codecvt_utf8<wchar_t>>();
+			format_wsize = convert.from_bytes(format).size();
+			format_delta = format.size() - format_wsize;
+		}
 
 		auto operator==(std::string const &arg) const {
 			return arg == letter || arg == name;
@@ -70,15 +77,15 @@ class Args {
 		help << std::endl << "  options:" << std::endl;
 		auto letter_width = 0u, name_width = 0u, format_width = 0u;
 		for (auto const &option: options) {
-			letter_width = std::max<unsigned>(letter_width, option.letter.length());
-			name_width = std::max<unsigned>(name_width, option.name.length());
-			format_width = std::max<unsigned>(format_width, option.format.length());
+			letter_width = std::max<unsigned>(letter_width, option.letter.size());
+			name_width   = std::max<unsigned>(name_width,   option.name.size());
+			format_width = std::max<unsigned>(format_width, option.format_wsize);
 		}
 		for (auto const &option: options)
 			help << "    " << std::left
 				<< std::setw(letter_width) << option.letter << (option.letter.empty() ? "  " : ", ")
 				<< std::setw(name_width + 1) << option.name
-				<< std::setw(format_width + 1) << option.format
+				<< std::setw(option.format_delta + format_width + 1) << option.format
 				<< option.description << std::endl;
 		return help.str();
 	}
