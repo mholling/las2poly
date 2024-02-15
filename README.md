@@ -51,64 +51,64 @@ option is required to calibrate the void detection process.
 > The value should be comfortably larger than the linear point density of the lidar data.
 > Choose a value according to the scale you're working at.
 
-**-a**, **--area** *metres&#178;*
+**--area** *metres&#178;*
 
 > Set a minimum area for waterbodies and islands to be retained.
 > A sensible default value is used according to the minimum waterbody width.
 
-**-d**, **--delta** *metres*
+**--delta** *metres*
 
 > Set an allowable average height difference across opposing edges of a watercourse or waterbody.
 > (Some leeway is required to accommodate situations such as steep-sided river banks.)
 
-**-s**, **--slope** *degrees*
+**--slope** *degrees*
 
 > Set the maximum slope for waterbodies.
 > This secondary filter ensures remaining non-horizontal voids are ignored.
 
-**-r**, **--water**
+**--water**
 
 > Extract polygons for waterbodies instead of land areas.
 > Unexpected results may occur when using partly-covered tiles.
 > Tile extents should be continguous when using this option.
 
-**-y**, **--simplify**
+**--simplify**
 
 > Simplify the output polygons using Visvalingam's algorithm.
 
-**-m**, **--smooth**
+**--smooth**
 
 > Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
 
-**-g**, **--angle** *degrees*
+**--angle** *degrees*
 
 > Apply line smoothing using the specified smoothing angle.
 
-**-x**, **--discard** *class,...*
+**--discard** *class,...*
 
 > Choose a list of lidar point classes to discard.
 > The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
 
-**-c**, **--convention** *ogc|esri*
+**--convention** *ogc|esri*
 
 > Force polygon orientation according to OGC or ESRI convention.
 > By default, GeoJSON files use the OGC convention and shapefiles use the ESRI convention.
 
-**-l**, **--multi**
+**--multi**
 
 > Collect polygons into a single multipolygon.
 
-**-e**, **--epsg** *number*
+**--epsg** *number*
 
 > Specify an EPSG code to set in the output file.
 > Use this option to override missing or incorrect georeferencing in the lidar tiles.
 
-**-t**, **--threads** *number*
+**--threads** *number*
 
 > Select the number of threads to use when processing.
 > Defaults to the number of available hardware threads.
 
-**-i**, **--tiles** *tiles.txt*
+**--tiles** *tiles.txt*
 
 > Provide a text file containing a list of lidar tiles to be processed, in place of command-line arguments.
 
@@ -180,4 +180,4 @@ threshold can eliminate such problems, at the cost of reduced fidelity.
 
 Matthew Hollingworth
 
-macOS 13.1 - February 14, 2024
+macOS 13.1 - February 15, 2024

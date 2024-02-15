@@ -50,19 +50,19 @@ int main(int argc, char *argv[]) {
 
 		Args args(argc, argv, "extract land areas from lidar tiles");
 		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                   width);
-		args.option("-a", "--area",       "<metres²>",   " minimum waterbody and island area",        area);
-		args.option("-d", "--delta",      "<metres>",    "maximum waterbody height delta",            delta);
-		args.option("-s", "--slope",      "<degrees>",   "maximum waterbody slope",                   slope);
-		args.option("-r", "--water",                     "extract waterbodies instead of land areas", water);
-		args.option("-y", "--simplify",                  "simplify output polygons",                  simplify);
-		args.option("-m", "--smooth",                    "smooth output polygons",                    smooth);
-		args.option("-g", "--angle",      "<degrees>",   "smooth output with given angle",            angle);
-		args.option("-x", "--discard",    "<class,...>", "discard point classes",                     discard);
-		args.option("-c", "--convention", "<ogc|esri>",  "force polygon convention to OGC or ESRI",   convention);
-		args.option("-l", "--multi",                     "collect polygons into single multipolygon", multi);
-		args.option("-e", "--epsg",       "<number>",    "override missing or incorrect EPSG codes",  epsg);
-		args.option("-t", "--threads",    "<number>",    "number of processing threads",              threads);
-		args.option("-i", "--tiles",      "<tiles.txt>", "list of input tiles as a text file",        tiles_path);
+		args.option("",   "--area",       "<metres²>",   " minimum waterbody and island area",        area);
+		args.option("",   "--delta",      "<metres>",    "maximum waterbody height delta",            delta);
+		args.option("",   "--slope",      "<degrees>",   "maximum waterbody slope",                   slope);
+		args.option("",   "--water",                     "extract waterbodies instead of land areas", water);
+		args.option("",   "--simplify",                  "simplify output polygons",                  simplify);
+		args.option("",   "--smooth",                    "smooth output polygons",                    smooth);
+		args.option("",   "--angle",      "<degrees>",   "smooth output with given angle",            angle);
+		args.option("",   "--discard",    "<class,...>", "discard point classes",                     discard);
+		args.option("",   "--convention", "<ogc|esri>",  "force polygon convention to OGC or ESRI",   convention);
+		args.option("",   "--multi",                     "collect polygons into single multipolygon", multi);
+		args.option("",   "--epsg",       "<number>",    "override missing or incorrect EPSG codes",  epsg);
+		args.option("",   "--threads",    "<number>",    "number of processing threads",              threads);
+		args.option("",   "--tiles",      "<tiles.txt>", "list of input tiles as a text file",        tiles_path);
 		args.option("-o", "--overwrite",                 "overwrite existing output file",            overwrite);
 		args.option("-q", "--quiet",                     "don't show progress information",           quiet);
 #ifdef VERSION

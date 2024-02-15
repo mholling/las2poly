@@ -45,40 +45,40 @@ option is required to calibrate the void detection process.
 Specify the minimum width of waterbodies to be detected.
 The value should be comfortably larger than the linear point density of the lidar data.
 Choose a value according to the scale you're working at.
-.It Fl a , -area Ar metres\[u00B2]
+.It Fl -area Ar metres\[u00B2]
 Set a minimum area for waterbodies and islands to be retained.
 A sensible default value is used according to the minimum waterbody width.
-.It Fl d , -delta Ar metres
+.It Fl -delta Ar metres
 Set an allowable average height difference across opposing edges of a watercourse or waterbody.
 .Pq Some leeway is required to accommodate situations such as steep-sided river banks.
-.It Fl s , -slope Ar degrees
+.It Fl -slope Ar degrees
 Set the maximum slope for waterbodies.
 This secondary filter ensures remaining non-horizontal voids are ignored.
-.It Fl r , -water
+.It Fl -water
 Extract polygons for waterbodies instead of land areas.
 Unexpected results may occur when using partly-covered tiles.
 Tile extents should be continguous when using this option.
-.It Fl y , -simplify
+.It Fl -simplify
 Simplify the output polygons using Visvalingam's algorithm.
-.It Fl m , -smooth
+.It Fl -smooth
 Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
-.It Fl g , -angle Ar degrees
+.It Fl -angle Ar degrees
 Apply line smoothing using the specified smoothing angle.
-.It Fl x , -discard Ar class,...
+.It Fl -discard Ar class,...
 Choose a list of lidar point classes to discard.
 The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
-.It Fl c , -convention Ar ogc|esri
+.It Fl -convention Ar ogc|esri
 Force polygon orientation according to OGC or ESRI convention.
 By default, GeoJSON files use the OGC convention and shapefiles use the ESRI convention.
-.It Fl l , -multi
+.It Fl -multi
 Collect polygons into a single multipolygon.
-.It Fl e , -epsg Ar number
+.It Fl -epsg Ar number
 Specify an EPSG code to set in the output file.
 Use this option to override missing or incorrect georeferencing in the lidar tiles.
-.It Fl t , -threads Ar number
+.It Fl -threads Ar number
 Select the number of threads to use when processing.
 Defaults to the number of available hardware threads.
-.It Fl i , -tiles Ar tiles.txt
+.It Fl -tiles Ar tiles.txt
 Provide a text file containing a list of lidar tiles to be processed, in place of command-line arguments.
 .It Fl o , -overwrite
 Allow the output file to be overwritten if it already exists.
