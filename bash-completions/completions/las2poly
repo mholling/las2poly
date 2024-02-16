@@ -1,9 +1,9 @@
-_las2land() {
+_las2poly() {
 	local cur prev arg_opts flag_opts file_opts ogc_opts
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 	arg_opts=(-w --width --area --delta --slope --angle --discard --epsg --threads)
-	flag_opts=(--water --simplify --smooth --multi -o --overwrite -q --quiet -v --version -h --help)
+	flag_opts=(--land --simplify --smooth --multi -o --overwrite -q --quiet -v --version -h --help)
 	file_opts=(--tiles)
 	ogc_opts=(--convention)
 
@@ -20,4 +20,4 @@ _las2land() {
 	fi
 }
 
-complete -F _las2land las2land
+complete -F _las2poly las2poly

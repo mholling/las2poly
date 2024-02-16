@@ -3,9 +3,9 @@ require "tmpdir"
 require "open3"
 
 desc "generate README from manpage"
-file "README.md" => "man1/las2land.1" do |md|
-  sh %Q[mandoc -mdoc -T lint -W warning man1/las2land.1]
-  sh %Q[mandoc -mdoc -T markdown man1/las2land.1 > README.md]
+file "README.md" => "man1/las2poly.1" do |md|
+  sh %Q[mandoc -mdoc -T lint -W warning man1/las2poly.1]
+  sh %Q[mandoc -mdoc -T markdown man1/las2poly.1 > README.md]
 end
 
 task default: "README.md"
@@ -15,8 +15,8 @@ file "build" do
   sh %Q[cmake -S . -B build -DCMAKE_BUILD_TYPE=Release]
 end
 
-desc "build las2land binary"
-file "bin/las2land" => FileList["build", "src/*", "CMakeLists.txt"] do
+desc "build las2poly binary"
+file "bin/las2poly" => FileList["build", "src/*", "CMakeLists.txt"] do
   sh %Q[cmake --build build]
   sh %Q[cmake --install build --prefix .]
 end
@@ -30,7 +30,7 @@ end
 
 desc "rebuild when changes detected"
 task :watch do
-  sh %Q[ls src/* man1/* CMakeLists.txt | entr -d -s 'rake bin/las2land README.md']
+  sh %Q[ls src/* man1/* CMakeLists.txt | entr -d -s 'rake bin/las2poly README.md']
 end
 
 desc "test build with gcc"

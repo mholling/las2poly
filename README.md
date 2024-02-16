@@ -1,28 +1,28 @@
-LAS2LAND(1) - General Commands Manual
+LAS2POLY(1) - General Commands Manual
 
 # NAME
 
-**las2land** - extract land areas from lidar tiles
+**las2poly** - extract waterbodies from lidar tiles
 
 # SYNOPSIS
 
-**las2land**
+**las2poly**
 \[options]
 *tile.las*
 \[*tile.las&nbsp;...*]
-*land.json*
+*water.json*
 
 # DESCRIPTION
 
-**las2land**
-delineates land and water areas from a classified lidar point cloud.
+**las2poly**
+delineates waterbodies and land areas from a classified lidar point cloud.
 Airborne lidar data exhibits voids in areas where surface water is present.
 These voids are detected by triangulating the lidar point cloud: groups of large triangles are likely to indicate the presence of water.
 Slope analysis of each group is performed to reject non-horizontal voids, which can occur in steep terrain.
-Land polygons are formed from the outline of the remaining triangles.
+Waterbody polygons are formed from the outline of the remaining triangles.
 
 Input to the program is a list of lidar tiles in LAS format.
-The tiles should share a common projected SRS, typically a UTM projection.
+The tiles should share a common projected SRS, typically a UTM projection, and should preferably be contiguous.
 Points are thinned before triangulation, so no pre-processing is required.
 
 The lidar tiles should be classified to indicate ground points.
@@ -33,7 +33,7 @@ and specular water reflections
 (class 9)
 are discarded.
 
-Output from the program is a polygon file in GeoJSON or shapefile format, representing all land areas present in the lidar tiles.
+Output from the program is a polygon file in GeoJSON or shapefile format, representing all waterbodies found in the lidar tiles.
 File format is chosen according to the filename extension: .json for GeoJSON and .shp for shapefile.
 
 For GeoJSON output, polygons conform to OGC standard, with anticlockwise exteriors and non-self-intersecting rings which may touch at vertices.
@@ -66,11 +66,9 @@ option is required to calibrate the void detection process.
 > Set the maximum slope for waterbodies.
 > This secondary filter ensures remaining non-horizontal voids are ignored.
 
-**--water**
+**--land**
 
-> Extract polygons for waterbodies instead of land areas.
-> Unexpected results may occur when using partly-covered tiles.
-> Tile extents should be continguous when using this option.
+> Extract polygons for land areas instead of waterbodies.
 
 **--simplify**
 
@@ -132,27 +130,27 @@ option is required to calibrate the void detection process.
 
 Process all lidar tiles in current directory:
 
-	$ las2land --width 8 *.las land.json
+	$ las2poly --width 8 *.las water.json
 
 Process tiles from an input file list:
 
-	$ las2land --width 8 --tiles tiles.txt land.json
+	$ las2poly --width 8 --tiles tiles.txt water.json
 
-Extract water areas and save as a shapefile:
+Extract land areas and save as a shapefile:
 
-	$ las2land --water --width 10 *.las water.shp
+	$ las2poly --land --width 10 *.las land.shp
 
 Pipe GeoJSON output to another command for conversion:
 
-	$ las2land --width 8 *.las - | ogr2ogr land.kml /vsistdin/
+	$ las2poly --width 8 *.las - | ogr2ogr water.kml /vsistdin/
 
 Apply line smoothing:
 
-	$ las2land --width 8 --smooth *.las land.json
+	$ las2poly --width 8 --smooth *.las water.json
 
 Add 'bridge deck' points (class 17) to water areas:
 
-	$ las2land --width 8 --discard 0,1,7,9,12,17,18 *.las land.json
+	$ las2poly --width 8 --discard 0,1,7,9,12,17,18 *.las water.json
 
 # LIMITATIONS
 
@@ -180,4 +178,4 @@ threshold can eliminate such problems, at the cost of reduced fidelity.
 
 Matthew Hollingworth
 
-macOS 13.1 - February 15, 2024
+macOS 13.1 - February 16, 2024

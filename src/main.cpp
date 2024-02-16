@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 		auto area       = std::optional<double>();
 		auto delta      = std::optional<double>(1.5);
 		auto slope      = std::optional<double>(5.0);
-		auto water      = std::optional<bool>();
+		auto land       = std::optional<bool>();
 		auto simplify   = std::optional<bool>();
 		auto smooth     = std::optional<bool>();
 		auto angle      = std::optional<double>();
@@ -48,12 +48,12 @@ int main(int argc, char *argv[]) {
 		auto tile_paths = std::vector<std::filesystem::path>();
 		auto output_path = std::filesystem::path();
 
-		Args args(argc, argv, "extract land areas from lidar tiles");
+		Args args(argc, argv, "extract waterbodies from lidar tiles");
 		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                   width);
 		args.option("",   "--area",       "<metres²>",   "minimum waterbody and island area",         area);
 		args.option("",   "--delta",      "<metres>",    "maximum waterbody height delta",            delta);
 		args.option("",   "--slope",      "<degrees>",   "maximum waterbody slope",                   slope);
-		args.option("",   "--water",                     "extract waterbodies instead of land areas", water);
+		args.option("",   "--land",                      "extract land areas instead of waterbodies", land);
 		args.option("",   "--simplify",                  "simplify output polygons",                  simplify);
 		args.option("",   "--smooth",                    "smooth output polygons",                    smooth);
 		args.option("",   "--angle",      "<degrees>",   "smooth output with given angle",            angle);
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 		args.version(VERSION);
 #endif
 		args.position("<tile.las>", "LAS input path", tile_paths);
-		args.position("<land.json>", "GeoJSON or shapefile output path", output_path);
+		args.position("<water.json>", "GeoJSON or shapefile output path", output_path);
 
 		auto const proceed = args.parse([&]() {
 			if (!width)
@@ -141,14 +141,14 @@ int main(int argc, char *argv[]) {
 		auto const ogc = convention ? *convention == "ogc" : output.ogc();
 		auto log = Log(!quiet);
 
-		auto points = Points(tile_paths, *width / std::sqrt(8.0), *discard, water == true, srs, threads->back(), log);
+		auto points = Points(tile_paths, *width / std::sqrt(8.0), *discard, !land, srs, threads->back(), log);
 		auto mesh = Mesh(points, threads->front(), log);
-		auto polygons = Polygons(mesh, *width, *delta, *slope * pi / 180, water == true, ogc, threads->front(), log);
+		auto polygons = Polygons(mesh, *width, *delta, *slope * pi / 180, !land, ogc, threads->front(), log);
 
 		if (simplify || smooth) {
 			log(Log::Time(), smooth ? "smoothing" : "simplifying", Log::Count(), polygons.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
-			polygons.simplify(tolerance, water ? ogc : !ogc, threads->front());
+			polygons.simplify(tolerance, land ? !ogc : ogc, threads->front());
 		}
 
 		if (smooth) {
