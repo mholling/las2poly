@@ -223,8 +223,9 @@ public:
 
 	void operator()(MultiPolygon const &multipolygon, OptionalSRS const &srs) {
 		auto polygons = Polygons();
-		for (auto &rings = polygons.emplace_back(); auto const &polygon: multipolygon)
-			rings.insert(rings.end(), polygon.begin(), polygon.end());
+		if (!multipolygon.empty())
+			for (auto &rings = polygons.emplace_back(); auto const &polygon: multipolygon)
+				rings.insert(rings.end(), polygon.begin(), polygon.end());
 		(*this)(polygons, srs);
 	}
 
