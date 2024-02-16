@@ -11,8 +11,8 @@
 #include "srs.hpp"
 #include <limits>
 #include <bit>
-#include <algorithm>
 #include <cstdint>
+#include <algorithm>
 #include <filesystem>
 #include <numeric>
 #include <stdexcept>
@@ -26,6 +26,8 @@ static_assert(std::numeric_limits<double>::is_iec559);
 static_assert(std::endian::native == std::endian::big || std::endian::native == std::endian::little);
 
 class Shapefile {
+	auto static constexpr int32_max = std::numeric_limits<std::int32_t>::max();
+
 	template <typename Value, unsigned offset>
 	void static little(char *data, Value value) {
 		*reinterpret_cast<Value *>(data + offset) = value;
@@ -67,7 +69,7 @@ class Shapefile {
 				});
 			});
 
-			if (shp_file_length > sizeof(std::uint16_t) * INT32_MAX)
+			if (shp_file_length > sizeof(std::uint16_t) * int32_max)
 				throw std::runtime_error("too many points for shapefile format");
 
 			char file_header[file_header_size] = {0};
@@ -213,7 +215,7 @@ public:
 	Shapefile(std::filesystem::path const &shp_path) : shpx(shp_path), dbf(shp_path), prj(shp_path) { }
 
 	void operator()(Polygons const &polygons, OptionalSRS const &srs) {
-		if (polygons.size() >= INT32_MAX)
+		if (polygons.size() >= int32_max)
 			throw std::runtime_error("too many polygons for shapefile format");
 		shpx(polygons);
 		dbf(polygons);
