@@ -48,7 +48,10 @@ class Tile {
 		Tile &tile;
 		std::size_t index;
 
-		Iterator(Tile &tile, std::size_t index) : tile(tile), index(index) { }
+		Iterator(Tile &tile, std::size_t index) :
+			tile(tile),
+			index(index)
+		{ }
 
 		auto &operator++() {
 			++index;

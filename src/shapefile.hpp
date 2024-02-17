@@ -212,7 +212,11 @@ class Shapefile {
 	PRJ prj;
 
 public:
-	Shapefile(std::filesystem::path const &shp_path) : shpx(shp_path), dbf(shp_path), prj(shp_path) { }
+	Shapefile(std::filesystem::path const &shp_path) :
+		shpx(shp_path),
+		dbf(shp_path),
+		prj(shp_path)
+	{ }
 
 	void operator()(Polygons const &polygons, OptionalSRS const &srs) {
 		if (polygons.size() >= int32_max)

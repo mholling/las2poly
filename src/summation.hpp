@@ -12,7 +12,10 @@ class Summation {
 	double compensation;
 
 public:
-	Summation(double &sum) : sum(sum), compensation(0) { }
+	Summation(double &sum) :
+		sum(sum),
+		compensation(0)
+	{ }
 
 	auto &operator+=(double value) {
 		auto const compensated_value = value - compensation;

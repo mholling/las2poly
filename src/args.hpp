@@ -55,7 +55,12 @@ class Args {
 		std::string description;
 		Callback callback;
 
-		Position(bool variadic, std::string format, std::string description, Callback callback) : variadic(variadic), format(format), description(description), callback(callback) { }
+		Position(bool variadic, std::string format, std::string description, Callback callback) :
+			variadic(variadic),
+			format(format),
+			description(description),
+			callback(callback)
+		{ }
 	};
 
 	std::string command, banner;

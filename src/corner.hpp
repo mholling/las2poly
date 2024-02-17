@@ -20,7 +20,10 @@ struct Corner {
 	Ring *ring;
 	VertexIterator here;
 
-	Corner(Ring *ring, VertexIterator here) : ring(ring), here(here) { }
+	Corner(Ring *ring, VertexIterator here) :
+		ring(ring),
+		here(here)
+	{ }
 
 	auto &operator++() {
 		++here;

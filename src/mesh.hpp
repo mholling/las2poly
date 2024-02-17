@@ -74,7 +74,11 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		Edge edge;
 		bool interior;
 
-		Iterator(Mesh &mesh, Edge edge, bool interior) : mesh(mesh), edge(edge), interior(interior) { }
+		Iterator(Mesh &mesh, Edge edge, bool interior) :
+			mesh(mesh),
+			edge(edge),
+			interior(interior)
+		{ }
 
 		auto peek() const {
 			return interior ? mesh.next_interior(edge) : mesh.next_exterior(edge);

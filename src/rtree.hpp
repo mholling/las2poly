@@ -77,7 +77,10 @@ class RTree {
 				return *this;
 			}
 
-			Iterator(Search &search) : search(search), index(0) { }
+			Iterator(Search &search) :
+				search(search),
+				index(0)
+			{ }
 
 			auto &operator++() {
 				search.pop();
