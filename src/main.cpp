@@ -10,6 +10,7 @@
 #include "log.hpp"
 #include "points.hpp"
 #include "mesh.hpp"
+#include "edges.hpp"
 #include "polygons.hpp"
 #include <algorithm>
 #include <thread>
@@ -143,7 +144,8 @@ int main(int argc, char *argv[]) {
 
 		auto points = Points(tile_paths, *width / std::sqrt(8.0), *discard, !land, srs, threads->back(), log);
 		auto mesh = Mesh(points, threads->front(), log);
-		auto polygons = Polygons(mesh, *width, *delta, *slope * pi / 180, !land, ogc, threads->front(), log);
+		auto edges = Edges(mesh, *width, *delta, *slope * pi / 180, !land, ogc, threads->front(), log);
+		auto polygons = Polygons(edges, ogc);
 
 		if (simplify || smooth) {
 			log(Log::Time(), smooth ? "smoothing" : "simplifying", Log::Count(), polygons.ring_count(), "ring");

@@ -10,7 +10,6 @@
 #include "point.hpp"
 #include "points.hpp"
 #include "edge.hpp"
-#include "edges.hpp"
 #include "circle.hpp"
 #include "triangle.hpp"
 #include "triangles.hpp"
@@ -335,6 +334,7 @@ public:
 		triangulate(points.begin(), points.end(), threads);
 	}
 
+	template <typename Edges>
 	void deconstruct(Triangles &triangles, Edges &edges, double width, bool anticlockwise, int threads) {
 		strip_exterior(points.begin(), points.end(), anticlockwise, [&](auto const &edge) {
 			edges.insert(-edge);
