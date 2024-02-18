@@ -140,23 +140,26 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error("output file already exists");
 
 		auto const ogc = convention ? *convention == "ogc" : output.ogc();
+		auto const cpu_threads = threads->front();
+		auto const io_threads = threads->back();
+
 		auto log = Log(!quiet);
 
-		auto points = Points(tile_paths, *width / std::sqrt(8.0), *discard, !land, srs, threads->back(), log);
-		auto mesh = Mesh(points, threads->front(), log);
-		auto edges = Edges(mesh, *width, *delta, *slope * pi / 180, !land, ogc, threads->front(), log);
+		auto points = Points(tile_paths, *width / std::sqrt(8.0), *discard, !land, srs, io_threads, log);
+		auto mesh = Mesh(points, cpu_threads, log);
+		auto edges = Edges(mesh, *width, *delta, *slope * pi / 180, !land, ogc, cpu_threads, log);
 		auto polygons = Polygons(edges, ogc);
 
 		if (simplify || smooth) {
 			log(Log::Time(), smooth ? "smoothing" : "simplifying", Log::Count(), polygons.ring_count(), "ring");
 			auto const tolerance = 4 * *width * *width;
-			polygons.simplify(tolerance, land ? !ogc : ogc, threads->front());
+			polygons.simplify(tolerance, land ? !ogc : ogc, cpu_threads);
 		}
 
 		if (smooth) {
 			auto const radians = *angle * pi / 180;
 			auto const tolerance = 0.5 * *width / std::sin(radians);
-			polygons.smooth(tolerance, radians, threads->front());
+			polygons.smooth(tolerance, radians, cpu_threads);
 		}
 
 		if (*area > 0)
