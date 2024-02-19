@@ -11,6 +11,7 @@
 #include "bounds.hpp"
 #include "srs.hpp"
 #include "tile.hpp"
+#include "app.hpp"
 #include "log.hpp"
 #include "fill.hpp"
 #include <vector>
@@ -67,11 +68,11 @@ class Points : public std::vector<Point> {
 				std::pair<int, int>(p2[0] / resolution, p2[1] / resolution);
 		}
 
-		void operator()(Points &points, Tile &&tile, Discard const &discard) const {
+		void operator()(App const &app, Points &points, Tile &&tile) const {
 			points.reserve(tile.size());
 
 			for (auto const point: tile)
-				if (!point.withheld && (point.key_point || !discard.contains(point.classification)))
+				if (!point.withheld && (point.key_point || !app.discard.contains(point.classification)))
 					points.push_back(point);
 			std::sort(points.begin(), points.end(), *this);
 
@@ -109,7 +110,7 @@ class Points : public std::vector<Point> {
 		}
 	};
 
-	Points(PathIterator begin, PathIterator end, Thin const &thin, Discard const &discard, OptionalSRS const &srs, std::mutex &mutex, std::exception_ptr &exception, int threads) {
+	Points(App const &app, PathIterator begin, PathIterator end, Thin const &thin, std::mutex &mutex, std::exception_ptr &exception, int threads) {
 		if (auto lock = std::lock_guard(mutex); exception)
 			return;
 		try {
@@ -119,11 +120,11 @@ class Points : public std::vector<Point> {
 				try {
 					if (path == "-") {
 						std::cin.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-						thin(*this, Tile(std::cin), discard);
+						thin(app, *this, Tile(std::cin));
 					} else {
 						auto input = std::ifstream(path, std::ios::binary);
 						input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-						thin(*this, Tile(input), discard);
+						thin(app, *this, Tile(input));
 					}
 				} catch (std::ios_base::failure &) {
 					throw std::runtime_error(path.string() + ": problem reading file");
@@ -131,22 +132,22 @@ class Points : public std::vector<Point> {
 					throw std::runtime_error(path.string() + ": " + error.what());
 				}
 			} else if (1 == threads) {
-				auto points1 = Points(begin, middle, thin, discard, srs, mutex, exception, 1);
-				auto points2 = Points(middle, end, thin, discard, srs, mutex, exception, 1);
+				auto points1 = Points(app, begin, middle, thin, mutex, exception, 1);
+				auto points2 = Points(app, middle, end, thin, mutex, exception, 1);
 				thin(*this, points1, points2);
 			} else {
 				auto points1 = Points();
 				auto points2 = Points();
 				auto thread1 = std::thread([&]() {
-					points1 = Points(begin, middle, thin, discard, srs, mutex, exception, threads/2);
+					points1 = Points(app, begin, middle, thin, mutex, exception, threads/2);
 				}), thread2 = std::thread([&]() {
-					points2 = Points(middle, end, thin, discard, srs, mutex, exception, threads - threads/2);
+					points2 = Points(app, middle, end, thin, mutex, exception, threads - threads/2);
 				});
 				thread1.join(), thread2.join();
 				thin(*this, points1, points2);
 			}
-			if (srs)
-				distinct_srs = {srs};
+			if (app.srs)
+				distinct_srs = {app.srs};
 			if (distinct_srs.size() > 1)
 				throw std::runtime_error("dissimilar SRS or EPSG codes detected");
 		} catch (std::runtime_error &) {
@@ -156,22 +157,21 @@ class Points : public std::vector<Point> {
 	}
 
 public:
-	Points(Paths const &tile_paths, double resolution, std::vector<int> const &discard_ints, bool water, OptionalSRS const &srs, int threads, Log &log) {
-		auto const thin = Thin(resolution);
-		auto const discard = Discard(discard_ints.begin(), discard_ints.end());
+	Points(App const &app) {
+		auto const thin = Thin(app.resolution);
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();
 
-		log(Log::Time(), "reading", Log::Count(), tile_paths.size(), "file");
-		*this = Points(tile_paths.begin(), tile_paths.end(), thin, discard, srs, mutex, exception, threads);
+		app.log(Log::Time(), "reading", Log::Count(), app.tile_paths.size(), "file");
+		*this = Points(app, app.tile_paths.begin(), app.tile_paths.end(), thin, mutex, exception, app.threads);
 
 		if (exception)
 			std::rethrow_exception(exception);
 
-		if (water && size() > 2) {
-			log(Log::Time(), "synthesising surrounding points");
+		if (!app.land && size() > 2) {
+			app.log(Log::Time(), "synthesising surrounding points");
 			auto const overall_bounds = std::accumulate(tile_bounds.begin(), tile_bounds.end(), Bounds());
-			auto fill = Fill(overall_bounds, resolution);
+			auto fill = Fill(overall_bounds, app.resolution);
 
 			for (auto const &bounds: tile_bounds)
 				fill(bounds);

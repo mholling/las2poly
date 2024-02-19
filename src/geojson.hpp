@@ -7,11 +7,12 @@
 #ifndef GEOJSON_HPP
 #define GEOJSON_HPP
 
+#include "vector.hpp"
+#include "ring.hpp"
 #include "polygons.hpp"
 #include "srs.hpp"
-#include "ring.hpp"
-#include "vector.hpp"
 #include <sstream>
+#include <optional>
 #include <filesystem>
 #include <utility>
 #include <iostream>
@@ -20,7 +21,7 @@
 
 class GeoJSON {
 	std::stringstream stream;
-	std::filesystem::path json_path;
+	std::optional<std::filesystem::path> json_path;
 
 	template <typename Value>
 	auto &operator<<(Value const &value) {
@@ -74,7 +75,7 @@ class GeoJSON {
 	}
 
 public:
-	GeoJSON(std::filesystem::path const &json_path) : json_path(json_path) {
+	GeoJSON(std::optional<std::filesystem::path> const &json_path) : json_path(json_path) {
 		stream.precision(15);
 	}
 
@@ -85,17 +86,16 @@ public:
 			*this << *srs << ",";
 		*this << "\"features\":" << polygons << "}";
 
-		if (json_path == "-")
-			std::cout << *this << std::endl;
-		else {
-			auto file = std::ofstream(json_path);
+		if (json_path) {
+			auto file = std::ofstream(*json_path);
 			file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 			file << *this << std::endl;
-		}
+		} else
+			std::cout << *this << std::endl;
 	}
 
 	operator bool() const {
-		return json_path != "-" && std::filesystem::exists(json_path);
+		return json_path && std::filesystem::exists(*json_path);
 	}
 };
 

@@ -65,7 +65,7 @@ public:
 	Log(bool loud) : optional(loud ? Optional(std::in_place_t()) : Optional()) { }
 
 	template <typename ...Args>
-	void operator()(Args const &...args) {
+	void operator()(Args const &...args) const {
 		if (optional)
 			(*optional)(args...);
 	}

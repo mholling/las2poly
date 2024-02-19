@@ -8,7 +8,9 @@
 #define EDGES_HPP
 
 #include "edge.hpp"
+#include "app.hpp"
 #include "triangles.hpp"
+#include "vector.hpp"
 #include "summation.hpp"
 #include "mesh.hpp"
 #include "log.hpp"
@@ -18,7 +20,7 @@
 #include <cmath>
 
 class Edges : public std::unordered_set<Edge> {
-	auto static is_water(Triangles const &triangles, double delta, double slope) {
+	auto static is_water(App const &app, Triangles const &triangles) {
 		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
 		auto perp_sum_z = Summation(perp_sum[2]);
 
@@ -49,21 +51,21 @@ class Edges : public std::unordered_set<Edge> {
 			}
 		}
 
-		return delta_sum < delta * delta_count && std::abs(perp_sum[2]) > std::cos(slope) * perp_sum.norm();
+		return delta_sum < app.delta * delta_count && std::abs(perp_sum[2]) > std::cos(app.slope) * perp_sum.norm();
 	}
 
 public:
-	Edges(Mesh &mesh, double width, double delta, double slope, bool water, bool ogc, int threads, Log &log) {
+	Edges(App const &app, Mesh &mesh) {
 		auto large_triangles = Triangles();
 
-		log(Log::Time(), "extracting polygon edges");
-		mesh.deconstruct(large_triangles, *this, width, ogc != water, threads);
+		app.log(Log::Time(), "extracting polygon edges");
+		mesh.deconstruct(app, large_triangles, *this);
 
-		if (water)
+		if (!app.land)
 			clear();
 
 		large_triangles.explode([=, this](auto const &&triangles) {
-			if ((*this || triangles) || is_water(triangles, delta, slope))
+			if ((*this || triangles) || is_water(app, triangles))
 				for (auto const &triangle: triangles)
 					*this -= triangle;
 		});

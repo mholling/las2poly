@@ -11,8 +11,10 @@
 #include "points.hpp"
 #include "edge.hpp"
 #include "circle.hpp"
-#include "triangle.hpp"
 #include "triangles.hpp"
+#include "triangle.hpp"
+#include "rtree.hpp"
+#include "app.hpp"
 #include "log.hpp"
 #include <vector>
 #include <algorithm>
@@ -316,7 +318,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 public:
-	Mesh(Points &points, int threads, Log &log) : vector(points.size()), points(points) {
+	Mesh(App const &app, Points &points) : vector(points.size()), points(points) {
 		auto const ground_begin = std::partition(points.begin(), points.end(), [](auto const &point) {
 			return point.withheld;
 		});
@@ -324,22 +326,23 @@ public:
 			return point.ground();
 		});
 
-		log(Log::Time(), "triangulating", Log::Count(), ground_end - ground_begin, "ground point");
-		triangulate(ground_begin, ground_end, threads);
+		app.log(Log::Time(), "triangulating", Log::Count(), ground_end - ground_begin, "ground point");
+		triangulate(ground_begin, ground_end, app.threads);
 
-		log(Log::Time(), "interpolating", Log::Count(), points.end() - ground_end, "remaining point");
-		interpolate(ground_begin, ground_end, threads);
+		app.log(Log::Time(), "interpolating", Log::Count(), points.end() - ground_end, "remaining point");
+		interpolate(ground_begin, ground_end, app.threads);
 
-		log(Log::Time(), "triangulating", Log::Count(), points.size(), "point");
-		triangulate(points.begin(), points.end(), threads);
+		app.log(Log::Time(), "triangulating", Log::Count(), points.size(), "point");
+		triangulate(points.begin(), points.end(), app.threads);
 	}
 
 	template <typename Edges>
-	void deconstruct(Triangles &triangles, Edges &edges, double width, bool anticlockwise, int threads) {
+	void deconstruct(App const &app, Triangles &triangles, Edges &edges) {
+		auto const anticlockwise = app.ogc == app.land;
 		strip_exterior(points.begin(), points.end(), anticlockwise, [&](auto const &edge) {
 			edges.insert(-edge);
 		});
-		deconstruct(triangles, points.begin(), points.end(), width, anticlockwise, threads);
+		deconstruct(triangles, points.begin(), points.end(), app.width, anticlockwise, app.threads);
 	}
 };
 

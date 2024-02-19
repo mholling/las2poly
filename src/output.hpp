@@ -9,6 +9,7 @@
 
 #include "geojson.hpp"
 #include "shapefile.hpp"
+#include "app.hpp"
 #include <variant>
 #include <filesystem>
 #include <utility>
@@ -16,24 +17,19 @@
 
 class Output {
 	using Variant = std::variant<GeoJSON, Shapefile>;
-
-	auto static from(std::filesystem::path const &path) {
-		if (path == "-")
-			return Variant(std::in_place_type_t<GeoJSON>(), path);
-		if (path.extension() == ".json")
-			return Variant(std::in_place_type_t<GeoJSON>(), path);
-		if (path.extension() == ".shp")
-			return Variant(std::in_place_type_t<Shapefile>(), path);
-		throw std::runtime_error("output file extension must be .json or .shp");
-	}
-
 	Variant variant;
 
-public:
-	Output(std::filesystem::path const &path) : variant(from(path)) { }
+	auto static from(App const &app) {
+		if (app.path && app.path->extension() == ".shp")
+			return Variant(std::in_place_type_t<Shapefile>(), *app.path);
+		else
+			return Variant(std::in_place_type_t<GeoJSON>(), app.path);
+	}
 
-	auto ogc() const {
-		return std::holds_alternative<GeoJSON>(variant);
+public:
+	Output(App const &app) : variant(from(app)) {
+		if (!app.overwrite && *this)
+			throw std::runtime_error("output file already exists");
 	}
 
 	operator bool() const {
