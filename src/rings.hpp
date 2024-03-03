@@ -51,10 +51,10 @@ struct Rings : std::vector<Ring> {
 				connections.erase(std::exchange(connection, connections.find(connection->second)));
 			}
 
-			auto const ring = Ring(edges);
+			auto const ring = Ring(edges, ogc);
 			if (!exterior)
 				push_back(ring);
-			else if (ring.anticlockwise() == ogc)
+			else if (ring.exterior())
 				push_back(ring);
 			else
 				interior_edges.insert(interior_edges.end(), edges.begin(), edges.end());

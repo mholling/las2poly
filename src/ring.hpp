@@ -15,11 +15,14 @@
 #include <algorithm>
 #include <compare>
 
-struct Ring : std::list<Vector<2>> {
+class Ring : public std::list<Vector<2>> {
 	using Vertex = Vector<2>;
 
+	bool ogc;
+
+public:
 	template <typename Edges>
-	Ring(Edges const &edges) {
+	Ring(Edges const &edges, bool ogc) : ogc(ogc) {
 		for (auto const &[p1, p2]: edges)
 			push_back(*p1);
 	}
@@ -37,7 +40,11 @@ struct Ring : std::list<Vector<2>> {
 		return Corner(this, leftmost).cross() > 0;
 	}
 
-	auto signed_area(bool ogc) const {
+	auto exterior() const {
+		return anticlockwise() == ogc;
+	}
+
+	auto signed_area() const {
 		auto cross_product_sum = 0.0;
 		auto const v = *begin();
 		for (auto summation = Summation(cross_product_sum); auto const &[v0, v1, v2]: corners())

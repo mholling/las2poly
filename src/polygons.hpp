@@ -37,11 +37,11 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 
 	Polygons(App const &app, Edges const &edges) {
 		auto rings = Rings(edges, app.ogc);
-		auto holes_begin = std::partition(rings.begin(), rings.end(), [&app](auto const &ring) {
-			return ring.anticlockwise() == app.ogc;
+		auto holes_begin = std::partition(rings.begin(), rings.end(), [](auto const &ring) {
+			return ring.exterior();
 		});
-		std::sort(rings.begin(), holes_begin, [&app](auto const &ring1, auto const &ring2) {
-			return ring1.signed_area(app.ogc) < ring2.signed_area(app.ogc);
+		std::sort(rings.begin(), holes_begin, [](auto const &ring1, auto const &ring2) {
+			return ring1.signed_area() < ring2.signed_area();
 		});
 
 		auto remaining = holes_begin;
@@ -69,9 +69,9 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 		if (app.area > 0)
 			erase(std::remove_if(begin(), end(), [=](auto &polygon) {
 				polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [&app](auto const &ring) {
-					return ring.signed_area(app.ogc) > -app.area;
+					return ring.signed_area() > -app.area;
 				}), polygon.end());
-				return polygon.front().signed_area(app.ogc) < app.area;
+				return polygon.front().signed_area() < app.area;
 			}), end());
 	}
 };
