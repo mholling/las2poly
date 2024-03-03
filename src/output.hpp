@@ -10,14 +10,17 @@
 #include "geojson.hpp"
 #include "shapefile.hpp"
 #include "app.hpp"
+#include "polygons.hpp"
+#include "points.hpp"
 #include <variant>
-#include <filesystem>
 #include <utility>
 #include <stdexcept>
 
 class Output {
 	using Variant = std::variant<GeoJSON, Shapefile>;
+
 	Variant variant;
+	App const &app;
 
 	auto static from(App const &app) {
 		if (app.path && app.path->extension() == ".shp")
@@ -26,10 +29,9 @@ class Output {
 			return Variant(std::in_place_type_t<GeoJSON>(), app.path);
 	}
 
-public:
-	Output(App const &app) : variant(from(app)) {
-		if (!app.overwrite && *this)
-			throw std::runtime_error("output file already exists");
+	template <typename ...Args>
+	void operator()(Args const &...args) {
+		std::visit([&](auto &output) { output(args...); }, variant);
 	}
 
 	operator bool() const {
@@ -37,9 +39,18 @@ public:
 		return std::visit(exists, variant);
 	}
 
-	template <typename Polygons, typename OptionalSRS>
-	void operator()(Polygons const &polygons, OptionalSRS const &srs) {
-		std::visit([&](auto &output) { output(polygons, srs); }, variant);
+public:
+	Output(App const &app) : variant(from(app)), app(app) {
+		if (!app.overwrite && *this)
+			throw std::runtime_error("output file already exists");
+	}
+
+	void operator()(Polygons const &polygons, Points const &points) {
+		app.log("saving", polygons.size(), "polygon");
+		if (app.multi)
+			(*this)(polygons.multi(), points.srs());
+		else
+			(*this)(polygons, points.srs());
 	}
 };
 

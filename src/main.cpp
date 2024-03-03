@@ -22,12 +22,7 @@ int main(int argc, char *argv[]) {
 		auto mesh = Mesh(app, points);
 		auto edges = Edges(app, mesh);
 		auto polygons = Polygons(app, edges);
-
-		app.log("saving", polygons.size(), "polygon");
-		if (app.multi)
-			output(polygons.multi(), points.srs());
-		else
-			output(polygons, points.srs());
+		output(polygons, points);
 
 		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {
