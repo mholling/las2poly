@@ -25,8 +25,6 @@ struct Bounds {
 		ymax(-std::numeric_limits<double>::infinity())
 	{ }
 
-	Bounds(Bounds const &bounds) = default;
-
 	Bounds(Vector<2> const &vector) {
 		auto const &[x, y] = vector;
 		xmin = xmax = x, ymin = ymax = y;
@@ -48,8 +46,6 @@ struct Bounds {
 		std::tie(xmin, xmax) = std::minmax({x0, x1, x2});
 		std::tie(ymin, ymax) = std::minmax({y0, y1, y2});
 	}
-
-	Bounds &operator=(Bounds const &bounds) = default;
 
 	auto &operator+=(Bounds const &other) {
 		xmin = std::min(xmin, other.xmin), xmax = std::max(xmax, other.xmax);
