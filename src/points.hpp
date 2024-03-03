@@ -26,6 +26,7 @@
 #include <mutex>
 #include <iostream>
 #include <fstream>
+#include <variant>
 #include <thread>
 #include <numeric>
 #include <cstddef>
@@ -37,8 +38,6 @@ class Points : public std::vector<Point> {
 
 	std::vector<Bounds> tile_bounds;
 	std::set<OptionalSRS> distinct_srs;
-
-	Points() = default;
 
 	void update(Tile &tile) {
 		if (tile.bounds.empty())
@@ -109,6 +108,7 @@ class Points : public std::vector<Point> {
 		}
 	};
 
+public:
 	Points(App const &app, PathIterator begin, PathIterator end, Thin const &thin, std::mutex &mutex, std::exception_ptr &exception, int threads) {
 		if (auto lock = std::lock_guard(mutex); exception)
 			return;
@@ -135,15 +135,15 @@ class Points : public std::vector<Point> {
 				auto points2 = Points(app, middle, end, thin, mutex, exception, 1);
 				thin(*this, points1, points2);
 			} else {
-				auto points1 = Points();
-				auto points2 = Points();
+				auto points1 = std::optional<Points>();
+				auto points2 = std::optional<Points>();
 				auto thread1 = std::thread([&]() {
-					points1 = Points(app, begin, middle, thin, mutex, exception, threads/2);
+					points1.emplace(app, begin, middle, thin, mutex, exception, threads/2);
 				}), thread2 = std::thread([&]() {
-					points2 = Points(app, middle, end, thin, mutex, exception, threads - threads/2);
+					points2.emplace(app, middle, end, thin, mutex, exception, threads - threads/2);
 				});
 				thread1.join(), thread2.join();
-				thin(*this, points1, points2);
+				thin(*this, *points1, *points2);
 			}
 			if (app.srs)
 				distinct_srs = {app.srs};
@@ -155,7 +155,6 @@ class Points : public std::vector<Point> {
 		}
 	}
 
-public:
 	Points(App const &app) {
 		auto const thin = Thin(app.resolution);
 		auto mutex = std::mutex();
