@@ -56,7 +56,7 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 		});
 
 		if (app.simplify || app.smooth) {
-			app.log(Log::Time(), app.smooth ? "smoothing" : "simplifying", Log::Count(), ring_count(), "ring");
+			app.log(app.smooth ? "smoothing" : "simplifying", ring_count(), "ring");
 			auto const tolerance = 4 * app.width * app.width;
 			simplify(tolerance, app.land ? !app.ogc : app.ogc, app.threads);
 		}

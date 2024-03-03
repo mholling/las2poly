@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 		auto edges = Edges(app, mesh);
 		auto polygons = Polygons(app, edges);
 
-		app.log(Log::Time(), "saving", Log::Count(), polygons.size(), "polygon");
+		app.log("saving", polygons.size(), "polygon");
 		if (app.multi)
 			output(polygons.multi(), points.srs());
 		else

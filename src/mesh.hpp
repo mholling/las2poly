@@ -15,7 +15,6 @@
 #include "triangle.hpp"
 #include "rtree.hpp"
 #include "app.hpp"
-#include "log.hpp"
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
@@ -326,13 +325,13 @@ public:
 			return point.ground();
 		});
 
-		app.log(Log::Time(), "triangulating", Log::Count(), ground_end - ground_begin, "ground point");
+		app.log("triangulating", ground_end - ground_begin, "ground point");
 		triangulate(ground_begin, ground_end, app.threads);
 
-		app.log(Log::Time(), "interpolating", Log::Count(), points.end() - ground_end, "remaining point");
+		app.log("interpolating", points.end() - ground_end, "remaining point");
 		interpolate(ground_begin, ground_end, app.threads);
 
-		app.log(Log::Time(), "triangulating", Log::Count(), points.size(), "point");
+		app.log("triangulating", points.size(), "point");
 		triangulate(points.begin(), points.end(), app.threads);
 	}
 

@@ -9,14 +9,12 @@
 
 #include <chrono>
 #include <iostream>
+#include <type_traits>
+#include <iomanip>
 #include <optional>
 #include <utility>
 
-struct Log {
-	struct Count { };
-	struct Time { };
-
-private:
+class Log {
 	class Loud {
 		auto static now() {
 			return std::chrono::system_clock::now();
@@ -24,36 +22,36 @@ private:
 
 		std::chrono::time_point<std::chrono::system_clock> start;
 
-	public:
-		Loud() : start(now()) { }
-
-		void operator()() const {
+		void print() const {
 			std::cerr << std::endl;
 		}
 
 		template <typename Arg, typename ...Args>
-		void operator()(Arg const &arg, Args const &...args) const {
+		void print(Arg const &arg, Args const &...args) const {
 			std::cerr << arg;
-			(*this)(args...);
+			print(args...);
 		}
 
-		template <typename Value, typename Name, typename ...Args>
-		void operator()(Count, Value value, Name const &name, Args const &...args) const {
+		template <typename Value, typename Name, typename ...Args> requires (std::is_integral_v<Value>)
+		void print(Value value, Name const &name, Args const &...args) const {
 			auto static constexpr suffixes = {"","k","M","G"};
 			auto suffix = suffixes.begin();
 			double decimal = value;
 			for (; decimal >= 999.95 && suffix + 1 < suffixes.end(); decimal *= 0.001, ++suffix) ;
-			(*this)(" ", std::fixed, std::setprecision(value < 1000 ? 0 : 1), decimal, *suffix, " ", name, value == 1 ? "" : "s", args...);
+			print(" ", std::fixed, std::setprecision(value < 1000 ? 0 : 1), decimal, *suffix, " ", name, value == 1 ? "" : "s", args...);
 		}
 
+	public:
+		Loud() : start(now()) { }
+
 		template <typename ...Args>
-		void operator()(Time, Args const &...args) const {
+		void operator()(Args const &...args) const {
 			auto elapsed = std::chrono::duration<double>(now() - start);
 			auto minutes = std::chrono::duration_cast<std::chrono::minutes>(elapsed);
 			if (minutes.count() > 0)
-				(*this)(minutes.count(), "m", std::fixed, std::setw(2), std::setfill('0'), std::setprecision(0), (elapsed - minutes).count(), "s: ", args...);
+				print(minutes.count(), "m", std::fixed, std::setw(2), std::setfill('0'), std::setprecision(0), (elapsed - minutes).count(), "s: ", args...);
 			else
-				(*this)(std::fixed, std::setprecision(1), elapsed.count(), "s: ", args...);
+				print(std::fixed, std::setprecision(1), elapsed.count(), "s: ", args...);
 		}
 	};
 

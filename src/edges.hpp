@@ -13,7 +13,6 @@
 #include "vector.hpp"
 #include "summation.hpp"
 #include "mesh.hpp"
-#include "log.hpp"
 #include "triangle.hpp"
 #include <unordered_set>
 #include <algorithm>
@@ -58,7 +57,7 @@ public:
 	Edges(App const &app, Mesh &mesh) {
 		auto large_triangles = Triangles();
 
-		app.log(Log::Time(), "extracting polygon edges");
+		app.log("extracting polygon edges");
 		mesh.deconstruct(app, large_triangles, *this);
 
 		if (!app.land)

@@ -12,7 +12,6 @@
 #include "srs.hpp"
 #include "tile.hpp"
 #include "app.hpp"
-#include "log.hpp"
 #include "fill.hpp"
 #include <vector>
 #include <filesystem>
@@ -162,14 +161,14 @@ public:
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();
 
-		app.log(Log::Time(), "reading", Log::Count(), app.tile_paths.size(), "file");
+		app.log("reading", app.tile_paths.size(), "file");
 		*this = Points(app, app.tile_paths.begin(), app.tile_paths.end(), thin, mutex, exception, app.threads);
 
 		if (exception)
 			std::rethrow_exception(exception);
 
 		if (!app.land && size() > 2) {
-			app.log(Log::Time(), "synthesising surrounding points");
+			app.log("synthesising surrounding points");
 			auto const overall_bounds = std::accumulate(tile_bounds.begin(), tile_bounds.end(), Bounds());
 			auto fill = Fill(overall_bounds, app.resolution);
 
