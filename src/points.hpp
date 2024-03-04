@@ -26,7 +26,7 @@
 #include <mutex>
 #include <iostream>
 #include <fstream>
-#include <variant>
+#include <optional>
 #include <thread>
 #include <numeric>
 #include <cstddef>
