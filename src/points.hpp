@@ -52,11 +52,13 @@ class Points : public std::vector<Point> {
 	}
 
 	struct Thin {
+		auto static constexpr web_mercator_range = 40097932.2;
+		auto static constexpr min_resolution = web_mercator_range / std::numeric_limits<int>::max();
+
 		double resolution;
 
 		Thin(double resolution) : resolution(resolution) {
-			auto static constexpr web_mercator_range = 40097932.2;
-			if (web_mercator_range / resolution > std::numeric_limits<int>::max())
+			if (resolution < min_resolution)
 				throw std::runtime_error("width value too small");
 		}
 
