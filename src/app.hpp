@@ -10,6 +10,8 @@
 #include "args.hpp"
 #include "srs.hpp"
 #include "log.hpp"
+#include "vector.hpp"
+#include "summation.hpp"
 #include <unordered_set>
 #include <vector>
 #include <filesystem>
@@ -191,6 +193,41 @@ struct App {
 			app.srs.emplace(*epsg);
 
 		return app;
+	}
+
+	template <typename Triangles>
+	auto is_water(Triangles const &triangles) const {
+		auto perp_sum = Vector<3>{{0.0, 0.0, 0.0}};
+		auto perp_sum_z = Summation(perp_sum[2]);
+
+		auto delta_sum = 0.0;
+		auto delta_count = 0ul;
+		auto delta_summer = Summation(delta_sum);
+
+		for (auto edges: triangles) {
+			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end(), [](auto const &edge1, auto const &edge2) {
+				return (*edge1.second - *edge1.first).sqnorm() < (*edge2.second - *edge2.first).sqnorm();
+			}), edges.end());
+
+			auto const perp = edges[1] ^ edges[2];
+			auto const &p0 = *edges[0].first;
+			auto const &p1 = *edges[1].first;
+			auto const &p2 = *edges[2].first;
+
+			if (p0.withheld || p1.withheld || p2.withheld) {
+				perp_sum_z += perp.norm();
+				delta_count += 2;
+			} else if (p0.ground() && p1.ground() && p2.ground()) {
+				perp_sum[0] += perp[0];
+				perp_sum[1] += perp[1];
+				perp_sum_z  += perp[2];
+				delta_summer += std::abs(p1.elevation - p2.elevation);
+				delta_summer += std::abs(p2.elevation - p0.elevation);
+				delta_count += 2;
+			}
+		}
+
+		return delta_sum < delta * delta_count && std::abs(perp_sum[2]) > std::cos(slope) * perp_sum.norm();
 	}
 };
 
