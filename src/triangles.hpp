@@ -11,6 +11,8 @@
 #include "edge.hpp"
 #include <unordered_set>
 #include <unordered_map>
+#include <iterator>
+#include <cstddef>
 
 class Triangles : public std::unordered_set<Triangle> {
 	struct Neighbours : std::unordered_map<Edge, Triangle> {
@@ -40,14 +42,64 @@ class Triangles : public std::unordered_set<Triangle> {
 		}
 	}
 
+	class Grouped {
+		Triangles &triangles;
+		Neighbours neighbours;
+
+		struct Iterator {
+			using iterator_category = std::input_iterator_tag;
+			using value_type        = Triangles;
+			using reference         = void;
+			using pointer           = void;
+			using difference_type   = void;
+
+			Triangles &triangles;
+			Neighbours &neighbours;
+			std::size_t remaining;
+
+			Iterator(Triangles &triangles, Neighbours &neighbours, std::size_t remaining) :
+				triangles(triangles),
+				neighbours(neighbours),
+				remaining(remaining)
+			{ }
+
+			Iterator(Triangles &triangles, Neighbours &neighbours) :
+				Iterator(triangles, neighbours, triangles.size())
+			{ }
+
+			auto &operator++() {
+				remaining = triangles.size();
+				return *this;
+			}
+
+			auto operator==(Iterator const &other) const {
+				return other.remaining == remaining;
+			}
+
+			auto operator!=(Iterator const &other) const {
+				return other.remaining != remaining;
+			}
+
+			auto operator*() {
+				return Triangles(triangles, neighbours);
+			}
+		};
+
+	public:
+		Grouped(Triangles &triangles) :
+			triangles(triangles),
+			neighbours(triangles)
+		{ }
+
+		auto begin() { return Iterator(triangles, neighbours); }
+		auto   end() { return Iterator(triangles, neighbours, 0); }
+	};
+
 public:
 	Triangles() = default;
 
-	template <typename Function>
-	void explode(Function const &function) {
-		auto neighbours = Neighbours(*this);
-		while (!empty())
-			function(Triangles(*this, neighbours));
+	auto grouped() {
+		return Grouped(*this);
 	}
 };
 

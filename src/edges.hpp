@@ -16,6 +16,21 @@
 #include <algorithm>
 
 struct Edges : std::unordered_set<Edge> {
+	auto &operator-=(Triangle const &triangle) {
+		for (auto const &edge: triangle)
+			if (!erase(edge))
+				insert(-edge);
+		return *this;
+	}
+
+	auto operator||(Triangles const &triangles) const {
+		return std::any_of(triangles.begin(), triangles.end(), [&](auto const &triangle) {
+			return std::any_of(triangle.begin(), triangle.end(), [&](auto const &edge) {
+				return contains(edge);
+			});
+		});
+	}
+
 	Edges(App const &app, Mesh &mesh) {
 		auto large_triangles = Triangles();
 
@@ -25,27 +40,11 @@ struct Edges : std::unordered_set<Edge> {
 		if (!app.land)
 			clear();
 
-		large_triangles.explode([=, this](auto const &&triangles) {
+		for (auto triangles: large_triangles.grouped())
 			if ((*this || triangles) || app.is_water(triangles))
 				for (auto const &triangle: triangles)
 					*this -= triangle;
-		});
 	}
 };
-
-auto &operator-=(Edges &edges, Triangle const &triangle) {
-	for (auto const &edge: triangle)
-		if (!edges.erase(edge))
-			edges.insert(-edge);
-	return edges;
-}
-
-auto operator||(Edges const &edges, Triangles const &triangles) {
-	return std::any_of(triangles.begin(), triangles.end(), [&](auto const &triangle) {
-		return std::any_of(triangle.begin(), triangle.end(), [&](auto const &edge) {
-			return edges.contains(edge);
-		});
-	});
-}
 
 #endif
