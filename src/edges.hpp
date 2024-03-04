@@ -34,7 +34,7 @@ struct Edges : std::unordered_set<Edge> {
 	Edges(App const &app, Mesh &mesh) {
 		auto large_triangles = Triangles();
 
-		app.log("extracting polygon edges");
+		app.log("extracting boundaries");
 		mesh.deconstruct(app, large_triangles, *this);
 
 		if (!app.land)

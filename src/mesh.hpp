@@ -325,10 +325,10 @@ public:
 			return point.ground();
 		});
 
-		app.log("triangulating", ground_end - ground_begin, "ground point");
+		app.log("triangulating", ground_end - ground_begin, "point");
 		triangulate(ground_begin, ground_end, app.threads);
 
-		app.log("interpolating", points.end() - ground_end, "remaining point");
+		app.log("interpolating", points.end() - ground_end, "point");
 		interpolate(ground_begin, ground_end, app.threads);
 
 		app.log("triangulating", points.size(), "point");
