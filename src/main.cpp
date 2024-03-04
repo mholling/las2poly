@@ -17,12 +17,12 @@
 int main(int argc, char *argv[]) {
 	try {
 		auto const app = App::parse(argc, argv);
-		auto output = Output(app);
+		{ auto output = Output(app); }
 		auto points = Points(app);
 		auto mesh = Mesh(app, points);
 		auto edges = Edges(app, mesh);
 		auto polygons = Polygons(app, edges);
-		output(polygons, points);
+		auto output = Output(app, polygons, points);
 
 		std::exit(EXIT_SUCCESS);
 	} catch (std::ios_base::failure &) {

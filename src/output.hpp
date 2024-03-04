@@ -18,9 +18,7 @@
 
 class Output {
 	using Variant = std::variant<GeoJSON, Shapefile>;
-
 	Variant variant;
-	App const &app;
 
 	auto static from(App const &app) {
 		if (app.path && app.path->extension() == ".shp")
@@ -40,12 +38,12 @@ class Output {
 	}
 
 public:
-	Output(App const &app) : variant(from(app)), app(app) {
+	Output(App const &app) : variant(from(app)) {
 		if (!app.overwrite && *this)
 			throw std::runtime_error("output file already exists");
 	}
 
-	void operator()(Polygons const &polygons, Points const &points) {
+	Output(App const &app, Polygons const &polygons, Points const &points) : Output(app) {
 		app.log("saving", polygons.size(), "polygon");
 		if (app.multi)
 			(*this)(polygons.multi(), points.srs());
