@@ -159,7 +159,6 @@ struct App {
 			convention = path.extension() == ".shp" ? "esri" : "ogc";
 
 		auto app = App {
-			.log         = Log(!quiet),
 			.width       = *width,
 			.resolution  = *width / std::sqrt(8.0),
 			.area        = *area,
@@ -173,9 +172,12 @@ struct App {
 			.multi       = multi.has_value(),
 			.overwrite   = overwrite.has_value(),
 			.tile_paths  = tile_paths,
+			.path        = OptionalPath(),
+			.srs         = OptionalSRS(),
 			.ogc         = *convention == "ogc",
 			.threads     = threads->front(),
 			.io_threads  = threads->back(),
+			.log         = Log(!quiet),
 		};
 
 		if (path == "-")
