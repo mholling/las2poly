@@ -41,7 +41,7 @@ struct Edges : std::unordered_set<Edge> {
 			clear();
 
 		for (auto triangles: large_triangles.grouped())
-			if ((*this || triangles) || app.is_water(triangles))
+			if ((*this || triangles) || triangles.is_water(app))
 				for (auto const &triangle: triangles)
 					*this -= triangle;
 	}
