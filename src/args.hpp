@@ -163,7 +163,7 @@ public:
 
 	template <typename Validate>
 	bool parse(Validate const &validate) {
-		options.emplace_back("-h", "--help", "", "show this help summary", [this](auto) {
+		options.emplace_back("-h", "--help", "", "show this help summary", [&](auto) {
 			std::cout << help();
 		});
 

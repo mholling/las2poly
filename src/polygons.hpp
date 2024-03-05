@@ -45,7 +45,7 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 		});
 
 		auto remaining = holes_begin;
-		std::for_each(rings.begin(), holes_begin, [&, this](auto const &exterior) {
+		std::for_each(rings.begin(), holes_begin, [&](auto const &exterior) {
 			auto polygon = Polygon{{exterior}};
 			auto old_remaining = remaining;
 			remaining = std::partition(remaining, rings.end(), [&](auto const &hole) {
@@ -67,8 +67,8 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 		}
 
 		if (app.area > 0)
-			erase(std::remove_if(begin(), end(), [=](auto &polygon) {
-				polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [&app](auto const &ring) {
+			erase(std::remove_if(begin(), end(), [&](auto &polygon) {
+				polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [&](auto const &ring) {
 					return ring.signed_area() > -app.area;
 				}), polygon.end());
 				return polygon.front().signed_area() < app.area;
