@@ -55,12 +55,13 @@ class Log {
 		}
 	};
 
-	using Optional = std::optional<Loud>;
-
-	Optional optional;
+	std::optional<Loud> optional;
 
 public:
-	Log(bool loud) : optional(loud ? Optional(std::in_place_t()) : Optional()) { }
+	Log(bool loud) {
+		if (loud)
+			optional.emplace();
+	}
 
 	template <typename ...Args>
 	void operator()(Args const &...args) const {
