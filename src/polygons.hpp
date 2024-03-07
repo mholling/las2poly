@@ -55,15 +55,15 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 			emplace_back(polygon);
 		});
 
-		if (app.simplify || app.smooth) {
-			app.log(app.smooth ? "smoothing" : "simplifying", ring_count(), "ring");
+		if (app.simplify) {
+			app.log("simplifying", ring_count(), "ring");
 			auto const tolerance = 4 * app.width * app.width;
 			simplify(tolerance, app.land ? !app.ogc : app.ogc, app.threads);
 		}
 
 		if (app.smooth) {
-			auto const tolerance = 0.5 * app.width / std::sin(app.angle);
-			smooth(tolerance, app.angle, app.threads);
+			app.log("smoothing", ring_count(), "ring");
+			smooth(app.threads);
 		}
 
 		if (app.area > 0)

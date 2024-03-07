@@ -8,7 +8,6 @@
 #define CORNER_HPP
 
 #include <cstddef>
-#include <utility>
 #include <tuple>
 #include <type_traits>
 
@@ -76,15 +75,12 @@ struct Corner {
 		return (v1 - v0).normalise() * (v2 - v1).normalise();
 	}
 
-	auto erase() const {
-		return ring->erase(here);
+	void erase() const {
+		ring->erase(here);
 	}
 
-	auto replace(Vertex const &v1, Vertex const &v2) const {
-		auto const i3 = ring->erase(here);
-		auto const i2 = ring->insert(i3, v2);
-		auto const i1 = ring->insert(i2, v1);
-		return std::pair(Corner(ring, i1), Corner(ring, i2));
+	auto replace(Vertex const &vertex) const {
+		return Corner(ring, ring->insert(ring->erase(here), vertex));
 	}
 
 	auto ring_size() const {

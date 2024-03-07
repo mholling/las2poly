@@ -59,9 +59,7 @@ Extract polygons for land areas instead of waterbodies.
 .It Fl -simplify
 Simplify the output polygons using Visvalingam's algorithm.
 .It Fl -smooth
-Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
-.It Fl -angle Ar degrees
-Apply line smoothing using the specified smoothing angle.
+Smooth the output polygons.
 .It Fl -discard Ar class,...
 Choose a list of lidar point classes to discard.
 The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.

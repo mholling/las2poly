@@ -37,7 +37,6 @@ struct App {
 	bool         land;
 	bool         simplify;
 	bool         smooth;
-	double       angle;
 	Discard      discard;
 	bool         multi;
 	bool         overwrite;
@@ -60,7 +59,6 @@ struct App {
 		auto land        = std::optional<bool>();
 		auto simplify    = std::optional<bool>();
 		auto smooth      = std::optional<bool>();
-		auto angle       = std::optional<double>();
 		auto discard     = std::optional<Ints>{{0,1,7,9,12,18}};
 		auto convention  = std::optional<std::string>();
 		auto multi       = std::optional<bool>();
@@ -81,7 +79,6 @@ struct App {
 		args.option("",   "--land",                      "extract land areas instead of waterbodies", land);
 		args.option("",   "--simplify",                  "simplify output polygons",                  simplify);
 		args.option("",   "--smooth",                    "smooth output polygons",                    smooth);
-		args.option("",   "--angle",      "<degrees>",   "smooth output with given angle",            angle);
 		args.option("",   "--discard",    "<class,...>", "discard point classes",                     discard);
 		args.option("",   "--convention", "<ogc|esri>",  "force polygon convention to OGC or ESRI",   convention);
 		args.option("",   "--multi",                     "collect polygons into single multipolygon", multi);
@@ -132,10 +129,6 @@ struct App {
 			throw std::runtime_error("slope must be positive");
 		if (*slope >= 90)
 			throw std::runtime_error("slope must be less than 90");
-		if (angle && *angle <= 0)
-			throw std::runtime_error("smoothing angle must be positive");
-		if (angle && *angle >= 180)
-			throw std::runtime_error("smoothing angle must be less than 180");
 		for (auto klass: *discard)
 			if (klass < 0 || klass > 255)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
@@ -144,17 +137,13 @@ struct App {
 		for (auto count: *threads)
 			if (count < 1)
 				throw std::runtime_error("number of threads must be positive");
-
 		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
 			throw std::runtime_error("can't read standard input more than once");
+		if (smooth && simplify)
+			throw std::runtime_error("either smooth or simplify but not both");
 
 		if (!area)
 			area = 4 * *width * *width;
-		if (angle)
-			smooth = true;
-		if (!angle)
-			angle = 15.0;
-
 		if (!convention)
 			convention = path.extension() == ".shp" ? "esri" : "ogc";
 
@@ -167,7 +156,6 @@ struct App {
 			.land        = land.has_value(),
 			.simplify    = simplify.has_value(),
 			.smooth      = smooth.has_value(),
-			.angle       = *angle * pi / 180,
 			.discard     = Discard(discard->begin(), discard->end()),
 			.multi       = multi.has_value(),
 			.overwrite   = overwrite.has_value(),

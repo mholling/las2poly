@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <set>
 #include <vector>
-#include <cmath>
 
 template <typename Polygons>
 class Smooth {
@@ -25,21 +24,24 @@ class Smooth {
 	struct Candidate {
 		Corner corner;
 		Bounds bounds;
-		double cosine;
-		Vertex v01, v12;
+		Vertex vertex;
+		double square_curvature_delta;
 
 		Candidate(Corner const &corner) :
 			corner(corner),
-			bounds(corner),
-			cosine(corner.cosine())
-		{ }
+			bounds(corner)
+		{
+			auto const &[v0, v1, v2] = corner.prev();
+			auto const &[ _, v3, v4] = corner.next();
+			vertex = (v1 + v2 + v3) / 3.0;
 
-		Candidate(Corner const &corner, double tolerance) : Candidate(corner) {
-			auto const &[v0, v1, v2] = corner;
-			auto const f0 = std::min(0.25, tolerance / (v1 - v0).norm());
-			auto const f2 = std::min(0.25, tolerance / (v2 - v1).norm());
-			v01 = v0 * f0 + v1 * (1.0 - f0);
-			v12 = v2 * f2 + v1 * (1.0 - f2);
+			auto const n01 = (v1 - v0).normalise();
+			auto const n12 = (v2 - v1).normalise();
+			auto const n1v = (vertex - v1).normalise();
+			auto const nv3 = (v3 - vertex).normalise();
+			auto const n23 = (v3 - v2).normalise();
+			auto const n34 = (v4 - v3).normalise();
+			square_curvature_delta = n01 * n12 + n12 * n23 + n23 * n34 - n01 * n1v - n1v * nv3 - nv3 * n34;
 		}
 
 		friend auto operator==(Candidate const &candidate1, Candidate const &candidate2) {
@@ -47,55 +49,50 @@ class Smooth {
 		}
 
 		friend auto operator<(Candidate const &candidate1, Candidate const &candidate2) {
-			return candidate1.cosine < candidate2.cosine;
+			return candidate1.square_curvature_delta < candidate2.square_curvature_delta;
 		}
 
 		template <typename RTree>
-		auto smoothable(RTree const &rtree, double max_cosine) const {
-			if (cosine > max_cosine)
+		auto smoothable(RTree const &rtree) const {
+			if (square_curvature_delta >= 0)
 				return false;
-			auto const cross = corner.cross();
 			auto const prev = corner.prev();
 			auto const next = corner.next();
-			auto const &v1 = corner();
+			auto const &v0 = prev();
+			auto const &v1 = vertex;
+			auto const &v2 = next();
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
 				if (other == corner || other == prev || other == next)
 					return false;
 				auto const &[u0, u1, u2] = other;
-				auto const cross01 = (u1 - v01) ^ (u1 - v1);
-				auto const cross12 = (u1 - v1)  ^ (u1 - v12);
-				auto const cross20 = (u1 - v12) ^ (u1 - v01);
-				if (cross01 < 0 && cross12 < 0 && cross20 < 0)
+				auto const v01 = v1 - v0;
+				auto const v12 = v2 - v1;
+				auto const u01 = u1 - u0;
+				auto const u12 = u2 - u1;
+				// TODO: check for intersection of colinear segments
+				if (                        (v01 ^ (u0 - v0)) <=> 0 != (v01 ^ (u1 - v0)) <=> 0 && (u01 ^ (v0 - u0)) <=> 0 != (u01 ^ (v1 - u0)) <=> 0)
 					return true;
-				if (cross01 > 0 && cross12 > 0 && cross20 > 0)
+				if (other.next() != prev && (v01 ^ (u1 - v0)) <=> 0 != (v01 ^ (u2 - v0)) <=> 0 && (u12 ^ (v0 - u1)) <=> 0 != (u12 ^ (v1 - u1)) <=> 0)
 					return true;
-				if (u1 == v1)
-					for (auto const &u: {u0, u2}) {
-						auto const cross01 = (u - v01) ^ (u - v1);
-						auto const cross12 = (u - v1)  ^ (u - v12);
-						if (cross01 < 0 && cross12 < 0 && cross < 0)
-							return true;
-						if (cross01 > 0 && cross12 > 0 && cross > 0)
-							return true;
-					}
+				if (other.prev() != next && (v12 ^ (u0 - v1)) <=> 0 != (v12 ^ (u1 - v1)) <=> 0 && (u01 ^ (v1 - u0)) <=> 0 != (u01 ^ (v2 - u0)) <=> 0)
+					return true;
+				if (                        (v12 ^ (u1 - v1)) <=> 0 != (v12 ^ (u2 - v1)) <=> 0 && (u12 ^ (v1 - u1)) <=> 0 != (u12 ^ (v2 - u1)) <=> 0)
+					return true;
 				return false;
 			});
 		}
 
-		template <typename RTree, typename Updates>
-		void replace(RTree &rtree, Updates &updates) const {
+		template <typename RTree>
+		void replace(RTree &rtree) const {
 			auto const next = corner.next();
 			auto const prev = corner.prev();
 			auto const next_bounds = Bounds(next);
 			auto const prev_bounds = Bounds(prev);
-			auto const [corner1, corner2] = corner.replace(v01, v12);
-			rtree.replace(corner, bounds, corner1, corner2);
+			auto const new_corner = corner.replace(vertex);
+			rtree.update(corner, bounds, new_corner);
 			rtree.update(next, next_bounds);
 			rtree.update(prev, prev_bounds);
-			std::erase(updates, corner);
-			updates.push_back(corner1);
-			updates.push_back(corner2);
 		}
 	};
 
@@ -103,8 +100,7 @@ class Smooth {
 	using Corners = std::vector<Corner>;
 
 public:
-	void smooth(double tolerance, double angle, int threads) {
-		auto const cosine = std::cos(angle);
+	void smooth(int threads) {
 		auto corners = Corners();
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
@@ -113,22 +109,25 @@ public:
 					corners.push_back(corner);
 		auto rtree = RTree(corners, threads);
 		for (auto const &corner: corners)
-			if (auto const candidate = Candidate(corner, tolerance); candidate.smoothable(rtree, cosine))
+			if (auto const candidate = Candidate(corner); candidate.smoothable(rtree))
 				ordered.insert(candidate);
 		while (!ordered.empty()) {
-			auto const candidate = *ordered.begin();
-			auto search = rtree.search(candidate.bounds);
-			auto updates = Corners(search.begin(), search.end());
-			for (auto const &corner: updates) {
+			auto const least = ordered.begin();
+			auto const candidate = *least;
+			ordered.erase(least);
+			auto updates = Corners();
+			for (auto const &corner: rtree.search(candidate.bounds)) {
 				auto const candidate = Candidate(corner);
 				auto const [begin, end] = ordered.equal_range(candidate);
 				auto const position = std::find(begin, end, candidate);
-				if (position != end)
+				if (position != end) {
 					ordered.erase(position);
-			}
-			candidate.replace(rtree, updates);
+					updates.push_back(corner);
+				}
+			};
+			candidate.replace(rtree);
 			for (auto const &corner: updates)
-				if (auto const candidate = Candidate(corner, tolerance); candidate.smoothable(rtree, cosine))
+				if (auto const candidate = Candidate(corner); candidate.smoothable(rtree))
 					ordered.insert(candidate);
 		}
 	}

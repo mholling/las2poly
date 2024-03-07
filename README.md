@@ -76,11 +76,7 @@ option is required to calibrate the void detection process.
 
 **--smooth**
 
-> Apply line smoothing to simplified polygons, rounding off corner angles sharper than 15 degrees.
-
-**--angle** *degrees*
-
-> Apply line smoothing using the specified smoothing angle.
+> Smooth the output polygons.
 
 **--discard** *class,...*
 
@@ -178,4 +174,4 @@ threshold can eliminate such problems, at the cost of reduced fidelity.
 
 Matthew Hollingworth
 
-macOS 13.1 - February 16, 2024
+macOS 13.1 - March 7, 2024

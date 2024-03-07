@@ -200,18 +200,16 @@ public:
 		return found_none;
 	}
 
-	auto replace(Element const &element, Bounds const &old_bounds, Element const &element1, Element const &element2) {
+	auto update(Element const &old_element, Bounds const &old_bounds, Element const &new_element) {
 		if (leaf()) {
-			if (this->element() == element) {
-				auto rtree1 = std::make_unique<RTree>(element1);
-				auto rtree2 = std::make_unique<RTree>(element2);
-				bounds = rtree1->bounds + rtree2->bounds;
-				value = Children(std::move(rtree1), std::move(rtree2));
+			if (this->element() == old_element) {
+				bounds = Bounds(new_element);
+				value = new_element;
 				return true;
 			}
 		} else if (old_bounds <= bounds) {
 			auto const &[rtree1, rtree2] = children();
-			if (rtree1->replace(element, old_bounds, element1, element2) || rtree2->replace(element, old_bounds, element1, element2)) {
+			if (rtree1->update(old_element, old_bounds, new_element) || rtree2->update(old_element, old_bounds, new_element)) {
 				bounds = rtree1->bounds + rtree2->bounds;
 				return true;
 			}
