@@ -20,6 +20,7 @@ template <typename Polygons>
 class Simplify {
 	auto static constexpr min_ring_size = 8;
 	using Corner = ::Corner<Ring>;
+	using RTree = ::RTree<Corner>;
 
 	struct Candidate {
 		Corner corner;
@@ -40,8 +41,7 @@ class Simplify {
 			return std::abs(candidate1.cross) < std::abs(candidate2.cross);
 		}
 
-		template <typename RTree>
-		auto removeable(RTree const &rtree, double corner_area, bool erode) const {
+		auto operator()(RTree const &rtree, double corner_area, bool erode) const {
 			if (cross == 0)
 				return true;
 			if (erode == (cross < 0) || std::abs(cross) > corner_area * 2 || corner.ring_size() <= min_ring_size)
@@ -80,7 +80,6 @@ class Simplify {
 			});
 		}
 
-		template <typename RTree>
 		void erase(RTree &rtree) const {
 			auto const next = corner.next();
 			auto const prev = corner.prev();
@@ -104,7 +103,7 @@ class Simplify {
 					corners.push_back(corner);
 		auto rtree = RTree(corners, threads);
 		for (auto const &corner: corners)
-			if (auto const candidate = Candidate(corner); candidate.removeable(rtree, tolerance, erode))
+			if (auto const candidate = Candidate(corner); candidate(rtree, tolerance, erode))
 				ordered.insert(candidate);
 		while (!ordered.empty()) {
 			auto const least = ordered.begin();
@@ -124,7 +123,7 @@ class Simplify {
 			}
 			candidate.erase(rtree);
 			for (auto const &corner: updates)
-				if (auto const candidate = Candidate(corner); candidate.removeable(rtree, tolerance, erode))
+				if (auto const candidate = Candidate(corner); candidate(rtree, tolerance, erode))
 					ordered.insert(candidate);
 		}
 	}

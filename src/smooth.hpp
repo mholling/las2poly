@@ -19,6 +19,7 @@
 template <typename Polygons>
 class Smooth {
 	using Corner = ::Corner<Ring>;
+	using RTree = ::RTree<Corner>;
 	using Vertex = Vector<2>;
 
 	struct Candidate {
@@ -52,8 +53,7 @@ class Smooth {
 			return candidate1.square_curvature_delta < candidate2.square_curvature_delta;
 		}
 
-		template <typename RTree>
-		auto smoothable(RTree const &rtree) const {
+		auto operator()(RTree const &rtree) const {
 			if (square_curvature_delta >= 0)
 				return false;
 			auto const prev = corner.prev();
@@ -83,7 +83,6 @@ class Smooth {
 			});
 		}
 
-		template <typename RTree>
 		void replace(RTree &rtree) const {
 			auto const next = corner.next();
 			auto const prev = corner.prev();
@@ -109,7 +108,7 @@ public:
 					corners.push_back(corner);
 		auto rtree = RTree(corners, threads);
 		for (auto const &corner: corners)
-			if (auto const candidate = Candidate(corner); candidate.smoothable(rtree))
+			if (auto const candidate = Candidate(corner); candidate(rtree))
 				ordered.insert(candidate);
 		while (!ordered.empty()) {
 			auto const least = ordered.begin();
@@ -127,7 +126,7 @@ public:
 			};
 			candidate.replace(rtree);
 			for (auto const &corner: updates)
-				if (auto const candidate = Candidate(corner); candidate.smoothable(rtree))
+				if (auto const candidate = Candidate(corner); candidate(rtree))
 					ordered.insert(candidate);
 		}
 	}
