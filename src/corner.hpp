@@ -7,14 +7,14 @@
 #ifndef CORNER_HPP
 #define CORNER_HPP
 
+#include <type_traits>
 #include <cstddef>
 #include <tuple>
-#include <type_traits>
 
 template <typename Ring>
 struct Corner {
 	using Vertex = typename Ring::value_type;
-	using VertexIterator = typename Ring::const_iterator;
+	using VertexIterator = std::conditional_t<std::is_const_v<Ring>, typename Ring::const_iterator, typename Ring::iterator>;
 
 	Ring *ring;
 	VertexIterator here;
@@ -79,8 +79,8 @@ struct Corner {
 		ring->erase(here);
 	}
 
-	auto replace(Vertex const &vertex) const {
-		return Corner(ring, ring->insert(ring->erase(here), vertex));
+	auto update(Vertex const &vertex) const {
+		*here = vertex;
 	}
 
 	auto ring_size() const {

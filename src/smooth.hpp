@@ -84,13 +84,13 @@ class Smooth {
 			});
 		}
 
-		void replace(RTree &rtree) const {
+		void update(RTree &rtree) const {
 			auto const next = corner.next();
 			auto const prev = corner.prev();
 			auto const next_bounds = Bounds(next);
 			auto const prev_bounds = Bounds(prev);
-			auto const new_corner = corner.replace(vertex);
-			rtree.update(corner, bounds, new_corner);
+			corner.update(vertex);
+			rtree.update(corner, bounds);
 			rtree.update(next, next_bounds);
 			rtree.update(prev, prev_bounds);
 		}
@@ -125,7 +125,7 @@ public:
 					updates.push_back(corner);
 				}
 			};
-			candidate.replace(rtree);
+			candidate.update(rtree);
 			for (auto const &corner: updates)
 				if (auto const candidate = Candidate(corner); candidate(rtree))
 					ordered.insert(candidate);

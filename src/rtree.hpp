@@ -200,23 +200,6 @@ public:
 		return found_none;
 	}
 
-	auto update(Element const &old_element, Bounds const &old_bounds, Element const &new_element) {
-		if (leaf()) {
-			if (this->element() == old_element) {
-				bounds = Bounds(new_element);
-				value = new_element;
-				return true;
-			}
-		} else if (old_bounds <= bounds) {
-			auto const &[rtree1, rtree2] = children();
-			if (rtree1->update(old_element, old_bounds, new_element) || rtree2->update(old_element, old_bounds, new_element)) {
-				bounds = rtree1->bounds + rtree2->bounds;
-				return true;
-			}
-		}
-		return false;
-	}
-
 	auto update(Element const &element, Bounds const &old_bounds) {
 		if (leaf()) {
 			if (this->element() == element) {
