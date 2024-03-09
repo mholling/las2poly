@@ -50,7 +50,8 @@ class Smooth {
 		}
 
 		friend auto operator<(Candidate const &candidate1, Candidate const &candidate2) {
-			return candidate1.square_curvature_delta < candidate2.square_curvature_delta;
+			// candidate with the least curvature change comes first
+			return candidate1.square_curvature_delta > candidate2.square_curvature_delta;
 		}
 
 		auto operator()(RTree const &rtree) const {
