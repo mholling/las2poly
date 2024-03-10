@@ -63,7 +63,7 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 
 		if (app.smooth) {
 			app.log("smoothing", ring_count(), "ring");
-			smooth();
+			smooth(app.land ? app.ogc : !app.ogc);
 		}
 
 		if (app.area > 0)
