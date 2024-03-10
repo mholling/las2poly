@@ -129,9 +129,9 @@ class Simplify {
 	}
 
 public:
-	void simplify(double tolerance, bool open) {
-		simplify_one_sided(tolerance, !open);
-		simplify_one_sided(tolerance, open);
+	void simplify(double tolerance, bool erode_then_dilate) {
+		simplify_one_sided(tolerance, erode_then_dilate);
+		simplify_one_sided(tolerance, !erode_then_dilate);
 	}
 };
 
