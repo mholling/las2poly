@@ -12,6 +12,7 @@
 #include "vector.hpp"
 #include "bounds.hpp"
 #include "rtree.hpp"
+#include "summation.hpp"
 #include <algorithm>
 #include <set>
 #include <vector>
@@ -26,7 +27,8 @@ class Smooth {
 		Corner corner;
 		Bounds bounds;
 		Vertex vertex;
-		double square_curvature_delta;
+		double delta_square_curvature;
+		double delta_perimeter;
 
 		Candidate(Corner const &corner) :
 			corner(corner),
@@ -36,13 +38,29 @@ class Smooth {
 			auto const &[ _, v3, v4] = corner.next();
 			vertex = (v1 + v2 + v3) / 3.0;
 
-			auto const n01 = (v1 - v0).normalise();
-			auto const n12 = (v2 - v1).normalise();
-			auto const n1v = (vertex - v1).normalise();
-			auto const nv3 = (v3 - vertex).normalise();
-			auto const n23 = (v3 - v2).normalise();
-			auto const n34 = (v4 - v3).normalise();
-			square_curvature_delta = n01 * n12 + n12 * n23 + n23 * n34 - n01 * n1v - n1v * nv3 - nv3 * n34;
+			auto const d01 = v1 - v0;
+			auto const d12 = v2 - v1;
+			auto const d1v = vertex - v1;
+			auto const dv3 = v3 - vertex;
+			auto const d23 = v3 - v2;
+			auto const d34 = v4 - v3;
+			
+			auto const n01 = d01.norm();
+			auto const n12 = d12.norm();
+			auto const n1v = d1v.norm();
+			auto const nv3 = dv3.norm();
+			auto const n23 = d23.norm();
+			auto const n34 = d34.norm();
+			
+			auto const u01 = d01 / n01;
+			auto const u12 = d12 / n12;
+			auto const u1v = d1v / n1v;
+			auto const uv3 = dv3 / nv3;
+			auto const u23 = d23 / n23;
+			auto const u34 = d34 / n34;
+			
+			delta_perimeter = n1v + nv3 - n12 - n23;
+			delta_square_curvature = u01 * u12 + u12 * u23 + u23 * u34 - u01 * u1v - u1v * uv3 - uv3 * u34;
 		}
 
 		friend auto operator==(Candidate const &candidate1, Candidate const &candidate2) {
@@ -51,11 +69,11 @@ class Smooth {
 
 		friend auto operator<(Candidate const &candidate1, Candidate const &candidate2) {
 			// candidate with the least curvature change comes first
-			return candidate1.square_curvature_delta > candidate2.square_curvature_delta;
+			return candidate1.delta_square_curvature > candidate2.delta_square_curvature;
 		}
 
 		auto operator()(RTree const &rtree) const {
-			if (square_curvature_delta >= 0)
+			if (delta_square_curvature >= 0)
 				return false;
 			auto const prev = corner.prev();
 			auto const next = corner.next();
@@ -84,7 +102,8 @@ class Smooth {
 			});
 		}
 
-		void update(RTree &rtree) const {
+		template <typename Summation>
+		void update(RTree &rtree, Summation &perimeter_summation) const {
 			auto const next = corner.next();
 			auto const prev = corner.prev();
 			auto const next_bounds = Bounds(next);
@@ -93,8 +112,11 @@ class Smooth {
 			rtree.update(corner, bounds);
 			rtree.update(next, next_bounds);
 			rtree.update(prev, prev_bounds);
+			perimeter_summation += delta_perimeter;
 		}
 	};
+
+	auto static constexpr perimeter_change_threshold = 0.00001;
 
 	using Ordered = std::multiset<Candidate>;
 	using Corners = std::vector<Corner>;
@@ -107,28 +129,39 @@ public:
 			for (auto &ring: polygon)
 				for (auto corner: ring.corners())
 					corners.push_back(corner);
+		auto perimeter = 0.0;
+		auto perimeter_summation = Summation(perimeter);
+		for (auto const &[v0, v1, v2]: corners)
+			perimeter_summation += (v0 - v1).norm();
 		auto rtree = RTree(corners, threads);
-		for (auto const &corner: corners)
-			if (auto const candidate = Candidate(corner); candidate(rtree))
-				ordered.insert(candidate);
-		while (!ordered.empty()) {
-			auto const least = ordered.begin();
-			auto const candidate = *least;
-			ordered.erase(least);
-			auto updates = Corners();
-			for (auto const &corner: rtree.search(candidate.bounds)) {
-				auto const candidate = Candidate(corner);
-				auto const [begin, end] = ordered.equal_range(candidate);
-				auto const position = std::find(begin, end, candidate);
-				if (position != end) {
-					ordered.erase(position);
-					updates.push_back(corner);
-				}
-			};
-			candidate.update(rtree);
-			for (auto const &corner: updates)
+		for (int iteration = 0; iteration < 100; ++iteration) {
+			auto delta_perimeter = 0.0;
+			auto delta_summation = Summation(delta_perimeter);
+			for (auto const &corner: corners)
 				if (auto const candidate = Candidate(corner); candidate(rtree))
 					ordered.insert(candidate);
+			while (!ordered.empty()) {
+				auto const least = ordered.begin();
+				auto const candidate = *least;
+				ordered.erase(least);
+				auto updates = Corners();
+				for (auto const &corner: rtree.search(candidate.bounds)) {
+					auto const candidate = Candidate(corner);
+					auto const [begin, end] = ordered.equal_range(candidate);
+					auto const position = std::find(begin, end, candidate);
+					if (position != end) {
+						ordered.erase(position);
+						updates.push_back(corner);
+					}
+				};
+				candidate.update(rtree, delta_summation);
+				for (auto const &corner: updates)
+					if (auto const candidate = Candidate(corner); candidate(rtree))
+						ordered.insert(candidate);
+			}
+			if (delta_perimeter + perimeter_change_threshold * perimeter > 0)
+				break;
+			perimeter_summation += delta_perimeter;
 		}
 	}
 };
