@@ -32,6 +32,12 @@ class Log {
 			print(args...);
 		}
 
+		template <typename ...Args>
+		void print(std::chrono::minutes const &minutes, Args const &...args) const {
+			std::cerr << minutes.count();
+			print(args...);
+		}
+
 		template <typename Value, typename Name, typename ...Args> requires (std::is_integral_v<Value>)
 		void print(Value value, Name const &name, Args const &...args) const {
 			auto static constexpr suffixes = {"","k","M","G"};
@@ -49,7 +55,7 @@ class Log {
 			auto elapsed = std::chrono::duration<double>(now() - start);
 			auto minutes = std::chrono::duration_cast<std::chrono::minutes>(elapsed);
 			if (minutes.count() > 0)
-				print(minutes.count(), "m", std::fixed, std::setw(2), std::setfill('0'), std::setprecision(0), (elapsed - minutes).count(), "s: ", args...);
+				print(minutes, "m", std::fixed, std::setw(2), std::setfill('0'), std::setprecision(0), (elapsed - minutes).count(), "s: ", args...);
 			else
 				print(std::fixed, std::setprecision(1), elapsed.count(), "s: ", args...);
 		}
