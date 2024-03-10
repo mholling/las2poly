@@ -31,8 +31,24 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 		});
 	}
 
-	auto &multi() const {
+	auto multipolygon() const {
 		return static_cast<MultiPolygon const &>(*this);
+	}
+
+	auto linestrings() const {
+		auto collection = Linestrings();
+		for (auto const &polygon: *this)
+			for (auto const &ring: polygon)
+				collection.push_back(ring);
+		return collection;
+	}
+
+	auto multilinestrings() const {
+		auto collection = MultiLinestrings();
+		for (auto const &polygon: *this)
+			for (auto &multi = collection.emplace_back(); auto const &ring: polygon)
+				multi.push_back(ring);
+		return collection;
 	}
 
 	Polygons(App const &app, Edges const &edges) {

@@ -8,6 +8,7 @@
 #define SHAPEFILE_HPP
 
 #include "polygons.hpp"
+#include "linestrings.hpp"
 #include "srs.hpp"
 #include <limits>
 #include <bit>
@@ -42,6 +43,12 @@ class Shapefile {
 			std::reverse(data + offset, data + offset + sizeof(Value));
 	}
 
+	template <typename Collection> struct ShapeType;
+	template <> struct ShapeType<Polygons>         { auto static constexpr value = 5; };
+	template <> struct ShapeType<MultiLinestrings> { auto static constexpr value = 3; };
+	template <typename Collection>
+	auto static constexpr shape_type = ShapeType<Collection>::value;
+
 	struct SHPX {
 		using Integer = std::int32_t;
 		using Double = double;
@@ -53,19 +60,19 @@ class Shapefile {
 			shx_path.replace_extension(".shx");
 		}
 
-		void operator()(Polygons const &polygons) {
+		template <typename Collection>
+		void operator()(Collection const &collection) {
 			auto static constexpr file_header_size = 100ull;
 			auto static constexpr record_header_size = 8ull;
 			auto static constexpr content_prefix_size = 44ull;
 			auto static constexpr file_magic = 9994;
 			auto static constexpr file_version = 1000;
-			auto static constexpr shape_type = 5;
 
-			auto const bounds = Bounds(polygons);
-			auto const shx_file_length = file_header_size + polygons.size() * record_header_size;
-			auto const shp_file_length = std::accumulate(polygons.begin(), polygons.end(), file_header_size, [](auto const &sum, auto const &polygon) {
-				return std::accumulate(polygon.begin(), polygon.end(), sum + record_header_size + content_prefix_size, [](auto const &sum, auto const &ring) {
-					return sum + sizeof(Integer) + (ring.size() + 1ull) * sizeof(Double) * 2ull;
+			auto const bounds = Bounds(collection);
+			auto const shx_file_length = file_header_size + collection.size() * record_header_size;
+			auto const shp_file_length = std::accumulate(collection.begin(), collection.end(), file_header_size, [](auto const &sum, auto const &polygon) {
+				return std::accumulate(polygon.begin(), polygon.end(), sum + record_header_size + content_prefix_size, [](auto const &sum, auto const &vertices) {
+					return sum + sizeof(Integer) + (vertices.size() + 1ull) * sizeof(Double) * 2ull;
 				});
 			});
 
@@ -75,7 +82,7 @@ class Shapefile {
 			char file_header[file_header_size] = {0};
 			   big<Integer,  0>(file_header, file_magic);
 			little<Integer, 28>(file_header, file_version);
-			little<Integer, 32>(file_header, shape_type);
+			little<Integer, 32>(file_header, shape_type<Collection>);
 			little<Double,  36>(file_header, bounds.xmin);
 			little<Double,  44>(file_header, bounds.ymin);
 			little<Double,  52>(file_header, bounds.xmax);
@@ -96,13 +103,13 @@ class Shapefile {
 			big<Integer, 24>(file_header, shp_file_length / sizeof(std::uint16_t));
 			shp_file.write(file_header, file_header_size);
 
-			for (auto id = 0ull, record_offset = file_header_size; auto const &polygon: polygons) {
-				auto const num_parts = polygon.size();
-				auto const num_points = std::accumulate(polygon.begin(), polygon.end(), 0ull, [](auto const &sum, auto const &ring) {
-					return sum + ring.size() + 1ull;
+			for (auto id = 0ull, record_offset = file_header_size; auto const &geometry: collection) {
+				auto const num_parts = geometry.size();
+				auto const num_points = std::accumulate(geometry.begin(), geometry.end(), 0ull, [](auto const &sum, auto const &vertices) {
+					return sum + vertices.size() + 1ull;
 				});
 				auto const content_length = content_prefix_size + num_parts * sizeof(Integer) + num_points * sizeof(Double) * 2;
-				auto const bounds = Bounds(polygon);
+				auto const bounds = Bounds(geometry);
 
 				char record_header[record_header_size];
 				big<Integer, 0>(record_header, record_offset / sizeof(std::uint16_t));
@@ -115,7 +122,7 @@ class Shapefile {
 				shp_file.write(record_header, record_header_size);
 
 				char content_prefix[content_prefix_size];
-				little<Integer,  0>(content_prefix, shape_type);
+				little<Integer,  0>(content_prefix, shape_type<Collection>);
 				little< Double,  4>(content_prefix, bounds.xmin);
 				little< Double, 12>(content_prefix, bounds.ymin);
 				little< Double, 20>(content_prefix, bounds.xmax);
@@ -128,12 +135,12 @@ class Shapefile {
 				auto index = reinterpret_cast<Integer *>(indices.data());
 				auto coord = reinterpret_cast<Double *>(coords.data());
 
-				for (auto count = 0ul; auto const &ring: polygon) {
+				for (auto count = 0ul; auto const &vertices: geometry) {
 					*index++ = count;
-					count += ring.size() + 1ul;
-					for (auto const &[x, y]: ring)
+					count += vertices.size() + 1ul;
+					for (auto const &[x, y]: vertices)
 						*coord++ = x, *coord++ = y;
-					auto const &[x, y] = ring.front();
+					auto const &[x, y] = vertices.front();
 					*coord++ = x, *coord++ = y;
 				}
 
@@ -158,7 +165,8 @@ class Shapefile {
 			dbf_path.replace_extension(".dbf");
 		}
 
-		void operator()(Polygons const &polygons) {
+		template <typename Collection>
+		void operator()(Collection const &collection) {
 			auto static constexpr header_size = 65;
 			auto static constexpr field_width = 1 + std::numeric_limits<std::uint32_t>::digits10;
 
@@ -181,13 +189,13 @@ class Shapefile {
 			header[48] = field_width;        // field width
 			header[64] = 0x0d;               // terminator
 
-			little<std::uint32_t, 4>(header, polygons.size());
+			little<std::uint32_t, 4>(header, collection.size());
 
 			auto file = std::ofstream(dbf_path, std::ios_base::binary);
 			file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 			file.write(header, header_size);
 
-			for (auto fid = 0ul; fid < polygons.size(); ++fid)
+			for (auto fid = 0ul; fid < collection.size(); ++fid)
 				file << '\x20' << std::setfill(' ') << std::setw(field_width) << fid;
 			file << '\x1a';
 		}
@@ -218,21 +226,29 @@ public:
 		prj(shp_path)
 	{ }
 
-	void operator()(Polygons const &polygons, OptionalSRS const &srs) {
-		if (polygons.size() >= int32_max)
-			throw std::runtime_error("too many polygons for shapefile format");
-		shpx(polygons);
-		dbf(polygons);
+	template <typename Collection>
+	void operator()(Collection const &collection, OptionalSRS const &srs) {
+		if (collection.size() >= int32_max)
+			throw std::runtime_error("too many collection for shapefile format");
+		shpx(collection);
+		dbf(collection);
 		if (srs)
 			prj(*srs);
 	}
 
+	void operator()(Linestrings const &linestrings, OptionalSRS const &srs) {
+		auto collection = MultiLinestrings();
+		for (auto const &linestring: linestrings)
+			collection.emplace_back().push_back(linestring);
+		(*this)(collection, srs);
+	}
+
 	void operator()(MultiPolygon const &multipolygon, OptionalSRS const &srs) {
-		auto polygons = Polygons();
+		auto collection = Polygons();
 		if (!multipolygon.empty())
-			for (auto &rings = polygons.emplace_back(); auto const &polygon: multipolygon)
+			for (auto &rings = collection.emplace_back(); auto const &polygon: multipolygon)
 				rings.insert(rings.end(), polygon.begin(), polygon.end());
-		(*this)(polygons, srs);
+		(*this)(collection, srs);
 	}
 
 	operator bool() const {

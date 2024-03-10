@@ -92,6 +92,10 @@ option is required to calibrate the void detection process.
 
 > Collect polygons into a single multipolygon.
 
+**--lines**
+
+> Extract polygon boundaries as linestrings.
+
 **--epsg** *number*
 
 > Specify an EPSG code to set in the output file.
@@ -174,4 +178,4 @@ threshold can eliminate such problems, at the cost of reduced fidelity.
 
 Matthew Hollingworth
 
-macOS 13.1 - March 7, 2024
+macOS 13.1 - March 10, 2024

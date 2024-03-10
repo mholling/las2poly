@@ -45,8 +45,12 @@ public:
 
 	Output(App const &app, Polygons const &polygons, Points const &points) : Output(app) {
 		app.log("saving", polygons.size(), "polygon");
-		if (app.multi)
-			(*this)(polygons.multi(), points.srs());
+		if (app.multi && app.lines)
+			(*this)(polygons.multilinestrings(), points.srs());
+		else if (app.lines)
+			(*this)(polygons.linestrings(), points.srs());
+		else if (app.multi)
+			(*this)(polygons.multipolygon(), points.srs());
 		else
 			(*this)(polygons, points.srs());
 	}

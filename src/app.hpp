@@ -39,6 +39,7 @@ struct App {
 	bool         smooth;
 	Discard      discard;
 	bool         multi;
+	bool         lines;
 	bool         overwrite;
 	Paths        tile_paths;
 	OptionalPath path;
@@ -62,6 +63,7 @@ struct App {
 		auto discard     = std::optional<Ints>{{0,1,7,9,12,18}};
 		auto convention  = std::optional<std::string>();
 		auto multi       = std::optional<bool>();
+		auto lines       = std::optional<bool>();
 		auto epsg        = std::optional<int>();
 		auto threads     = std::optional<Ints>{{default_threads}};
 		auto tiles_path  = std::optional<Path>();
@@ -72,21 +74,22 @@ struct App {
 		auto path        = Path();
 
 		auto args = Args(argc, argv, "extract waterbodies from lidar tiles");
-		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                   width);
-		args.option("",   "--area",       "<metres²>",   "minimum waterbody and island area",         area);
-		args.option("",   "--delta",      "<metres>",    "maximum waterbody height delta",            delta);
-		args.option("",   "--slope",      "<degrees>",   "maximum waterbody slope",                   slope);
-		args.option("",   "--land",                      "extract land areas instead of waterbodies", land);
-		args.option("",   "--simplify",                  "simplify output polygons",                  simplify);
-		args.option("",   "--smooth",                    "smooth output polygons",                    smooth);
-		args.option("",   "--discard",    "<class,...>", "discard point classes",                     discard);
-		args.option("",   "--convention", "<ogc|esri>",  "force polygon convention to OGC or ESRI",   convention);
-		args.option("",   "--multi",                     "collect polygons into single multipolygon", multi);
-		args.option("",   "--epsg",       "<number>",    "override missing or incorrect EPSG codes",  epsg);
-		args.option("",   "--threads",    "<number>",    "number of processing threads",              threads);
-		args.option("",   "--tiles",      "<tiles.txt>", "list of input tiles as a text file",        tiles_path);
-		args.option("-o", "--overwrite",                 "overwrite existing output file",            overwrite);
-		args.option("-q", "--quiet",                     "don't show progress information",           quiet);
+		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                    width);
+		args.option("",   "--area",       "<metres²>",   "minimum waterbody and island area",          area);
+		args.option("",   "--delta",      "<metres>",    "maximum waterbody height delta",             delta);
+		args.option("",   "--slope",      "<degrees>",   "maximum waterbody slope",                    slope);
+		args.option("",   "--land",                      "extract land areas instead of waterbodies",  land);
+		args.option("",   "--simplify",                  "simplify output polygons",                   simplify);
+		args.option("",   "--smooth",                    "smooth output polygons",                     smooth);
+		args.option("",   "--discard",    "<class,...>", "discard point classes",                      discard);
+		args.option("",   "--convention", "<ogc|esri>",  "force polygon convention to OGC or ESRI",    convention);
+		args.option("",   "--multi",                     "collect polygons into single multipolygon",  multi);
+		args.option("",   "--lines",                     "extract as linestrings instead of polygons", lines);
+		args.option("",   "--epsg",       "<number>",    "override missing or incorrect EPSG codes",   epsg);
+		args.option("",   "--threads",    "<number>",    "number of processing threads",               threads);
+		args.option("",   "--tiles",      "<tiles.txt>", "list of input tiles as a text file",         tiles_path);
+		args.option("-o", "--overwrite",                 "overwrite existing output file",             overwrite);
+		args.option("-q", "--quiet",                     "don't show progress information",            quiet);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -158,6 +161,7 @@ struct App {
 			.smooth      = smooth.has_value(),
 			.discard     = Discard(discard->begin(), discard->end()),
 			.multi       = multi.has_value(),
+			.lines       = lines.has_value(),
 			.overwrite   = overwrite.has_value(),
 			.tile_paths  = tile_paths,
 			.path        = OptionalPath(),

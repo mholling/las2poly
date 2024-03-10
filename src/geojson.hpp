@@ -57,6 +57,28 @@ class GeoJSON {
 		return json << (multipolygon.empty() ? "[]" : "]}}]");
 	}
 
+	friend auto &operator<<(GeoJSON &json, Linestring const &linestring) {
+		for (json << '['; auto const &vertex: linestring)
+			json << vertex << ',';
+		return json << linestring.front() << ']';
+	}
+
+	friend auto &operator<<(GeoJSON &json, Linestrings const &linestrings) {
+		for (auto separator = '['; auto const &linestring: linestrings)
+			json << std::exchange(separator, ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"LineString\",\"coordinates\":" << linestring << "}}";
+		return json << (linestrings.empty() ? "[]" : "]");
+	}
+
+	friend auto &operator<<(GeoJSON &json, MultiLinestrings const &multilinestrings) {
+		for (auto separator = '['; auto const &multilinestring: multilinestrings) {
+			json << std::exchange(separator, ',') << "{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"MultiLineString\",\"coordinates\":";
+			for (auto separator = '['; auto const &linestring: multilinestring)
+				json << std::exchange(separator, ',') << linestring;
+			json << (multilinestring.empty() ? "[]}}" : "]}}");
+		}
+		return json << (multilinestrings.empty() ? "[]" : "]");
+	}
+
 	friend auto &operator<<(GeoJSON &json, SRS const &srs) {
 		json << "\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"";
 		if (srs.epsg)

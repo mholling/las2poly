@@ -7,6 +7,7 @@
 #ifndef RING_HPP
 #define RING_HPP
 
+#include "linestrings.hpp"
 #include "vector.hpp"
 #include "corners.hpp"
 #include "corner.hpp"
@@ -15,7 +16,7 @@
 #include <algorithm>
 #include <compare>
 
-class Ring : public std::list<Vector<2>> {
+class Ring : public Linestring {
 	using Vertex = Vector<2>;
 
 	bool ogc;
