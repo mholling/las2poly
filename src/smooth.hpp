@@ -44,21 +44,21 @@ class Smooth {
 			auto const dv3 = v3 - vertex;
 			auto const d23 = v3 - v2;
 			auto const d34 = v4 - v3;
-			
+
 			auto const n01 = d01.norm();
 			auto const n12 = d12.norm();
 			auto const n1v = d1v.norm();
 			auto const nv3 = dv3.norm();
 			auto const n23 = d23.norm();
 			auto const n34 = d34.norm();
-			
+
 			auto const u01 = d01 / n01;
 			auto const u12 = d12 / n12;
 			auto const u1v = d1v / n1v;
 			auto const uv3 = dv3 / nv3;
 			auto const u23 = d23 / n23;
 			auto const u34 = d34 / n34;
-			
+
 			delta_perimeter = n1v + nv3 - n12 - n23;
 			delta_square_curvature = u01 * u12 + u12 * u23 + u23 * u34 - u01 * u1v - u1v * uv3 - uv3 * u34;
 		}
