@@ -122,7 +122,7 @@ class Smooth {
 	using Corners = std::vector<Corner>;
 
 public:
-	void smooth(int threads) {
+	void smooth() {
 		auto corners = Corners();
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
@@ -133,7 +133,7 @@ public:
 		auto perimeter_summation = Summation(perimeter);
 		for (auto const &[v0, v1, v2]: corners)
 			perimeter_summation += (v0 - v1).norm();
-		auto rtree = RTree(corners, threads);
+		auto rtree = RTree(corners, 1);
 		for (int iteration = 0; iteration < 100; ++iteration) {
 			auto delta_perimeter = 0.0;
 			auto delta_summation = Summation(delta_perimeter);

@@ -58,12 +58,12 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 		if (app.simplify) {
 			app.log("simplifying", ring_count(), "ring");
 			auto const tolerance = 4 * app.width * app.width;
-			simplify(tolerance, app.land ? !app.ogc : app.ogc, app.threads);
+			simplify(tolerance, app.land ? !app.ogc : app.ogc);
 		}
 
 		if (app.smooth) {
 			app.log("smoothing", ring_count(), "ring");
-			smooth(app.threads);
+			smooth();
 		}
 
 		if (app.area > 0)

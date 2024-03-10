@@ -94,14 +94,14 @@ class Simplify {
 	using Ordered = std::multiset<Candidate>;
 	using Corners = std::vector<Corner>;
 
-	void simplify_one_sided(double tolerance, bool erode, int threads) {
+	void simplify_one_sided(double tolerance, bool erode) {
 		auto corners = Corners();
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
 			for (auto &ring: polygon)
 				for (auto corner: ring.corners())
 					corners.push_back(corner);
-		auto rtree = RTree(corners, threads);
+		auto rtree = RTree(corners, 1);
 		for (auto const &corner: corners)
 			if (auto const candidate = Candidate(corner); candidate(rtree, tolerance, erode))
 				ordered.insert(candidate);
@@ -129,9 +129,9 @@ class Simplify {
 	}
 
 public:
-	void simplify(double tolerance, bool open, int threads) {
-		simplify_one_sided(tolerance, !open, threads);
-		simplify_one_sided(tolerance, open, threads);
+	void simplify(double tolerance, bool open) {
+		simplify_one_sided(tolerance, !open);
+		simplify_one_sided(tolerance, open);
 	}
 };
 
