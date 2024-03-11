@@ -52,12 +52,6 @@ class Triangles : public std::unordered_set<Triangle> {
 		Neighbours neighbours;
 
 		struct Iterator {
-			using iterator_category = std::input_iterator_tag;
-			using value_type        = Triangles;
-			using reference         = void;
-			using pointer           = void;
-			using difference_type   = void;
-
 			Triangles &triangles;
 			Neighbours &neighbours;
 			std::size_t remaining;
