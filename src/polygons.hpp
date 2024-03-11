@@ -22,7 +22,28 @@
 using Polygon = std::vector<Ring>;
 using MultiPolygon = std::vector<Polygon>;
 
-struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<Polygons> {
+class Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<Polygons> {
+	Polygons(Rings &&rings) {
+		auto holes_begin = std::partition(rings.begin(), rings.end(), [](auto const &ring) {
+			return ring.exterior();
+		});
+		std::sort(rings.begin(), holes_begin, [](auto const &ring1, auto const &ring2) {
+			return ring1.signed_area() < ring2.signed_area();
+		});
+
+		auto remaining = holes_begin;
+		std::for_each(rings.begin(), holes_begin, [&](auto const &exterior) {
+			auto polygon = Polygon{{exterior}};
+			auto old_remaining = remaining;
+			remaining = std::partition(remaining, rings.end(), [&](auto const &hole) {
+				return exterior <=> hole != 0;
+			});
+			std::copy(old_remaining, remaining, std::back_inserter(polygon));
+			emplace_back(polygon);
+		});
+	}
+
+public:
 	Polygons() = default;
 
 	auto ring_count() const {
@@ -51,28 +72,13 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 		return collection;
 	}
 
-	Polygons(Rings &&rings) {
-		auto holes_begin = std::partition(rings.begin(), rings.end(), [](auto const &ring) {
-			return ring.exterior();
-		});
-		std::sort(rings.begin(), holes_begin, [](auto const &ring1, auto const &ring2) {
-			return ring1.signed_area() < ring2.signed_area();
-		});
-
-		auto remaining = holes_begin;
-		std::for_each(rings.begin(), holes_begin, [&](auto const &exterior) {
-			auto polygon = Polygon{{exterior}};
-			auto old_remaining = remaining;
-			remaining = std::partition(remaining, rings.end(), [&](auto const &hole) {
-				return exterior <=> hole != 0;
-			});
-			std::copy(old_remaining, remaining, std::back_inserter(polygon));
-			emplace_back(polygon);
-		});
-	}
+	template <typename Edges>
+	Polygons(Edges const &edges, bool allow_self_intersection) :
+		Polygons(Rings(edges, allow_self_intersection))
+	{ }
 
 	Polygons(App const &app, Edges const &edges) :
-		Polygons(Rings(edges, !app.land))
+		Polygons(edges, !app.land)
 	{
 		if (app.simplify) {
 			app.log("simplifying", ring_count(), "ring");
@@ -100,7 +106,7 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 			for (auto const &ring: polygon)
 				for (auto const &[v0, v1, v2]: ring.corners())
 					links.emplace_back(v1, v2);
-		return Polygons(Rings(links, allow_self_intersection));
+		return Polygons(links, allow_self_intersection);
 	}
 };
 
