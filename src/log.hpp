@@ -57,7 +57,7 @@ class Log {
 			if (minutes.count() > 0)
 				print(minutes, "m", std::fixed, std::setw(2), std::setfill('0'), std::setprecision(0), (elapsed - minutes).count(), "s: ", args...);
 			else
-				print(std::fixed, std::setprecision(1), elapsed.count(), "s: ", args...);
+				print(std::fixed, std::setw(4), std::setfill(' '), std::setprecision(1), elapsed.count(), "s: ", args...);
 		}
 	};
 
