@@ -61,7 +61,7 @@ class Smooth {
 			auto const u23 = d23 / n23;
 			auto const u34 = d34 / n34;
 
-			second = (u12 ^ u23) < 0 == erode_then_dilate;
+			second = ((u12 ^ u23) < 0) == erode_then_dilate;
 			cosine = u12 * u23;
 			delta_perimeter = n1v + nv3 - n12 - n23;
 			increases_rms_curvature = u01 * u12 + u12 * u23 + u23 * u34 - u01 * u1v - u1v * uv3 - uv3 * u34 >= 0;
