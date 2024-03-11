@@ -51,7 +51,7 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 		return collection;
 	}
 
-	Polygons(App const &app, Rings &&rings) {
+	Polygons(Rings &&rings) {
 		auto holes_begin = std::partition(rings.begin(), rings.end(), [](auto const &ring) {
 			return ring.exterior();
 		});
@@ -69,7 +69,11 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 			std::copy(old_remaining, remaining, std::back_inserter(polygon));
 			emplace_back(polygon);
 		});
+	}
 
+	Polygons(App const &app, Edges const &edges) :
+		Polygons(Rings(edges, !app.land))
+	{
 		if (app.simplify) {
 			app.log("simplifying", ring_count(), "ring");
 			auto const tolerance = 4 * app.width * app.width;
@@ -90,17 +94,13 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 			}), end());
 	}
 
-	Polygons(App const &app, Edges const &edges) :
-		Polygons(app, Rings(edges, !app.land))
-	{ }
-
-	auto reassemble(App const &app, bool allow_self_intersection) const {
+	auto reassemble(bool allow_self_intersection) const {
 		auto links = Links();
 		for (auto const &polygon: *this)
 			for (auto const &ring: polygon)
 				for (auto const &[v0, v1, v2]: ring.corners())
 					links.emplace_back(v1, v2);
-		return Polygons(app, Rings(links, allow_self_intersection));
+		return Polygons(Rings(links, allow_self_intersection));
 	}
 };
 

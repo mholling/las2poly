@@ -49,7 +49,7 @@ public:
 	}
 
 	Output(App const &app, Polygons const &polygons, Points const &points) : Output(app) {
-		auto const polys = polygons.reassemble(app, allow_self_intersection());
+		auto const polys = polygons.reassemble(allow_self_intersection());
 		app.log("saving", polys.size(), "polygon");
 		if (app.multi && app.lines)
 			(*this)(polys.multilinestrings(), points.srs());
