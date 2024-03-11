@@ -83,11 +83,6 @@ option is required to calibrate the void detection process.
 > Choose a list of lidar point classes to discard.
 > The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
 
-**--convention** *ogc|esri*
-
-> Force polygon orientation according to OGC or ESRI convention.
-> By default, GeoJSON files use the OGC convention and shapefiles use the ESRI convention.
-
 **--multi**
 
 > Collect polygons into a single multipolygon.
@@ -178,4 +173,4 @@ threshold can eliminate such problems, at the cost of reduced fidelity.
 
 Matthew Hollingworth
 
-macOS 13.1 - March 10, 2024
+macOS 13.1 - March 11, 2024

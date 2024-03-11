@@ -44,7 +44,6 @@ struct App {
 	Paths        tile_paths;
 	OptionalPath path;
 	OptionalSRS  srs;
-	bool         ogc;
 	int          threads;
 	int          io_threads;
 	Log          log;
@@ -61,7 +60,6 @@ struct App {
 		auto simplify    = std::optional<bool>();
 		auto smooth      = std::optional<bool>();
 		auto discard     = std::optional<Ints>{{0,1,7,9,12,18}};
-		auto convention  = std::optional<std::string>();
 		auto multi       = std::optional<bool>();
 		auto lines       = std::optional<bool>();
 		auto epsg        = std::optional<int>();
@@ -82,7 +80,6 @@ struct App {
 		args.option("",   "--simplify",                  "simplify output polygons",                   simplify);
 		args.option("",   "--smooth",                    "smooth output polygons",                     smooth);
 		args.option("",   "--discard",    "<class,...>", "discard point classes",                      discard);
-		args.option("",   "--convention", "<ogc|esri>",  "force polygon convention to OGC or ESRI",    convention);
 		args.option("",   "--multi",                     "collect polygons into single multipolygon",  multi);
 		args.option("",   "--lines",                     "extract as linestrings instead of polygons", lines);
 		args.option("",   "--epsg",       "<number>",    "override missing or incorrect EPSG codes",   epsg);
@@ -99,8 +96,6 @@ struct App {
 		auto const proceed = args.parse([&]() {
 			if (!width)
 				throw std::runtime_error("no width specified");
-			if (convention && *convention != "esri" && *convention != "ogc")
-				throw std::runtime_error("polygon convention must be 'ogc' or 'esri'");
 			if (tiles_path) {
 				if (!tile_paths.empty())
 					throw std::runtime_error("can't specify tiles as arguments and also in a file");
@@ -147,8 +142,6 @@ struct App {
 
 		if (!area)
 			area = 4 * *width * *width;
-		if (!convention)
-			convention = path.extension() == ".shp" ? "esri" : "ogc";
 
 		auto app = App {
 			.width       = *width,
@@ -166,7 +159,6 @@ struct App {
 			.tile_paths  = tile_paths,
 			.path        = OptionalPath(),
 			.srs         = OptionalSRS(),
-			.ogc         = *convention == "ogc",
 			.threads     = threads->front(),
 			.io_threads  = threads->back(),
 			.log         = Log(!quiet),
