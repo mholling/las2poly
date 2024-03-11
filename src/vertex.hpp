@@ -15,9 +15,8 @@ using Vertex = Vector<2>;
 template <> struct std::hash<Vertex> {
 	std::size_t operator()(Vertex const &vertex) const {
 		auto static constexpr hash = std::hash<double>();
-		auto const &[x, y] = vertex;
-		auto const seed = hash(x);
-		return seed ^ (hash(y) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+		auto const seed = hash(vertex[0]);
+		return seed ^ (hash(vertex[1]) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 	}
 };
 

@@ -59,10 +59,9 @@ auto operator<=>(Link const &link, Vertex const &vertex) {
 
 template <> struct std::hash<Link> {
 	std::size_t operator()(Link const &link) const {
-		auto const &[v0, v1] = link;
 		auto static constexpr hash = std::hash<Vertex>();
-		auto const seed = hash(v0);
-		return seed ^ (hash(v1) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+		auto const seed = hash(link.first);
+		return seed ^ (hash(link.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 	}
 };
 
