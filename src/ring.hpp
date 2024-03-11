@@ -8,17 +8,15 @@
 #define RING_HPP
 
 #include "linestrings.hpp"
-#include "vector.hpp"
 #include "corners.hpp"
 #include "corner.hpp"
 #include "summation.hpp"
+#include "vertex.hpp"
 #include <list>
 #include <algorithm>
 #include <compare>
 
 class Ring : public Linestring {
-	using Vertex = Vector<2>;
-
 	bool ogc;
 
 public:

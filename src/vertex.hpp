@@ -4,15 +4,11 @@
 // See LICENSE file for full license information.
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef LINESTRINGS_HPP
-#define LINESTRINGS_HPP
+#ifndef VERTEX_HPP
+#define VERTEX_HPP
 
-#include "vertex.hpp"
-#include <list>
-#include <vector>
+#include "vector.hpp"
 
-using Linestring = std::list<Vertex>;
-using Linestrings = std::vector<Linestring>;
-using MultiLinestrings = std::vector<Linestrings>;
+using Vertex = Vector<2>;
 
 #endif

@@ -7,7 +7,7 @@
 #ifndef GEOJSON_HPP
 #define GEOJSON_HPP
 
-#include "vector.hpp"
+#include "vertex.hpp"
 #include "ring.hpp"
 #include "polygons.hpp"
 #include "srs.hpp"
@@ -29,8 +29,8 @@ class GeoJSON {
 		return *this;
 	}
 
-	friend auto &operator<<(GeoJSON &json, Vector<2> const &vector) {
-		return json << '[' << vector[0] << ',' << vector[1] << ']';
+	friend auto &operator<<(GeoJSON &json, Vertex const &vertex) {
+		return json << '[' << vertex[0] << ',' << vertex[1] << ']';
 	}
 
 	friend auto &operator<<(GeoJSON &json, Ring const &ring) {

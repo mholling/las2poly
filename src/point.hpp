@@ -7,17 +7,18 @@
 #ifndef POINT_HPP
 #define POINT_HPP
 
+#include "vertex.hpp"
 #include "vector.hpp"
 #include <tuple>
 #include <type_traits>
 
-struct Point : Vector<2> {
+struct Point : Vertex {
 	float elevation;
 	unsigned char classification;
 	bool key_point, withheld, overlap;
 
 	Point(double x, double y, double z, unsigned char classification, bool key_point, bool withheld, bool overlap) :
-		Vector{{x, y}},
+		Vertex{{x, y}},
 		elevation(z),
 		classification(classification),
 		key_point(key_point),

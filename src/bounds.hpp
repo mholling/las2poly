@@ -7,7 +7,7 @@
 #ifndef BOUNDS_HPP
 #define BOUNDS_HPP
 
-#include "vector.hpp"
+#include "vertex.hpp"
 #include "point.hpp"
 #include "corner.hpp"
 #include <limits>
@@ -25,8 +25,8 @@ struct Bounds {
 		ymax(-std::numeric_limits<double>::infinity())
 	{ }
 
-	Bounds(Vector<2> const &vector) {
-		auto const &[x, y] = vector;
+	Bounds(Vertex const &vertex) {
+		auto const &[x, y] = vertex;
 		xmin = xmax = x, ymin = ymax = y;
 	}
 

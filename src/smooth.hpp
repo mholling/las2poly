@@ -9,9 +9,9 @@
 
 #include "corner.hpp"
 #include "ring.hpp"
-#include "vector.hpp"
-#include "bounds.hpp"
 #include "rtree.hpp"
+#include "bounds.hpp"
+#include "vertex.hpp"
 #include "summation.hpp"
 #include <algorithm>
 #include <set>
@@ -21,7 +21,6 @@ template <typename Polygons>
 class Smooth {
 	using Corner = ::Corner<Ring>;
 	using RTree = ::RTree<Corner>;
-	using Vertex = Vector<2>;
 
 	struct Candidate {
 		Corner corner;
