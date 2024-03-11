@@ -21,7 +21,7 @@ class Rings : public std::vector<Ring> {
 	using VerticesLinks = std::unordered_multimap<Vertex, Link>;
 	using Connections = std::unordered_map<Link, Link>;
 
-	void load(Links const &links, bool allow_self_intersections, bool exterior) {
+	void load(Links const &links, bool allow_self_intersection, bool exterior) {
 		auto vertices_links = VerticesLinks();
 		for (auto const &link: links)
 			vertices_links.emplace(link.first, link);
@@ -36,7 +36,7 @@ class Rings : public std::vector<Ring> {
 					: incoming > v2 && Link(v1, v2) > incoming.second;
 			};
 			auto const [start, stop] = vertices_links.equal_range(incoming.second);
-			auto const &outgoing = allow_self_intersections
+			auto const &outgoing = allow_self_intersection
 				? std::min_element(start, stop, ordering)->second
 				: std::max_element(start, stop, ordering)->second;
 			connections.emplace(incoming, outgoing);
@@ -60,21 +60,21 @@ class Rings : public std::vector<Ring> {
 		}
 
 		if (exterior) {
-			auto const holes = Rings(interior_links, allow_self_intersections, false);
+			auto const holes = Rings(interior_links, allow_self_intersection, false);
 			insert(end(), holes.begin(), holes.end());
 		}
 	}
 
 public:
-	Rings(Links const &links, bool allow_self_intersections, bool exterior = true) {
-		load(links, allow_self_intersections, exterior);
+	Rings(Links const &links, bool allow_self_intersection, bool exterior = true) {
+		load(links, allow_self_intersection, exterior);
 	}
 
-	Rings(Edges const &edges, bool allow_self_intersections) {
+	Rings(Edges const &edges, bool allow_self_intersection) {
 		auto links = Links();
 		for (auto const &[p1, p2]: edges)
 			links.emplace_back(*p1, *p2);
-		load(links, allow_self_intersections, true);
+		load(links, allow_self_intersection, true);
 	}
 };
 

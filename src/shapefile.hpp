@@ -222,7 +222,7 @@ class Shapefile {
 	PRJ prj;
 
 public:
-	auto static constexpr allow_self_intersections = true;
+	auto static constexpr allow_self_intersection = true;
 
 	Shapefile(std::filesystem::path const &shp_path) :
 		shpx(shp_path),

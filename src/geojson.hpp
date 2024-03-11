@@ -93,7 +93,7 @@ class GeoJSON {
 	}
 
 public:
-	auto static constexpr allow_self_intersections = false;
+	auto static constexpr allow_self_intersection = false;
 
 	GeoJSON(std::optional<std::filesystem::path> const &json_path) : json_path(json_path) {
 		stream.precision(15);

@@ -37,8 +37,8 @@ class Output {
 		return std::visit(exists, variant);
 	}
 
-	auto allow_self_intersections() const {
-		auto const allow = [](auto const &output) { return output.allow_self_intersections; };
+	auto allow_self_intersection() const {
+		auto const allow = [](auto const &output) { return output.allow_self_intersection; };
 		return std::visit(allow, variant);
 	}
 
@@ -49,7 +49,7 @@ public:
 	}
 
 	Output(App const &app, Polygons const &polygons, Points const &points) : Output(app) {
-		auto const polys = polygons.reassemble(app, allow_self_intersections());
+		auto const polys = polygons.reassemble(app, allow_self_intersection());
 		app.log("saving", polys.size(), "polygon");
 		if (app.multi && app.lines)
 			(*this)(polys.multilinestrings(), points.srs());

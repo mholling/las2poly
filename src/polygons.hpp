@@ -94,13 +94,13 @@ struct Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<
 		Polygons(app, Rings(edges, !app.land))
 	{ }
 
-	auto reassemble(App const &app, bool allow_self_intersections) const {
+	auto reassemble(App const &app, bool allow_self_intersection) const {
 		auto links = Links();
 		for (auto const &polygon: *this)
 			for (auto const &ring: polygon)
 				for (auto const &[v0, v1, v2]: ring.corners())
 					links.emplace_back(v1, v2);
-		return Polygons(app, Rings(links, allow_self_intersections));
+		return Polygons(app, Rings(links, allow_self_intersection));
 	}
 };
 
