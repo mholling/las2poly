@@ -23,6 +23,7 @@
 class GeoJSON {
 	std::stringstream stream;
 	std::optional<std::filesystem::path> json_path;
+	std::string table_name;
 
 	template <typename Value>
 	auto &operator<<(Value const &value) {
@@ -95,13 +96,18 @@ class GeoJSON {
 public:
 	auto static constexpr allow_self_intersection = false;
 
-	GeoJSON(std::optional<std::filesystem::path> const &json_path) : json_path(json_path) {
+	GeoJSON(std::optional<std::filesystem::path> const &json_path, std::string &&table_name) :
+		json_path(json_path),
+		table_name(table_name)
+	{
 		stream.precision(15);
 	}
 
 	template <typename Polygons>
 	void operator()(Polygons const &polygons, OptionalSRS const &srs) {
 		*this << "{\"type\":\"FeatureCollection\",";
+		if (!json_path)
+			*this << "\"name\":\"" << table_name << "\",";
 		if (srs)
 			*this << *srs << ",";
 		*this << "\"features\":" << polygons << "}";

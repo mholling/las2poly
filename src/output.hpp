@@ -24,7 +24,7 @@ class Output {
 		if (app.path && app.path->extension() == ".shp")
 			return Variant(std::in_place_type_t<Shapefile>(), *app.path);
 		else
-			return Variant(std::in_place_type_t<GeoJSON>(), app.path);
+			return Variant(std::in_place_type_t<GeoJSON>(), app.path, app.land ? "land" : "water");
 	}
 
 	template <typename ...Args>
