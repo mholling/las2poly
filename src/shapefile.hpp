@@ -26,6 +26,10 @@
 static_assert(std::numeric_limits<double>::is_iec559);
 static_assert(std::endian::native == std::endian::big || std::endian::native == std::endian::little);
 
+template <typename Collection> struct ShapeType;
+template <> struct ShapeType<Polygons>         { auto static constexpr value = 5; };
+template <> struct ShapeType<MultiLinestrings> { auto static constexpr value = 3; };
+
 class Shapefile {
 	auto static constexpr int32_max = std::numeric_limits<std::int32_t>::max();
 
@@ -42,12 +46,6 @@ class Shapefile {
 		if constexpr (std::endian::native == std::endian::little)
 			std::reverse(data + offset, data + offset + sizeof(Value));
 	}
-
-	template <typename Collection> struct ShapeType;
-	template <> struct ShapeType<Polygons>         { auto static constexpr value = 5; };
-	template <> struct ShapeType<MultiLinestrings> { auto static constexpr value = 3; };
-	template <typename Collection>
-	auto static constexpr shape_type = ShapeType<Collection>::value;
 
 	struct SHPX {
 		using Integer = std::int32_t;
@@ -67,6 +65,7 @@ class Shapefile {
 			auto static constexpr content_prefix_size = 44ull;
 			auto static constexpr file_magic = 9994;
 			auto static constexpr file_version = 1000;
+			auto static constexpr shape_type = ShapeType<Collection>::value;
 
 			auto const bounds = Bounds(collection);
 			auto const shx_file_length = file_header_size + collection.size() * record_header_size;
@@ -82,7 +81,7 @@ class Shapefile {
 			char file_header[file_header_size] = {0};
 			   big<Integer,  0>(file_header, file_magic);
 			little<Integer, 28>(file_header, file_version);
-			little<Integer, 32>(file_header, shape_type<Collection>);
+			little<Integer, 32>(file_header, shape_type);
 			little<Double,  36>(file_header, bounds.xmin);
 			little<Double,  44>(file_header, bounds.ymin);
 			little<Double,  52>(file_header, bounds.xmax);
@@ -122,7 +121,7 @@ class Shapefile {
 				shp_file.write(record_header, record_header_size);
 
 				char content_prefix[content_prefix_size];
-				little<Integer,  0>(content_prefix, shape_type<Collection>);
+				little<Integer,  0>(content_prefix, shape_type);
 				little< Double,  4>(content_prefix, bounds.xmin);
 				little< Double, 12>(content_prefix, bounds.ymin);
 				little< Double, 20>(content_prefix, bounds.xmax);
