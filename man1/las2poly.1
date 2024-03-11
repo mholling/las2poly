@@ -58,8 +58,8 @@ This secondary filter ensures remaining non-horizontal voids are ignored.
 Extract polygons for land areas instead of waterbodies.
 .It Fl -simplify
 Simplify the output polygons using Visvalingam's algorithm.
-.It Fl -smooth
-Smooth the output polygons.
+.It Fl -raw
+Don't smooth the output polygons.
 .It Fl -discard Ar class,...
 Choose a list of lidar point classes to discard.
 The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
@@ -94,8 +94,8 @@ Show a brief help summary.
 .Dl $ las2poly --land --width 10 *.las land.shp
 .It Pipe GeoJSON output to another command for conversion:
 .Dl $ las2poly --width 8 *.las - | ogr2ogr water.kml /vsistdin/
-.It Apply line smoothing:
-.Dl $ las2poly --width 8 --smooth *.las water.json
+.It Apply line simplification:
+.Dl $ las2poly --width 8 --simplify *.las water.json
 .It Add So bridge deck Sc points Po class 17 Pc to water areas:
 .Dl $ las2poly --width 8 --discard 0,1,7,9,12,17,18 *.las water.json
 .El

@@ -58,7 +58,7 @@ struct App {
 		auto slope       = std::optional<double>(5.0);
 		auto land        = std::optional<bool>();
 		auto simplify    = std::optional<bool>();
-		auto smooth      = std::optional<bool>();
+		auto raw         = std::optional<bool>();
 		auto discard     = std::optional<Ints>{{0,1,7,9,12,18}};
 		auto multi       = std::optional<bool>();
 		auto lines       = std::optional<bool>();
@@ -78,7 +78,7 @@ struct App {
 		args.option("",   "--slope",      "<degrees>",   "maximum waterbody slope",                    slope);
 		args.option("",   "--land",                      "extract land areas instead of waterbodies",  land);
 		args.option("",   "--simplify",                  "simplify output polygons",                   simplify);
-		args.option("",   "--smooth",                    "smooth output polygons",                     smooth);
+		args.option("",   "--raw",                       "don't smooth output polygons",               raw);
 		args.option("",   "--discard",    "<class,...>", "discard point classes",                      discard);
 		args.option("",   "--multi",                     "collect polygons into single multipolygon",  multi);
 		args.option("",   "--lines",                     "extract as linestrings instead of polygons", lines);
@@ -137,8 +137,8 @@ struct App {
 				throw std::runtime_error("number of threads must be positive");
 		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
 			throw std::runtime_error("can't read standard input more than once");
-		if (smooth && simplify)
-			throw std::runtime_error("either smooth or simplify but not both");
+		if (raw && simplify)
+			throw std::runtime_error("either raw or simplify but not both");
 
 		if (!area)
 			area = 4 * *width * *width;
@@ -151,7 +151,7 @@ struct App {
 			.slope       = *slope * pi / 180,
 			.land        = land.has_value(),
 			.simplify    = simplify.has_value(),
-			.smooth      = smooth.has_value(),
+			.smooth      = !raw && !simplify,
 			.discard     = Discard(discard->begin(), discard->end()),
 			.multi       = multi.has_value(),
 			.lines       = lines.has_value(),

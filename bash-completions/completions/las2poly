@@ -3,7 +3,7 @@ _las2poly() {
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 	arg_opts=(-w --width --area --delta --slope --discard --epsg --threads)
-	flag_opts=(--land --simplify --smooth --multi -o --overwrite -q --quiet -v --version -h --help)
+	flag_opts=(--land --simplify --raw --multi -o --overwrite -q --quiet -v --version -h --help)
 	file_opts=(--tiles)
 
 	if [[ " ${arg_opts[@]} " =~ " ${prev} " ]]; then

@@ -74,9 +74,9 @@ option is required to calibrate the void detection process.
 
 > Simplify the output polygons using Visvalingam's algorithm.
 
-**--smooth**
+**--raw**
 
-> Smooth the output polygons.
+> Don't smooth the output polygons.
 
 **--discard** *class,...*
 
@@ -139,9 +139,9 @@ Pipe GeoJSON output to another command for conversion:
 
 	$ las2poly --width 8 *.las - | ogr2ogr water.kml /vsistdin/
 
-Apply line smoothing:
+Apply line simplification:
 
-	$ las2poly --width 8 --smooth *.las water.json
+	$ las2poly --width 8 --simplify *.las water.json
 
 Add 'bridge deck' points (class 17) to water areas:
 
