@@ -103,14 +103,14 @@ public:
 		stream.precision(15);
 	}
 
-	template <typename Polygons>
-	void operator()(Polygons const &polygons, OptionalSRS const &srs) {
+	template <typename Collection>
+	void operator()(Collection const &collection, OptionalSRS const &srs) {
 		*this << "{\"type\":\"FeatureCollection\",";
 		if (!json_path)
 			*this << "\"name\":\"" << table_name << "\",";
 		if (srs)
 			*this << *srs << ",";
-		*this << "\"features\":" << polygons << "}";
+		*this << "\"features\":" << collection << "}";
 
 		if (json_path) {
 			auto file = std::ofstream(*json_path);
