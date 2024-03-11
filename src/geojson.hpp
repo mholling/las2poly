@@ -8,12 +8,13 @@
 #define GEOJSON_HPP
 
 #include "vertex.hpp"
-#include "ring.hpp"
+#include "linestrings.hpp"
 #include "polygons.hpp"
 #include "srs.hpp"
 #include <sstream>
 #include <optional>
 #include <filesystem>
+#include <type_traits>
 #include <utility>
 #include <iostream>
 #include <string>
@@ -33,10 +34,11 @@ class GeoJSON {
 		return json << '[' << vertex[0] << ',' << vertex[1] << ']';
 	}
 
-	friend auto &operator<<(GeoJSON &json, Ring const &ring) {
-		for (json << '['; auto const &vertex: ring)
+	template <typename Vertices> requires (std::is_base_of_v<Linestring, Vertices>)
+	friend auto &operator<<(GeoJSON &json, Vertices const &vertices) {
+		for (json << '['; auto const &vertex: vertices)
 			json << vertex << ',';
-		return json << ring.front() << ']';
+		return json << vertices.front() << ']';
 	}
 
 	friend auto &operator<<(GeoJSON &json, Polygon const &polygon) {
@@ -55,12 +57,6 @@ class GeoJSON {
 		for (auto separator = "[{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"MultiPolygon\",\"coordinates\":["; auto const &polygon: multipolygon)
 			json << std::exchange(separator, ",") << polygon;
 		return json << (multipolygon.empty() ? "[]" : "]}}]");
-	}
-
-	friend auto &operator<<(GeoJSON &json, Linestring const &linestring) {
-		for (json << '['; auto const &vertex: linestring)
-			json << vertex << ',';
-		return json << linestring.front() << ']';
 	}
 
 	friend auto &operator<<(GeoJSON &json, Linestrings const &linestrings) {
