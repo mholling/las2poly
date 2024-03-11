@@ -8,7 +8,7 @@
 #define RING_HPP
 
 #include "linestrings.hpp"
-#include "links.hpp"
+#include "link.hpp"
 #include "corners.hpp"
 #include "corner.hpp"
 #include "summation.hpp"

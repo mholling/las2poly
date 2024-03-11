@@ -9,7 +9,7 @@
 
 #include "ring.hpp"
 #include "vertex.hpp"
-#include "links.hpp"
+#include "link.hpp"
 #include "edges.hpp"
 #include <vector>
 #include <unordered_map>
