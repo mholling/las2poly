@@ -13,6 +13,7 @@
 #include "bounds.hpp"
 #include "vertex.hpp"
 #include "summation.hpp"
+#include <utility>
 #include <algorithm>
 #include <set>
 #include <vector>
@@ -72,8 +73,8 @@ class Smooth {
 
 		friend auto operator<(Candidate const &candidate1, Candidate const &candidate2) {
 			return
-				std::pair(candidate1.second, candidate1.cosine) <
-				std::pair(candidate2.second, candidate2.cosine);
+				std::tie(candidate1.second, candidate1.cosine) <
+				std::tie(candidate2.second, candidate2.cosine);
 		}
 
 		auto operator()(RTree const &rtree) const {
