@@ -17,11 +17,8 @@
 #include <algorithm>
 #include <compare>
 
-class Ring : public Linestring {
-	bool ogc;
-
-public:
-	Ring(Links const &links, bool ogc) : ogc(ogc) {
+struct Ring : Linestring {
+	Ring(Links const &links) {
 		for (auto const &[v1, v2]: links)
 			push_back(v1);
 	}
@@ -34,13 +31,9 @@ public:
 		return Corners(*this);
 	}
 
-	auto anticlockwise() const {
+	auto exterior() const { // exterior rings are anticlockwise
 		auto const leftmost = std::min_element(begin(), end());
 		return Corner(this, leftmost).cross() > 0;
-	}
-
-	auto exterior() const {
-		return anticlockwise() == ogc;
 	}
 
 	auto signed_area() const {
@@ -48,7 +41,7 @@ public:
 		auto const v = *begin();
 		for (auto summation = Summation(cross_product_sum); auto const &[v0, v1, v2]: corners())
 			summation += (v1 - v) ^ (v2 - v);
-		return cross_product_sum * (ogc ? 0.5 : -0.5);
+		return cross_product_sum * 0.5;
 	}
 
 	// ring <=> vertex  < 0 : vertex inside clockwise ring

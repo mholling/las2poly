@@ -37,6 +37,11 @@ class Output {
 		return std::visit(exists, variant);
 	}
 
+	auto allow_self_intersections() const {
+		auto const allow = [](auto const &output) { return output.allow_self_intersections; };
+		return std::visit(allow, variant);
+	}
+
 public:
 	Output(App const &app) : variant(from(app)) {
 		if (!app.overwrite && *this)
@@ -44,15 +49,16 @@ public:
 	}
 
 	Output(App const &app, Polygons const &polygons, Points const &points) : Output(app) {
-		app.log("saving", polygons.size(), "polygon");
+		auto const polys = polygons.reassemble(app, allow_self_intersections());
+		app.log("saving", polys.size(), "polygon");
 		if (app.multi && app.lines)
-			(*this)(polygons.multilinestrings(), points.srs());
+			(*this)(polys.multilinestrings(), points.srs());
 		else if (app.lines)
-			(*this)(polygons.linestrings(), points.srs());
+			(*this)(polys.linestrings(), points.srs());
 		else if (app.multi)
-			(*this)(polygons.multipolygon(), points.srs());
+			(*this)(polys.multipolygon(), points.srs());
 		else
-			(*this)(polygons, points.srs());
+			(*this)(polys, points.srs());
 	}
 };
 

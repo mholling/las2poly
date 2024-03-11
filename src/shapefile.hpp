@@ -138,9 +138,11 @@ class Shapefile {
 				for (auto count = 0ul; auto const &vertices: geometry) {
 					*index++ = count;
 					count += vertices.size() + 1ul;
-					for (auto const &[x, y]: vertices)
+					std::for_each(vertices.rbegin(), vertices.rend(), [&](auto const &vertex) {
+						auto const &[x, y] = vertex;
 						*coord++ = x, *coord++ = y;
-					auto const &[x, y] = vertices.front();
+					});
+					auto const &[x, y] = vertices.back();
 					*coord++ = x, *coord++ = y;
 				}
 
@@ -220,6 +222,8 @@ class Shapefile {
 	PRJ prj;
 
 public:
+	auto static constexpr allow_self_intersections = true;
+
 	Shapefile(std::filesystem::path const &shp_path) :
 		shpx(shp_path),
 		dbf(shp_path),

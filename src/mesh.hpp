@@ -337,11 +337,10 @@ public:
 
 	template <typename Edges>
 	void deconstruct(App const &app, Triangles &triangles, Edges &edges) {
-		auto const anticlockwise = app.ogc == app.land;
-		strip_exterior(points.begin(), points.end(), anticlockwise, [&](auto const &edge) {
+		strip_exterior(points.begin(), points.end(), app.land, [&](auto const &edge) {
 			edges.insert(-edge);
 		});
-		deconstruct(triangles, points.begin(), points.end(), app.width, anticlockwise, app.threads);
+		deconstruct(triangles, points.begin(), points.end(), app.width, app.land, app.threads);
 	}
 };
 

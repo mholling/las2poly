@@ -21,7 +21,7 @@ class Rings : public std::vector<Ring> {
 	using VerticesLinks = std::unordered_multimap<Vertex, Link>;
 	using Connections = std::unordered_map<Link, Link>;
 
-	void load(Links const &links, bool ogc, bool exterior = true) {
+	void load(Links const &links, bool allow_self_intersections, bool exterior) {
 		auto vertices_links = VerticesLinks();
 		for (auto const &link: links)
 			vertices_links.emplace(link.first, link);
@@ -36,9 +36,9 @@ class Rings : public std::vector<Ring> {
 					: incoming > v2 && Link(v1, v2) > incoming.second;
 			};
 			auto const [start, stop] = vertices_links.equal_range(incoming.second);
-			auto const &outgoing = exterior
-				? std::max_element(start, stop, ordering)->second
-				: std::min_element(start, stop, ordering)->second;
+			auto const &outgoing = allow_self_intersections
+				? std::min_element(start, stop, ordering)->second
+				: std::max_element(start, stop, ordering)->second;
 			connections.emplace(incoming, outgoing);
 		}
 
@@ -50,7 +50,7 @@ class Rings : public std::vector<Ring> {
 				connections.erase(std::exchange(connection, connections.find(connection->second)));
 			}
 
-			auto const ring = Ring(links, ogc);
+			auto const ring = Ring(links);
 			if (!exterior)
 				push_back(ring);
 			else if (ring.exterior())
@@ -60,21 +60,21 @@ class Rings : public std::vector<Ring> {
 		}
 
 		if (exterior) {
-			auto const holes = Rings(interior_links, ogc, false);
+			auto const holes = Rings(interior_links, allow_self_intersections, false);
 			insert(end(), holes.begin(), holes.end());
 		}
 	}
 
-	Rings(Links const &links, bool ogc, bool exterior = true) {
-		load(links, ogc, exterior);
+public:
+	Rings(Links const &links, bool allow_self_intersections, bool exterior = true) {
+		load(links, allow_self_intersections, exterior);
 	}
 
-public:
-	Rings(Edges const &edges, bool ogc) {
+	Rings(Edges const &edges, bool allow_self_intersections) {
 		auto links = Links();
 		for (auto const &[p1, p2]: edges)
 			links.emplace_back(*p1, *p2);
-		load(links, ogc);
+		load(links, allow_self_intersections, true);
 	}
 };
 
