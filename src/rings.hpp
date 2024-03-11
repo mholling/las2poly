@@ -8,8 +8,8 @@
 #define RINGS_HPP
 
 #include "ring.hpp"
-#include "points.hpp"
-#include "edge.hpp"
+#include "vertex.hpp"
+#include "links.hpp"
 #include "edges.hpp"
 #include <vector>
 #include <unordered_map>
@@ -17,53 +17,64 @@
 #include <algorithm>
 #include <utility>
 
-struct Rings : std::vector<Ring> {
-	using PointsEdges = std::unordered_multimap<PointIterator, Edge>;
-	using Connections = std::unordered_map<Edge, Edge>;
+class Rings : public std::vector<Ring> {
+	using VerticesLinks = std::unordered_multimap<Vertex, Link>;
+	using Connections = std::unordered_map<Link, Link>;
 
-	template <typename Edges, bool exterior = std::is_same_v<Edges, ::Edges>>
-	Rings(Edges const &edges, bool ogc) {
-		auto points_edges = PointsEdges();
-		for (auto const &edge: edges)
-			points_edges.emplace(edge.first, edge);
+	void load(Links const &links, bool ogc, bool exterior = true) {
+		auto vertices_links = VerticesLinks();
+		for (auto const &link: links)
+			vertices_links.emplace(link.first, link);
 
 		auto connections = Connections();
-		for (auto const &incoming: edges) {
-			auto const ordering = [&](auto const &point_edge1, auto const &point_edge2) {
-				auto const &p1 = point_edge1.second.second;
-				auto const &p2 = point_edge2.second.second;
-				return incoming < p1
-					? incoming > p2 || Edge(p1, p2) > incoming.second
-					: incoming > p2 && Edge(p1, p2) > incoming.second;
+		for (auto const &incoming: links) {
+			auto const ordering = [&](auto const &vertex_link1, auto const &vertex_link2) {
+				auto const &v1 = vertex_link1.second.second;
+				auto const &v2 = vertex_link2.second.second;
+				return incoming < v1
+					? incoming > v2 || Link(v1, v2) > incoming.second
+					: incoming > v2 && Link(v1, v2) > incoming.second;
 			};
-			auto const [start, stop] = points_edges.equal_range(incoming.second);
+			auto const [start, stop] = vertices_links.equal_range(incoming.second);
 			auto const &outgoing = exterior
 				? std::max_element(start, stop, ordering)->second
 				: std::min_element(start, stop, ordering)->second;
 			connections.emplace(incoming, outgoing);
 		}
 
-		auto interior_edges = std::vector<Edge>();
+		auto interior_links = Links();
 		while (!connections.empty()) {
-			auto edges = std::vector<Edge>();
+			auto links = Links();
 			for (auto connection = connections.begin(); connection != connections.end(); ) {
-				edges.push_back(connection->first);
+				links.push_back(connection->first);
 				connections.erase(std::exchange(connection, connections.find(connection->second)));
 			}
 
-			auto const ring = Ring(edges, ogc);
+			auto const ring = Ring(links, ogc);
 			if (!exterior)
 				push_back(ring);
 			else if (ring.exterior())
 				push_back(ring);
 			else
-				interior_edges.insert(interior_edges.end(), edges.begin(), edges.end());
+				interior_links.insert(interior_links.end(), links.begin(), links.end());
 		}
 
-		if constexpr (exterior) {
-			auto const holes = Rings(interior_edges, ogc);
+		if (exterior) {
+			auto const holes = Rings(interior_links, ogc, false);
 			insert(end(), holes.begin(), holes.end());
 		}
+	}
+
+	Rings(Links const &links, bool ogc, bool exterior = true) {
+		load(links, ogc, exterior);
+	}
+
+public:
+	Rings(Edges const &edges, bool ogc) {
+		auto links = Links();
+		for (auto const &[p1, p2]: edges)
+			links.emplace_back(*p1, *p2);
+		load(links, ogc);
 	}
 };
 

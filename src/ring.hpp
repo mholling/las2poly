@@ -8,6 +8,7 @@
 #define RING_HPP
 
 #include "linestrings.hpp"
+#include "links.hpp"
 #include "corners.hpp"
 #include "corner.hpp"
 #include "summation.hpp"
@@ -20,10 +21,9 @@ class Ring : public Linestring {
 	bool ogc;
 
 public:
-	template <typename Edges>
-	Ring(Edges const &edges, bool ogc) : ogc(ogc) {
-		for (auto const &[p1, p2]: edges)
-			push_back(*p1);
+	Ring(Links const &links, bool ogc) : ogc(ogc) {
+		for (auto const &[v1, v2]: links)
+			push_back(v1);
 	}
 
 	auto corners() {
