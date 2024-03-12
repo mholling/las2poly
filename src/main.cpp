@@ -16,7 +16,7 @@
 
 int main(int argc, char *argv[]) {
 	try {
-		auto const app = App::parse(argc, argv);
+		auto const app = App(argc, argv);
 		{ auto output = Output(app); }
 		auto points = Points(app);
 		auto mesh = Mesh(app, points);
