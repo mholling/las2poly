@@ -82,7 +82,7 @@ public:
 	{
 		if (app.simplify) {
 			app.log("simplifying", ring_count(), "ring");
-			auto const tolerance = 4 * app.width * app.width;
+			auto const tolerance = 4 * *app.width * *app.width;
 			simplify(tolerance, app.land);
 		}
 
@@ -91,12 +91,12 @@ public:
 			smooth(app.land);
 		}
 
-		if (app.area > 0)
+		if (auto const min_area = *app.area; min_area > 0)
 			erase(std::remove_if(begin(), end(), [&](auto &polygon) {
 				polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [&](auto const &ring) {
-					return ring.signed_area() > -app.area;
+					return ring.signed_area() > -min_area;
 				}), polygon.end());
-				return polygon.front().signed_area() < app.area;
+				return polygon.front().signed_area() < min_area;
 			}), end());
 	}
 

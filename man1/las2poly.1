@@ -38,7 +38,8 @@ For shapefile output, polygons conform to ESRI standard, with clockwise exterior
 .Pp
 A single
 .Fl -width
-option is required to calibrate the void detection process.
+option calibrates the void detection process.
+If not provided, the tiles are examined for point density and an estimated value used.
 .Sh OPTIONS
 .Bl -tag -width 6n
 .It Fl w , -width Ar metres

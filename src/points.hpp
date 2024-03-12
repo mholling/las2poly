@@ -32,7 +32,8 @@
 #include <cstddef>
 
 class Points : public std::vector<Point> {
-	using Paths = std::vector<std::filesystem::path>;
+	using Path = std::filesystem::path;
+	using Paths = std::vector<Path>;
 	using PathIterator = Paths::const_iterator;
 	using Discard = std::unordered_set<unsigned char>;
 
@@ -57,7 +58,7 @@ class Points : public std::vector<Point> {
 
 		double resolution;
 
-		Thin(double resolution) : resolution(resolution) {
+		Thin(double resolution = min_resolution) : resolution(resolution) {
 			if (resolution < min_resolution)
 				throw std::runtime_error("width value too small");
 		}
@@ -110,6 +111,17 @@ class Points : public std::vector<Point> {
 		}
 	};
 
+	void load(App const &app, Path const &path, Thin const &thin) {
+		if (path == "-") {
+			std::cin.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+			thin(app, *this, Tile(std::cin));
+		} else {
+			auto input = std::ifstream(path, std::ios::binary);
+			input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+			thin(app, *this, Tile(input));
+		}
+	}
+
 	void load(App const &app, PathIterator begin, PathIterator end, Thin const &thin, std::mutex &mutex, std::exception_ptr &exception, int threads) {
 		if (auto lock = std::lock_guard(mutex); exception)
 			return;
@@ -117,14 +129,7 @@ class Points : public std::vector<Point> {
 			if (begin + 1 == end) {
 				auto const &path = *begin;
 				try {
-					if (path == "-") {
-						std::cin.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-						thin(app, *this, Tile(std::cin));
-					} else {
-						auto input = std::ifstream(path, std::ios::binary);
-						input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-						thin(app, *this, Tile(input));
-					}
+					load(app, path, thin);
 				} catch (std::ios_base::failure &) {
 					throw std::runtime_error(path.string() + ": problem reading file");
 				} catch (std::runtime_error &error) {
@@ -160,8 +165,13 @@ class Points : public std::vector<Point> {
 	Points() = default;
 
 public:
+	Points(App const &app, Path const &path) {
+		auto const thin = Thin();
+		load(app, path, thin);
+	}
+
 	Points(App const &app) {
-		auto const resolution = app.width / std::sqrt(8.0);
+		auto const resolution = *app.width / std::sqrt(8.0);
 		auto const thin = Thin(resolution);
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();

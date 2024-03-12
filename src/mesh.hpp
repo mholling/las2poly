@@ -28,6 +28,10 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		return (*this)[point - points.begin()];
 	}
 
+	auto &adjacent(PointIterator point) const {
+		return (*this)[point - points.begin()];
+	}
+
 	void connect(PointIterator p1, PointIterator p2) {
 		adjacent(p1).push_back(p2);
 		adjacent(p2).push_back(p1);
@@ -317,7 +321,17 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 	}
 
 public:
-	Mesh(App const &app, Points &points) : vector(points.size()), points(points) {
+	Mesh(Points &points) :
+		vector(points.size()),
+		points(points)
+	{
+		triangulate(points.begin(), points.end(), 1);
+	}
+
+	Mesh(App const &app, Points &points) :
+		vector(points.size()),
+		points(points)
+	{
 		auto const ground_begin = std::partition(points.begin(), points.end(), [](auto const &point) {
 			return point.withheld;
 		});
@@ -340,7 +354,19 @@ public:
 		strip_exterior(points.begin(), points.end(), app.land, [&](auto const &edge) {
 			edges.insert(-edge);
 		});
-		deconstruct(triangles, points.begin(), points.end(), app.width, app.land, app.threads);
+		deconstruct(triangles, points.begin(), points.end(), *app.width, app.land, app.threads);
+	}
+
+	auto median_length() const {
+		auto lengths = std::vector<double>();
+		for (auto p0 = points.begin(); p0 < points.end(); ++p0)
+			for (auto const &p1: adjacent(p0))
+				lengths.push_back((*p1 - *p0).norm());
+
+		auto const median = lengths.begin() + (lengths.end() - lengths.begin()) / 2;
+		std::nth_element(lengths.begin(), median, lengths.end());
+
+		return *median;
 	}
 };
 

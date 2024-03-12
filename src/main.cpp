@@ -6,6 +6,7 @@
 
 #include "app.hpp"
 #include "output.hpp"
+#include "defaults.hpp"
 #include "points.hpp"
 #include "mesh.hpp"
 #include "edges.hpp"
@@ -16,8 +17,9 @@
 
 int main(int argc, char *argv[]) {
 	try {
-		auto const app = App(argc, argv);
+		auto app = App(argc, argv);
 		{ auto output = Output(app); }
+		{ auto defaults = Defaults(app); }
 		auto points = Points(app);
 		auto mesh = Mesh(app, points);
 		auto edges = Edges(app, mesh);

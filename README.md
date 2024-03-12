@@ -41,7 +41,8 @@ For shapefile output, polygons conform to ESRI standard, with clockwise exterior
 
 A single
 **--width**
-option is required to calibrate the void detection process.
+option calibrates the void detection process.
+If not provided, the tiles are examined for point density and an estimated value used.
 
 # OPTIONS
 
@@ -173,4 +174,4 @@ threshold can eliminate such problems, at the cost of reduced fidelity.
 
 Matthew Hollingworth
 
-macOS 13.1 - March 11, 2024
+macOS 13.1 - March 13, 2024

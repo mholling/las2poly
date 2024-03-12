@@ -20,8 +20,8 @@
 
 class App {
 	App(Opts const &&opts) :
-		width      (*opts.width),
-		area       (opts.area.value_or(4 * width * width)),
+		width      (opts.width),
+		area       (opts.area),
 		delta      (*opts.delta),
 		slope      (*opts.slope * std::numbers::pi / 180),
 		land       (opts.land),
@@ -53,25 +53,26 @@ class App {
 	using Path = std::filesystem::path;
 	using Paths = std::vector<Path>;
 	using OptionalPath = std::optional<Path>;
+	using OptionalDouble = std::optional<double>;
 
 public:
-	double       width;
-	double       area;
-	double       delta;
-	double       slope;
-	bool         land;
-	bool         simplify;
-	bool         smooth;
-	Discard      discard;
-	bool         multi;
-	bool         lines;
-	bool         overwrite;
-	Paths        tile_paths;
-	OptionalPath path;
-	OptionalSRS  srs;
-	int          threads;
-	int          io_threads;
-	Log          log;
+	OptionalDouble width;
+	OptionalDouble area;
+	double         delta;
+	double         slope;
+	bool           land;
+	bool           simplify;
+	bool           smooth;
+	Discard        discard;
+	bool           multi;
+	bool           lines;
+	bool           overwrite;
+	Paths          tile_paths;
+	OptionalPath   path;
+	OptionalSRS    srs;
+	int            threads;
+	int            io_threads;
+	Log            log;
 
 	App(int argc, char *argv[]) :
 		App(Opts(argc, argv))

@@ -72,8 +72,6 @@ struct Opts {
 		args.position("<water.json>", "GeoJSON or shapefile output path", path);
 
 		auto const proceed = args.parse([&]() {
-			if (!width)
-				throw std::runtime_error("no width specified");
 			if (tiles_path) {
 				if (!tile_paths.empty())
 					throw std::runtime_error("can't specify tiles as arguments and also in a file");
