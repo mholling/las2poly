@@ -11,6 +11,7 @@
 #include "srs.hpp"
 #include "log.hpp"
 #include <cmath>
+#include <numbers>
 #include <stdexcept>
 #include <unordered_set>
 #include <filesystem>
@@ -23,7 +24,7 @@ class App {
 		resolution (*opts.width / std::sqrt(8.0)),
 		area       (opts.area ? *opts.area : 4 * *opts.width * *opts.width),
 		delta      (*opts.delta),
-		slope      (*opts.slope * 3.14159265358979324 / 180),
+		slope      (*opts.slope * std::numbers::pi / 180),
 		land       (opts.land),
 		simplify   (opts.simplify),
 		smooth     (!opts.raw && !opts.simplify),
