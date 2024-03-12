@@ -26,7 +26,6 @@
 #include <mutex>
 #include <iostream>
 #include <fstream>
-#include <optional>
 #include <thread>
 #include <numeric>
 #include <cstddef>
@@ -110,8 +109,7 @@ class Points : public std::vector<Point> {
 		}
 	};
 
-public:
-	Points(App const &app, PathIterator begin, PathIterator end, Thin const &thin, std::mutex &mutex, std::exception_ptr &exception, int threads) {
+	void load(App const &app, PathIterator begin, PathIterator end, Thin const &thin, std::mutex &mutex, std::exception_ptr &exception, int threads) {
 		if (auto lock = std::lock_guard(mutex); exception)
 			return;
 		try {
@@ -132,20 +130,21 @@ public:
 				} catch (std::runtime_error &error) {
 					throw std::runtime_error(path.string() + ": " + error.what());
 				}
-			} else if (1 == threads) {
-				auto points1 = Points(app, begin, middle, thin, mutex, exception, 1);
-				auto points2 = Points(app, middle, end, thin, mutex, exception, 1);
-				thin(*this, points1, points2);
 			} else {
-				auto points1 = std::optional<Points>();
-				auto points2 = std::optional<Points>();
-				auto thread1 = std::thread([&]() {
-					points1.emplace(app, begin, middle, thin, mutex, exception, threads/2);
-				}), thread2 = std::thread([&]() {
-					points2.emplace(app, middle, end, thin, mutex, exception, threads - threads/2);
-				});
-				thread1.join(), thread2.join();
-				thin(*this, *points1, *points2);
+				auto points1 = Points();
+				auto points2 = Points();
+				if (1 == threads) {
+					points1.load(app, begin, middle, thin, mutex, exception, 1);
+					points2.load(app, middle, end, thin, mutex, exception, 1);
+				} else {
+					auto thread1 = std::thread([&]() {
+						points1.load(app, begin, middle, thin, mutex, exception, threads/2);
+					}), thread2 = std::thread([&]() {
+						points2.load(app, middle, end, thin, mutex, exception, threads - threads/2);
+					});
+					thread1.join(), thread2.join();
+				}
+				thin(*this, points1, points2);
 			}
 			if (app.srs)
 				distinct_srs = {app.srs};
@@ -157,13 +156,16 @@ public:
 		}
 	}
 
+	Points() = default;
+
+public:
 	Points(App const &app) {
 		auto const thin = Thin(app.resolution);
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();
 
 		app.log("reading", app.tile_paths.size(), "file");
-		*this = Points(app, app.tile_paths.begin(), app.tile_paths.end(), thin, mutex, exception, app.threads);
+		load(app, app.tile_paths.begin(), app.tile_paths.end(), thin, mutex, exception, app.threads);
 
 		if (exception)
 			std::rethrow_exception(exception);
