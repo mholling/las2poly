@@ -114,7 +114,6 @@ class Points : public std::vector<Point> {
 		if (auto lock = std::lock_guard(mutex); exception)
 			return;
 		try {
-			auto const middle = begin + (end - begin) / 2;
 			if (begin + 1 == end) {
 				auto const &path = *begin;
 				try {
@@ -132,6 +131,7 @@ class Points : public std::vector<Point> {
 					throw std::runtime_error(path.string() + ": " + error.what());
 				}
 			} else {
+				auto const middle = begin + (end - begin) / 2;
 				auto points1 = Points();
 				auto points2 = Points();
 				if (1 == threads) {
