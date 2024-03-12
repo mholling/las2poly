@@ -81,7 +81,7 @@ struct App {
 		args.option("",   "--raw",                       "don't smooth output polygons",               raw);
 		args.option("",   "--discard",    "<class,...>", "discard point classes",                      discard);
 		args.option("",   "--multi",                     "collect polygons into single multipolygon",  multi);
-		args.option("",   "--lines",                     "extract as linestrings instead of polygons", lines);
+		args.option("",   "--lines",                     "output polygon boundaries as linestrings",   lines);
 		args.option("",   "--epsg",       "<number>",    "override missing or incorrect EPSG codes",   epsg);
 		args.option("",   "--threads",    "<number>",    "number of processing threads",               threads);
 		args.option("",   "--tiles",      "<tiles.txt>", "list of input tiles as a text file",         tiles_path);
