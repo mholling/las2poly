@@ -21,8 +21,7 @@
 class App {
 	App(Opts const &&opts) :
 		width      (*opts.width),
-		resolution (*opts.width / std::sqrt(8.0)),
-		area       (opts.area ? *opts.area : 4 * *opts.width * *opts.width),
+		area       (opts.area.value_or(4 * width * width)),
 		delta      (*opts.delta),
 		slope      (*opts.slope * std::numbers::pi / 180),
 		land       (opts.land),
@@ -57,7 +56,6 @@ class App {
 
 public:
 	double       width;
-	double       resolution;
 	double       area;
 	double       delta;
 	double       slope;

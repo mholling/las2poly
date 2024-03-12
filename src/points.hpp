@@ -27,6 +27,7 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
+#include <cmath>
 #include <numeric>
 #include <cstddef>
 
@@ -160,7 +161,8 @@ class Points : public std::vector<Point> {
 
 public:
 	Points(App const &app) {
-		auto const thin = Thin(app.resolution);
+		auto const resolution = app.width / std::sqrt(8.0);
+		auto const thin = Thin(resolution);
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();
 
@@ -173,7 +175,7 @@ public:
 		if (!app.land && size() > 2) {
 			app.log("synthesising extra points");
 			auto const overall_bounds = std::accumulate(tile_bounds.begin(), tile_bounds.end(), Bounds());
-			auto fill = Fill(overall_bounds, app.resolution);
+			auto fill = Fill(overall_bounds, resolution);
 
 			for (auto const &bounds: tile_bounds)
 				fill(bounds);
