@@ -70,8 +70,9 @@ public:
 			if (exception)
 				std::rethrow_exception(exception);
 
-			auto const median = medians.begin() + (medians.end() - medians.begin()) / 2;
-			std::nth_element(medians.begin(), median, medians.end());
+			auto const begin = medians.begin(), end = medians.end();
+			auto const median = begin + (end - begin) / 2;
+			std::nth_element(begin, median, end);
 
 			app.width = 4 * *median;
 			app.log("using minimum width of ", std::setprecision(1), *app.width, " metres");
