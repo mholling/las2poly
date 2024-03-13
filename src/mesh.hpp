@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <optional>
 #include <thread>
+#include <cmath>
 
 class Mesh : std::vector<std::vector<PointIterator>> {
 	Points &points;
@@ -359,14 +360,17 @@ public:
 
 	auto median_length() const {
 		auto lengths = std::vector<double>();
+		lengths.reserve(size() * 3);
+
 		for (auto p0 = points.begin(); p0 < points.end(); ++p0)
 			for (auto const &p1: adjacent(p0))
-				lengths.push_back((*p1 - *p0).norm());
+				lengths.push_back((*p1 - *p0).sqnorm());
 
-		auto const median = lengths.begin() + (lengths.end() - lengths.begin()) / 2;
-		std::nth_element(lengths.begin(), median, lengths.end());
+		auto const begin = lengths.begin(), end = lengths.end();
+		auto const median = begin + (end - begin) / 2;
+		std::nth_element(begin, median, end);
 
-		return *median;
+		return std::sqrt(*median);
 	}
 };
 
