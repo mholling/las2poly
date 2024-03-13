@@ -50,7 +50,7 @@ public:
 
 	Output(App const &app, Polygons const &polygons, Points const &points) : Output(app) {
 		auto const polys = polygons.reassemble(allow_self_intersection());
-		app.log("saving", polys.size(), "polygon");
+		app.log("saving", polys.size(), "polygon", points.srs() ? "" : " (no SRS available)");
 		if (app.multi && app.lines)
 			(*this)(polys.multilinestrings(), points.srs());
 		else if (app.lines)
