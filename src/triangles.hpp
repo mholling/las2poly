@@ -132,7 +132,7 @@ public:
 			}
 		}
 
-		return delta_sum < app.delta * delta_count && std::abs(perp_sum[2]) > std::cos(app.slope) * perp_sum.norm();
+		return delta_sum < app.delta * delta_count && std::abs(perp_sum[2]) > app.min_cosine * perp_sum.norm();
 	}
 };
 

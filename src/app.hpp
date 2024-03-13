@@ -23,7 +23,7 @@ class App {
 		width      (opts.width),
 		area       (opts.area),
 		delta      (*opts.delta),
-		slope      (*opts.slope * std::numbers::pi / 180),
+		min_cosine (std::cos(*opts.slope * std::numbers::pi / 180)),
 		land       (opts.land),
 		simplify   (opts.simplify),
 		smooth     (!opts.raw && !opts.simplify),
@@ -59,7 +59,7 @@ public:
 	OptionalDouble width;
 	OptionalDouble area;
 	double         delta;
-	double         slope;
+	double         min_cosine;
 	bool           land;
 	bool           simplify;
 	bool           smooth;
