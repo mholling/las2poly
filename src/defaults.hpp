@@ -65,7 +65,7 @@ public:
 			auto exception = std::exception_ptr();
 
 			app.log("estimating minimum width from", app.tile_paths.size(), "file");
-			load(app, app.tile_paths.begin(), app.tile_paths.end(), mutex, exception, app.threads);
+			load(app, app.tile_paths.begin(), app.tile_paths.end(), mutex, exception, app.io_threads);
 
 			if (exception)
 				std::rethrow_exception(exception);
