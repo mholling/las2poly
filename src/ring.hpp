@@ -9,7 +9,6 @@
 
 #include "linestrings.hpp"
 #include "link.hpp"
-#include "corners.hpp"
 #include "corner.hpp"
 #include "summation.hpp"
 #include "vertex.hpp"
@@ -22,6 +21,15 @@ struct Ring : Linestring {
 		for (auto const &[v1, v2]: links)
 			push_back(v1);
 	}
+
+	template <typename Ring>
+	struct Corners {
+		Ring &ring;
+		Corners(Ring &ring) : ring(ring) { }
+
+		auto begin() const { return Corner(&ring, ring.begin()); }
+		auto   end() const { return Corner(&ring, ring.end()); }
+	};
 
 	auto corners() {
 		return Corners(*this);
