@@ -64,7 +64,7 @@ public:
 			auto mutex = std::mutex();
 			auto exception = std::exception_ptr();
 
-			app.log("estimating minimum width from", app.tile_paths.size(), "file");
+			app.log("reading", app.tile_paths.size(), "tile");
 			load(app, app.tile_paths.begin(), app.tile_paths.end(), mutex, exception, app.io_threads);
 
 			if (exception)
@@ -75,7 +75,7 @@ public:
 			std::nth_element(begin, median, end);
 
 			app.width = 4 * *median;
-			app.log("using minimum width of ", std::setprecision(1), *app.width, " metres");
+			app.log("using ", std::setprecision(1), *app.width, "m minimum width");
 		}
 
 		if (!app.area)

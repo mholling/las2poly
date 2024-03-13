@@ -176,7 +176,7 @@ public:
 		auto mutex = std::mutex();
 		auto exception = std::exception_ptr();
 
-		app.log("reading", app.tile_paths.size(), "file");
+		app.log("reading", app.tile_paths.size(), "tile");
 		load(app, app.tile_paths.begin(), app.tile_paths.end(), thin, mutex, exception, app.io_threads);
 
 		if (exception)
