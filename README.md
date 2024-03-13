@@ -148,9 +148,22 @@ Add 'bridge deck' points (class 17) to water areas:
 
 	$ las2poly --width 8 --discard 0,1,7,9,12,17,18 *.las water.json
 
+# PERFORMANCE
+
+Processing numerous or high-density tiles can result in significant memory consumption.
+Observation of memory use is recommended.
+Increase the
+**--width**
+parameter to mitigate this problem by thinning points more aggressively.
+
+A low value for the
+**--width**
+parameter can also cause normal ground-point separation to be mistaken for water voids.
+This will cause final boundary extraction phase to proceed slowly, with scanline artifacts appearing in the output.
+
 # LIMITATIONS
 
-Most voids in lidar data result from pulse absorbtion by waterbodies.
+Most voids in lidar data result from pulse absorption by waterbodies.
 However, other low-albedo surfaces can also produce voids: most commonly, roads, asphalt surfaces and rooftops.
 These may be incorrectly outlined as waterbodies if they are horizontal.
 
@@ -161,6 +174,9 @@ Relaxing either or both of the
 and
 **--slope**
 parameters may help in such situations.
+
+Along riverbanks and shorelines, lidar returns from overhanging vegetation can cause deviations in the water outline.
+Discontinuities may also result in the outlines of narrow waterways.
 
 Steep terrain features such as cliffs can occlude lidar pulses, producing shadows in the point cloud.
 However, such voids are unlikely to appear horizontal and will likely be eliminated during processing.
