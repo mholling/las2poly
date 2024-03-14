@@ -10,7 +10,7 @@ LAS2POLY(1) - General Commands Manual
 \[options]
 *tile.las*
 \[*tile.las&nbsp;...*]
-*water.json*
+*water.shp*
 
 # DESCRIPTION
 
@@ -203,4 +203,4 @@ options can help to expose any problems and artifacts in the lidar data.
 
 Matthew Hollingworth
 
-macOS 13.1 - March 14, 2024
+macOS 13.1 - March 15, 2024
