@@ -259,14 +259,28 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 			}
 	}
 
-	template <typename Function>
-	void deconstruct(PointIterator begin, PointIterator end, int threads, Function const &function) {
+	template <typename ...Functions>
+	void strip_exterior(PointIterator begin, PointIterator end, bool anticlockwise, Functions const &...functions) {
+		if (end - begin < 2)
+			throw std::runtime_error("not enough points");
+		auto const start = anticlockwise ? exterior_clockwise(begin, end) : exterior_anticlockwise(begin, end);
+		for (auto edge = start; ; ++edge) {
+			(functions(*edge), ...);
+			disconnect(*edge);
+			if (edge->second == start->first)
+				break;
+		}
+	}
+
+	using RTree = ::RTree<PointIterator>;
+
+	void interpolate(PointIterator begin, PointIterator end, RTree const &rtree, int threads) {
 		if (threads > 1) {
 			auto const middle = begin + (end - begin) / 2;
 			auto left_thread = std::thread([&]() {
-				deconstruct(begin, middle, threads/2, function);
+				interpolate(begin, middle, rtree, threads/2);
 			}), right_thread = std::thread([&]() {
-				deconstruct(middle, end, threads - threads/2, function);
+				interpolate(middle, end, rtree, threads - threads/2);
 			});
 			left_thread.join(), right_thread.join();
 		}
@@ -282,44 +296,28 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 				auto const edge3 = Iterator(*this, edge2.peek(), true);
 				if (edge3->second != point)
 					throw std::runtime_error("corrupted mesh");
-				auto const triangle = Triangle{{*edge1, *edge2, *edge3}};
-				function(triangle);
-				for (auto const &edge: triangle)
-					disconnect(edge);
+				auto const &p1 = edge1->first;
+				auto const &p2 = edge2->first;
+				auto const &p3 = edge3->first;
+				auto const bounds = Bounds(p1) + Bounds(p2) + Bounds(p3);
+				for (auto const &point: rtree.search(bounds)) {
+					auto const w1 = (*edge2 ^ point) / (*edge2 ^ p1);
+					auto const w2 = (*edge3 ^ point) / (*edge3 ^ p2);
+					auto const w3 = (*edge1 ^ point) / (*edge1 ^ p3);
+					if (w1 >= 0 && w2 >= 0 && w3 >= 0)
+						point->ground(w1 * p1->elevation + w2 * p2->elevation + w3 * p3->elevation);
+				}
+				disconnect(*edge1);
+				disconnect(*edge2);
+				disconnect(*edge3);
 			}
-		}
-	}
-
-	template <typename ...Functions>
-	void strip_exterior(PointIterator begin, PointIterator end, bool anticlockwise, Functions const &...functions) {
-		if (end - begin < 2)
-			throw std::runtime_error("not enough points");
-		auto const start = anticlockwise ? exterior_clockwise(begin, end) : exterior_anticlockwise(begin, end);
-		for (auto edge = start; ; ++edge) {
-			(functions(*edge), ...);
-			disconnect(*edge);
-			if (edge->second == start->first)
-				break;
 		}
 	}
 
 	void interpolate(PointIterator ground_begin, PointIterator ground_end, int threads) {
-		auto rtree = RTree(ground_end, points.end(), threads);
+		auto const rtree = RTree(ground_end, points.end(), threads);
 		strip_exterior(ground_begin, ground_end, true);
-		deconstruct(ground_begin, ground_end, threads, [&](auto const &triangle) {
-			auto const &[edge0, edge1, edge2] = triangle;
-			auto const &p0 = edge0.first;
-			auto const &p1 = edge1.first;
-			auto const &p2 = edge2.first;
-			auto const bounds = Bounds(p0) + Bounds(p1) + Bounds(p2);
-			for (auto const &point: rtree.search(bounds)) {
-				auto const w0 = (edge1 ^ point) / (edge1 ^ p0);
-				auto const w1 = (edge2 ^ point) / (edge2 ^ p1);
-				auto const w2 = (edge0 ^ point) / (edge0 ^ p2);
-				if (w0 >= 0 && w1 >= 0 && w2 >= 0)
-					point->ground(w0 * p0->elevation + w1 * p1->elevation + w2 * p2->elevation);
-			}
-		});
+		interpolate(ground_begin, ground_end, rtree, threads);
 	}
 
 public:
