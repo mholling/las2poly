@@ -126,27 +126,35 @@ If not provided, the tiles are examined for point density and an estimated value
 
 Process all lidar tiles in current directory:
 
-	$ las2poly --width 8 *.las water.json
+	$ las2poly *.las water.shp
+
+Extract land areas as GeoJSON:
+
+	$ las2poly --land *.las land.json
+
+Process tiles at a given width threshold:
+
+	$ las2poly --width 8 *.las water.shp
 
 Process tiles from an input file list:
 
-	$ las2poly --width 8 --tiles tiles.txt water.json
+	$ las2poly --tiles tiles.txt water.shp
 
-Extract land areas and save as a shapefile:
+Pipe GeoJSON output to another command:
 
-	$ las2poly --land --width 10 *.las land.shp
-
-Pipe GeoJSON output to another command for conversion:
-
-	$ las2poly --width 8 *.las - | ogr2ogr water.kml /vsistdin/
+	$ las2poly *.las - | ogr2ogr water.kml /vsistdin/
 
 Apply line simplification:
 
-	$ las2poly --width 8 --simplify *.las water.json
+	$ las2poly --simplify *.las water.shp
 
 Add 'bridge deck' points (class 17) to water areas:
 
-	$ las2poly --width 8 --discard 0,1,7,9,12,17,18 *.las water.json
+	$ las2poly --discard 0,1,7,9,12,17,18 *.las water.shp
+
+Examine raw output for artifacts:
+
+	$ las2poly --area 0 --raw *.las water.shp
 
 # PERFORMANCE
 
@@ -185,9 +193,14 @@ Finally, poor quality lidar data can contain void artifacts in areas of inconsis
 Increasing the
 **--width**
 threshold can eliminate such problems, at the cost of reduced fidelity.
+Using
+**--area** *0*
+and
+**--raw**
+options can help to expose any problems and artifacts in the lidar data.
 
 # AUTHORS
 
 Matthew Hollingworth
 
-macOS 13.1 - March 13, 2024
+macOS 13.1 - March 14, 2024

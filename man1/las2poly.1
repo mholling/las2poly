@@ -88,17 +88,21 @@ Show a brief help summary.
 .Sh EXAMPLES
 .Bl -ohang
 .It Process all lidar tiles in current directory:
-.Dl $ las2poly --width 8 *.las water.json
+.Dl $ las2poly *.las water.shp
+.It Extract land areas as GeoJSON:
+.Dl $ las2poly --land *.las land.json
+.It Process tiles at a given width threshold:
+.Dl $ las2poly --width 8 *.las water.shp
 .It Process tiles from an input file list:
-.Dl $ las2poly --width 8 --tiles tiles.txt water.json
-.It Extract land areas and save as a shapefile:
-.Dl $ las2poly --land --width 10 *.las land.shp
-.It Pipe GeoJSON output to another command for conversion:
-.Dl $ las2poly --width 8 *.las - | ogr2ogr water.kml /vsistdin/
+.Dl $ las2poly --tiles tiles.txt water.shp
+.It Pipe GeoJSON output to another command:
+.Dl $ las2poly *.las - | ogr2ogr water.kml /vsistdin/
 .It Apply line simplification:
-.Dl $ las2poly --width 8 --simplify *.las water.json
+.Dl $ las2poly --simplify *.las water.shp
 .It Add So bridge deck Sc points Po class 17 Pc to water areas:
-.Dl $ las2poly --width 8 --discard 0,1,7,9,12,17,18 *.las water.json
+.Dl $ las2poly --discard 0,1,7,9,12,17,18 *.las water.shp
+.It Examine raw output for artifacts:
+.Dl $ las2poly --area 0 --raw *.las water.shp
 .El
 .Sh PERFORMANCE
 Processing numerous or high-density tiles can result in significant memory consumption.
@@ -134,5 +138,10 @@ Finally, poor quality lidar data can contain void artifacts in areas of inconsis
 Increasing the
 .Fl -width
 threshold can eliminate such problems, at the cost of reduced fidelity.
+Using
+.Fl -area Ar 0
+and
+.Fl -raw
+options can help to expose any problems and artifacts in the lidar data.
 .Sh AUTHORS
 .An Matthew Hollingworth
