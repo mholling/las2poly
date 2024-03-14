@@ -93,7 +93,7 @@ struct Opts {
 		if (!proceed)
 			std::exit(EXIT_SUCCESS);
 
-		if (*width <= 0)
+		if (width && *width <= 0)
 			throw std::runtime_error("width must be positive");
 		if (area && *area < 0)
 			throw std::runtime_error("area can't be negative");
@@ -111,8 +111,10 @@ struct Opts {
 		for (auto count: *threads)
 			if (count < 1)
 				throw std::runtime_error("number of threads must be positive");
-		if (std::count(tile_paths.begin(), tile_paths.end(), "-") > 1)
+		if (auto count = std::count(tile_paths.begin(), tile_paths.end(), "-"); count > 1)
 			throw std::runtime_error("can't read standard input more than once");
+		else if (count > 0 && !width)
+			throw std::runtime_error("can't estimate width from standard input");
 		if (raw && simplify)
 			throw std::runtime_error("either raw or simplify but not both");
 	}
