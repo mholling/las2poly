@@ -48,8 +48,8 @@ public:
 			std::fill(row + j0 + margin, row + j1 + margin + 1, false);
 	}
 
-	template <typename Function>
-	void operator()(Function const &function) {
+	template <typename Points>
+	void operator()(Points &points) {
 		auto const unfilled = std::accumulate(empty.begin(), empty.end(), 0ull);
 		auto const filled = empty.size() - unfilled;
 		if (unfilled > 10 * filled && unfilled / 2 + filled > 500'000'000)
@@ -69,7 +69,7 @@ public:
 				if ((i + j) % 2) {
 					auto const x = resolution * (j + 0.5);
 					auto const y = resolution * (i + 0.5);
-					function(x, y);
+					points.emplace_back(x, y);
 				}
 				if (!above && empty.end() - here > columns && *(here + columns))
 					above = !above, queue.push(here + columns);
