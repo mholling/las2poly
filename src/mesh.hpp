@@ -240,10 +240,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 			triangles.merge(left_triangles);
 			triangles.merge(right_triangles);
 		}
-		for (auto point = begin; point < end; ++point) {
-			auto const &neighbours = adjacent(point);
-			for (auto neighbour = neighbours.rbegin(); neighbour != neighbours.rend(); ) {
-				auto const edge1 = Iterator(*this, Edge(point, *neighbour++), anticlockwise);
+		for (auto point = begin; point < end; ++point)
+			for (auto const neighbours = adjacent(point); auto const &neighbour: neighbours) {
+				auto const edge1 = Iterator(*this, Edge(point, neighbour), anticlockwise);
 				if (edge1->second < begin || !(edge1->second < end))
 					continue;
 				auto const edge2 = Iterator(*this, edge1.peek(), anticlockwise);
@@ -258,7 +257,6 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 				for (auto const &edge: triangle)
 					disconnect(edge);
 			}
-		}
 	}
 
 	template <typename Function>
