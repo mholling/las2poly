@@ -170,7 +170,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		switch (end - begin) {
 		case 0:
 		case 1:
-			return;
+			break;
 		case 3:
 			if (Edge(begin+2, begin+1) <=> begin != 0)
 				connect(begin, begin+2);
