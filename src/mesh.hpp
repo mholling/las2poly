@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <optional>
 #include <thread>
+#include <optional>
 #include <cmath>
 
 class Mesh : std::vector<std::vector<PointIterator>> {
@@ -169,7 +170,7 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 		switch (end - begin) {
 		case 0:
 		case 1:
-			throw std::runtime_error("not enough points");
+			return;
 		case 3:
 			if (Edge(begin+2, begin+1) <=> begin != 0)
 				connect(begin, begin+2);
@@ -293,6 +294,8 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 
 	template <typename ...Functions>
 	void strip_exterior(PointIterator begin, PointIterator end, bool anticlockwise, Functions const &...functions) {
+		if (end - begin < 2)
+			throw std::runtime_error("not enough points");
 		auto const start = anticlockwise ? exterior_clockwise(begin, end) : exterior_anticlockwise(begin, end);
 		for (auto edge = start; ; ++edge) {
 			(functions(*edge), ...);
@@ -370,7 +373,9 @@ public:
 		auto const median = begin + (end - begin) / 2;
 		std::nth_element(begin, median, end);
 
-		return std::sqrt(*median);
+		return median == end ?
+			std::optional<double>() :
+			std::optional(std::sqrt(*median));
 	}
 };
 

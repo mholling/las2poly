@@ -33,7 +33,8 @@ class Defaults {
 			if (begin + 1 == end) {
 				auto points = Points(app, *begin);
 				auto mesh = Mesh(points);
-				medians.push_back(mesh.median_length());
+				if (auto const median = mesh.median_length(); median)
+					medians.push_back(*median);
 			} else {
 				auto const middle = begin + (end - begin) / 2;
 				auto defaults1 = Defaults();
@@ -73,6 +74,9 @@ public:
 			auto const begin = medians.begin(), end = medians.end();
 			auto const median = begin + (end - begin) / 2;
 			std::nth_element(begin, median, end);
+
+			if (median == end)
+				throw std::runtime_error("not enough points");
 
 			app.width = 4 * *median;
 			app.log("using ", std::setprecision(1), *app.width, "m minimum width");
