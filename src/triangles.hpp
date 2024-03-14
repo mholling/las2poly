@@ -119,7 +119,7 @@ public:
 			auto const &p1 = *edges[1].first;
 			auto const &p2 = *edges[2].first;
 
-			if (p0.withheld || p1.withheld || p2.withheld) {
+			if (p0.synthetic() || p1.synthetic() || p2.synthetic()) {
 				perp_sum_z += perp.norm();
 				delta_count += 2;
 			} else if (p0.ground() && p1.ground() && p2.ground()) {

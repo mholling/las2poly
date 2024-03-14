@@ -30,6 +30,10 @@ struct Point : Vertex {
 		return 2 == classification;
 	}
 
+	auto synthetic() const {
+		return withheld;
+	}
+
 	void ground(float new_elevation) {
 		elevation = new_elevation;
 		classification = 2;

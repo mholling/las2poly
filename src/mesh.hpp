@@ -335,7 +335,7 @@ public:
 		points(points)
 	{
 		auto const ground_begin = std::partition(points.begin(), points.end(), [](auto const &point) {
-			return point.withheld;
+			return point.synthetic();
 		});
 		auto const ground_end = std::partition(ground_begin, points.end(), [](auto const &point) {
 			return point.ground();
