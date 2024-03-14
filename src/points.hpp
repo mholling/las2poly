@@ -191,7 +191,7 @@ public:
 				fill(bounds);
 
 			fill([&](auto x, auto y) {
-				emplace_back(x, y, 0.0, 2, false, true, false);
+				emplace_back(x, y);
 			});
 		}
 	}

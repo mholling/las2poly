@@ -26,6 +26,10 @@ struct Point : Vertex {
 		overlap(overlap)
 	{ }
 
+	Point(double x, double y) :
+		Point(x, y, 0.0, 2, false, true, false)
+	{ }
+
 	auto ground() const {
 		return 2 == classification;
 	}
