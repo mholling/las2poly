@@ -95,14 +95,13 @@ class Smooth {
 				auto const v12 = Link(v1, v2);
 				auto const u01 = Link(u0, u1);
 				auto const u12 = Link(u1, u2);
-				// TODO: check for intersection of colinear segments
-				if (                        v01 <=> u0 != v01 <=> u1 && u01 <=> v0 != u01 <=> v1)
+				if (                        (v01 && u01))
 					return true;
-				if (other.next() != prev && v01 <=> u1 != v01 <=> u2 && u12 <=> v0 != u12 <=> v1)
+				if (other.next() != prev && (v01 && u12))
 					return true;
-				if (other.prev() != next && v12 <=> u0 != v12 <=> u1 && u01 <=> v1 != u01 <=> v2)
+				if (other.prev() != next && (v12 && u01))
 					return true;
-				if (                        v12 <=> u1 != v12 <=> u2 && u12 <=> v1 != u12 <=> v2)
+				if (                        (v12 && u12))
 					return true;
 				return false;
 			});

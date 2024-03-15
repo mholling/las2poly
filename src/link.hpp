@@ -57,6 +57,12 @@ auto operator<=>(Link const &link, Vertex const &vertex) {
 	}
 }
 
+auto operator&&(Link const &link0, Link const &link1) {
+	auto const &[v00, v01] = link0;
+	auto const &[v10, v11] = link1;
+	return link0 <=> v10 != link0 <=> v11 && link1 <=> v00 != link1 <=> v01;
+}
+
 template <> struct std::hash<Link> {
 	std::size_t operator()(Link const &link) const {
 		auto static constexpr hash = std::hash<Vertex>();
