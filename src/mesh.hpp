@@ -284,10 +284,9 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 			});
 			left_thread.join(), right_thread.join();
 		}
-		for (auto point = begin; point < end; ++point) {
-			auto const &neighbours = adjacent(point);
-			for (auto neighbour = neighbours.rbegin(); neighbour != neighbours.rend(); ) {
-				auto const edge1 = Iterator(*this, Edge(point, *neighbour++), true);
+		for (auto point = begin; point < end; ++point)
+			for (auto const neighbours = adjacent(point); auto const &neighbour: neighbours) {
+				auto const edge1 = Iterator(*this, Edge(point, neighbour), true);
 				if (edge1->second < begin || !(edge1->second < end))
 					continue;
 				auto const edge2 = Iterator(*this, edge1.peek(), true);
@@ -311,7 +310,6 @@ class Mesh : std::vector<std::vector<PointIterator>> {
 				disconnect(*edge2);
 				disconnect(*edge3);
 			}
-		}
 	}
 
 	void interpolate(PointIterator ground_begin, PointIterator ground_end, int threads) {
