@@ -23,7 +23,7 @@ struct Edges : std::unordered_set<Edge> {
 		return *this;
 	}
 
-	auto operator||(Triangles const &triangles) const {
+	auto operator&(Triangles const &triangles) const {
 		return std::any_of(triangles.begin(), triangles.end(), [&](auto const &triangle) {
 			return std::any_of(triangle.begin(), triangle.end(), [&](auto const &edge) {
 				return contains(edge);
@@ -41,7 +41,7 @@ struct Edges : std::unordered_set<Edge> {
 			clear();
 
 		for (auto triangles: large_triangles.grouped())
-			if ((*this || triangles) || triangles.is_water(app))
+			if (*this & triangles || triangles.is_water(app))
 				for (auto const &triangle: triangles)
 					*this -= triangle;
 	}
