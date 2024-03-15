@@ -12,6 +12,7 @@
 #include "rtree.hpp"
 #include "bounds.hpp"
 #include "vertex.hpp"
+#include "link.hpp"
 #include "summation.hpp"
 #include <utility>
 #include <algorithm>
@@ -90,18 +91,18 @@ class Smooth {
 				if (other == corner || other == prev || other == next)
 					return false;
 				auto const &[u0, u1, u2] = other;
-				auto const v01 = v1 - v0;
-				auto const v12 = v2 - v1;
-				auto const u01 = u1 - u0;
-				auto const u12 = u2 - u1;
+				auto const v01 = Link(v0, v1);
+				auto const v12 = Link(v1, v2);
+				auto const u01 = Link(u0, u1);
+				auto const u12 = Link(u1, u2);
 				// TODO: check for intersection of colinear segments
-				if (                        (v01 ^ (u0 - v0)) <=> 0 != (v01 ^ (u1 - v0)) <=> 0 && (u01 ^ (v0 - u0)) <=> 0 != (u01 ^ (v1 - u0)) <=> 0)
+				if (                        v01 <=> u0 != v01 <=> u1 && u01 <=> v0 != u01 <=> v1)
 					return true;
-				if (other.next() != prev && (v01 ^ (u1 - v0)) <=> 0 != (v01 ^ (u2 - v0)) <=> 0 && (u12 ^ (v0 - u1)) <=> 0 != (u12 ^ (v1 - u1)) <=> 0)
+				if (other.next() != prev && v01 <=> u1 != v01 <=> u2 && u12 <=> v0 != u12 <=> v1)
 					return true;
-				if (other.prev() != next && (v12 ^ (u0 - v1)) <=> 0 != (v12 ^ (u1 - v1)) <=> 0 && (u01 ^ (v1 - u0)) <=> 0 != (u01 ^ (v2 - u0)) <=> 0)
+				if (other.prev() != next && v12 <=> u0 != v12 <=> u1 && u01 <=> v1 != u01 <=> v2)
 					return true;
-				if (                        (v12 ^ (u1 - v1)) <=> 0 != (v12 ^ (u2 - v1)) <=> 0 && (u12 ^ (v1 - u1)) <=> 0 != (u12 ^ (v2 - u1)) <=> 0)
+				if (                        v12 <=> u1 != v12 <=> u2 && u12 <=> v1 != u12 <=> v2)
 					return true;
 				return false;
 			});
