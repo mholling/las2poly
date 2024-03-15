@@ -79,8 +79,7 @@ class Smooth {
 		}
 
 		auto operator()(RTree const &rtree) const {
-			if (increases_rms_curvature)
-				return false;
+			if (increases_rms_curvature) return false;
 			auto const prev = corner.prev();
 			auto const next = corner.next();
 			auto const &v0 = prev();
@@ -88,21 +87,18 @@ class Smooth {
 			auto const &v2 = next();
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
-				if (other == corner || other == prev || other == next)
-					return false;
+				if (other == corner) return false;
+				if (other == prev) return false;
+				if (other == next) return false;
 				auto const &[u0, u1, u2] = other;
 				auto const v0v1 = Segment(v0, v1);
 				auto const v1v2 = Segment(v1, v2);
 				auto const u0u1 = Segment(u0, u1);
 				auto const u1u2 = Segment(u1, u2);
-				if (                        v0v1 & u0u1)
-					return true;
-				if (other.next() != prev && v0v1 & u1u2)
-					return true;
-				if (other.prev() != next && v1v2 & u0u1)
-					return true;
-				if (                        v1v2 & u1u2)
-					return true;
+				if (                        v0v1 & u0u1) return true;
+				if (other.next() != prev && v0v1 & u1u2) return true;
+				if (other.prev() != next && v1v2 & u0u1) return true;
+				if (                        v1v2 & u1u2) return true;
 				return false;
 			});
 		}
