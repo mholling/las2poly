@@ -62,7 +62,7 @@ class RTree {
 			auto &next() {
 				while (!search.empty()) {
 					auto const &rtree = *search.top();
-					if (!(rtree.bounds && search.bounds))
+					if (!(rtree.bounds & search.bounds))
 						search.pop();
 					else if (rtree.leaf())
 						break;

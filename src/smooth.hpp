@@ -95,13 +95,13 @@ class Smooth {
 				auto const v12 = Link(v1, v2);
 				auto const u01 = Link(u0, u1);
 				auto const u12 = Link(u1, u2);
-				if (                        (v01 && u01))
+				if (                        v01 & u01)
 					return true;
-				if (other.next() != prev && (v01 && u12))
+				if (other.next() != prev && v01 & u12)
 					return true;
-				if (other.prev() != next && (v12 && u01))
+				if (other.prev() != next && v12 & u01)
 					return true;
-				if (                        (v12 && u12))
+				if (                        v12 & u12)
 					return true;
 				return false;
 			});
