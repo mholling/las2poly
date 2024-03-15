@@ -12,7 +12,7 @@
 #include "rtree.hpp"
 #include "bounds.hpp"
 #include "vertex.hpp"
-#include "link.hpp"
+#include "segment.hpp"
 #include "summation.hpp"
 #include <utility>
 #include <algorithm>
@@ -91,10 +91,10 @@ class Smooth {
 				if (other == corner || other == prev || other == next)
 					return false;
 				auto const &[u0, u1, u2] = other;
-				auto const v01 = Link(v0, v1);
-				auto const v12 = Link(v1, v2);
-				auto const u01 = Link(u0, u1);
-				auto const u12 = Link(u1, u2);
+				auto const v01 = Segment(v0, v1);
+				auto const v12 = Segment(v1, v2);
+				auto const u01 = Segment(u0, u1);
+				auto const u12 = Segment(u1, u2);
 				if (                        v01 & u01)
 					return true;
 				if (other.next() != prev && v01 & u12)

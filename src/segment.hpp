@@ -4,8 +4,8 @@
 // See LICENSE file for full license information.
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef LINK_HPP
-#define LINK_HPP
+#ifndef SEGMENT_HPP
+#define SEGMENT_HPP
 
 #include "vertex.hpp"
 #include "exact.hpp"
@@ -18,19 +18,19 @@
 #include <functional>
 #include <cstddef>
 
-using Link = std::pair<Vertex, Vertex>;
-using Links = std::vector<Link>;
+using Segment = std::pair<Vertex, Vertex>;
+using Segments = std::vector<Segment>;
 
-// link <  vertex : link lies to the left of vertex
-// link <= vertex : link lies to the left of vertex or is colinear
-// link >= vertex : link lies to the right of vertex or is colinear
-// link >  vertex : link lies to the right of vertex
+// segment <  vertex : segment lies to the left of vertex
+// segment <= vertex : segment lies to the left of vertex or is colinear
+// segment >= vertex : segment lies to the right of vertex or is colinear
+// segment >  vertex : segment lies to the right of vertex
 
-auto operator<=>(Link const &link, Vertex const &vertex) {
+auto operator<=>(Segment const &segment, Vertex const &vertex) {
 	auto static constexpr epsilon = 0.5 * std::numeric_limits<double>::epsilon();
 	auto static constexpr error_scale = epsilon * (3 + 16 * epsilon);
 
-	auto const &[v1, v2] = link;
+	auto const &[v1, v2] = segment;
 	auto const &[x1, y1] = v1;
 	auto const &[x2, y2] = v2;
 	auto const &[x3, y3] = vertex;
@@ -57,17 +57,17 @@ auto operator<=>(Link const &link, Vertex const &vertex) {
 	}
 }
 
-auto operator&(Link const &link0, Link const &link1) {
-	auto const &[v00, v01] = link0;
-	auto const &[v10, v11] = link1;
-	return link0 <=> v10 != link0 <=> v11 && link1 <=> v00 != link1 <=> v01;
+auto operator&(Segment const &segment0, Segment const &segment1) {
+	auto const &[v00, v01] = segment0;
+	auto const &[v10, v11] = segment1;
+	return segment0 <=> v10 != segment0 <=> v11 && segment1 <=> v00 != segment1 <=> v01;
 }
 
-template <> struct std::hash<Link> {
-	std::size_t operator()(Link const &link) const {
+template <> struct std::hash<Segment> {
+	std::size_t operator()(Segment const &segment) const {
 		auto static constexpr hash = std::hash<Vertex>();
-		auto const seed = hash(link.first);
-		return seed ^ (hash(link.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+		auto const seed = hash(segment.first);
+		return seed ^ (hash(segment.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 	}
 };
 

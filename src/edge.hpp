@@ -8,7 +8,7 @@
 #define EDGE_HPP
 
 #include "points.hpp"
-#include "link.hpp"
+#include "segment.hpp"
 #include <utility>
 #include <compare>
 #include <functional>
@@ -23,7 +23,7 @@ using Edge = std::pair<PointIterator, PointIterator>;
 
 auto operator<=>(Edge const &edge, PointIterator const &point) {
 	auto const &[p1, p2] = edge;
-	return Link(*p1, *p2) <=> *point;
+	return Segment(*p1, *p2) <=> *point;
 }
 
 auto operator^(Edge const &edge1, Edge const &edge2) { // 3d cross product

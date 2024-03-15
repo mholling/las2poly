@@ -101,12 +101,12 @@ public:
 	}
 
 	auto reassemble(bool allow_self_intersection) const {
-		auto links = Links();
+		auto segments = Segments();
 		for (auto const &polygon: *this)
 			for (auto const &ring: polygon)
 				for (auto const &[v0, v1, v2]: ring.corners())
-					links.emplace_back(v1, v2);
-		return Polygons(links, allow_self_intersection);
+					segments.emplace_back(v1, v2);
+		return Polygons(segments, allow_self_intersection);
 	}
 };
 

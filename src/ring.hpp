@@ -8,7 +8,7 @@
 #define RING_HPP
 
 #include "linestrings.hpp"
-#include "link.hpp"
+#include "segment.hpp"
 #include "corner.hpp"
 #include "summation.hpp"
 #include "vertex.hpp"
@@ -17,8 +17,8 @@
 #include <compare>
 
 struct Ring : Linestring {
-	Ring(Links const &links) {
-		for (auto const &[v1, v2]: links)
+	Ring(Segments const &segments) {
+		for (auto const &[v1, v2]: segments)
 			push_back(v1);
 	}
 
