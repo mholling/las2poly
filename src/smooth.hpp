@@ -91,17 +91,17 @@ class Smooth {
 				if (other == corner || other == prev || other == next)
 					return false;
 				auto const &[u0, u1, u2] = other;
-				auto const v01 = Segment(v0, v1);
-				auto const v12 = Segment(v1, v2);
-				auto const u01 = Segment(u0, u1);
-				auto const u12 = Segment(u1, u2);
-				if (                        v01 & u01)
+				auto const v0v1 = Segment(v0, v1);
+				auto const v1v2 = Segment(v1, v2);
+				auto const u0u1 = Segment(u0, u1);
+				auto const u1u2 = Segment(u1, u2);
+				if (                        v0v1 & u0u1)
 					return true;
-				if (other.next() != prev && v01 & u12)
+				if (other.next() != prev && v0v1 & u1u2)
 					return true;
-				if (other.prev() != next && v12 & u01)
+				if (other.prev() != next && v1v2 & u0u1)
 					return true;
-				if (                        v12 & u12)
+				if (                        v1v2 & u1u2)
 					return true;
 				return false;
 			});

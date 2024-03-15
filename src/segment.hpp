@@ -57,10 +57,10 @@ auto operator<=>(Segment const &segment, Vertex const &vertex) {
 	}
 }
 
-auto operator&(Segment const &segment0, Segment const &segment1) {
-	auto const &[v00, v01] = segment0;
-	auto const &[v10, v11] = segment1;
-	return segment0 <=> v10 != segment0 <=> v11 && segment1 <=> v00 != segment1 <=> v01;
+auto operator&(Segment const &u0u1, Segment const &v0v1) {
+	auto const &[u0, u1] = u0u1;
+	auto const &[v0, v1] = v0v1;
+	return u0u1 <=> v0 != u0u1 <=> v1 && v0v1 <=> u0 != v0v1 <=> u1;
 }
 
 template <> struct std::hash<Segment> {
