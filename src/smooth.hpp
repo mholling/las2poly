@@ -85,14 +85,14 @@ class Smooth {
 			auto const &v0 = prev();
 			auto const &v1 = vertex;
 			auto const &v2 = next();
+			auto const v0v1 = Segment(v0, v1);
+			auto const v1v2 = Segment(v1, v2);
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
 				if (other == corner) return false;
 				if (other == prev) return false;
 				if (other == next) return false;
 				auto const &[u0, u1, u2] = other;
-				auto const v0v1 = Segment(v0, v1);
-				auto const v1v2 = Segment(v1, v2);
 				auto const u0u1 = Segment(u0, u1);
 				auto const u1u2 = Segment(u1, u2);
 				if (                        v0v1 & u0u1) return true;
