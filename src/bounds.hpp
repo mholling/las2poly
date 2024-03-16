@@ -14,6 +14,7 @@
 #include <vector>
 #include <tuple>
 #include <algorithm>
+#include <utility>
 
 struct Bounds {
 	double xmin, ymin, xmax, ymax;
@@ -67,6 +68,12 @@ struct Bounds {
 		return
 			bounds1.xmax >= bounds2.xmin && bounds1.xmin <= bounds2.xmax &&
 			bounds1.ymax >= bounds2.ymin && bounds1.ymin <= bounds2.ymax;
+	}
+
+	template <typename Element>
+	Bounds(std::pair<Element, Element> const &pair) : Bounds() {
+		*this += Bounds(pair.first);
+		*this += Bounds(pair.second);
 	}
 
 	template <typename Container>

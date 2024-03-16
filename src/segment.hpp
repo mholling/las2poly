@@ -9,6 +9,7 @@
 
 #include "vertex.hpp"
 #include "exact.hpp"
+#include "bounds.hpp"
 #include <utility>
 #include <vector>
 #include <limits>
@@ -60,7 +61,18 @@ auto operator<=>(Segment const &segment, Vertex const &vertex) {
 auto operator&(Segment const &u0u1, Segment const &v0v1) {
 	auto const &[u0, u1] = u0u1;
 	auto const &[v0, v1] = v0v1;
-	return u0u1 <=> v0 != u0u1 <=> v1 && v0v1 <=> u0 != v0v1 <=> u1;
+
+	auto const u0u1_v0 = u0u1 <=> v0;
+	auto const u0u1_v1 = u0u1 <=> v1;
+
+	if (u0u1_v0 == std::partial_ordering::equivalent)
+		if (u0u1_v1 == std::partial_ordering::equivalent)
+			return Bounds(u0u1) & Bounds(v0v1);
+
+	auto const v0v1_u0 = v0v1 <=> u0;
+	auto const v0v1_u1 = v0v1 <=> u1;
+
+	return u0u1_v0 != u0u1_v1 && v0v1_u0 != v0v1_u1;
 }
 
 template <> struct std::hash<Segment> {
