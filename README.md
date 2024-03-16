@@ -41,8 +41,10 @@ For shapefile output, polygons conform to ESRI standard, with clockwise exterior
 
 A single
 **--width**
-option calibrates the void detection process.
-If not provided, the tiles are examined for point density and an estimated value used.
+option calibrates the resolution of the void detection process.
+If a
+**--width**
+value is not provided, the point density of the tiles is examined to estimate the smallest usable width.
 
 # OPTIONS
 
@@ -203,4 +205,4 @@ options can help to expose any problems and artifacts in the lidar data.
 
 Matthew Hollingworth
 
-macOS 13.1 - March 15, 2024
+macOS 13.1 - March 16, 2024
