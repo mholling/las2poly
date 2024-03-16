@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(las2poly LANGUAGES CXX VERSION 0.1)
+project(las2poly LANGUAGES CXX VERSION 1.0)
 add_executable(las2poly src/main.cpp)
 target_compile_definitions(las2poly PRIVATE VERSION="${las2poly_VERSION}")
 target_compile_options(las2poly PRIVATE -Wfatal-errors -Wall -Wextra -Wpedantic)
