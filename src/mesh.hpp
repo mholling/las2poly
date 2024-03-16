@@ -357,7 +357,7 @@ public:
 
 	auto median_length() const {
 		auto lengths = std::vector<double>();
-		lengths.reserve(size() * 3);
+		lengths.reserve(size() * 6);
 
 		for (auto p0 = points.begin(); p0 < points.end(); ++p0)
 			for (auto const &p1: adjacent(p0))
