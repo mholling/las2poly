@@ -11,6 +11,7 @@
 #include "ring.hpp"
 #include "bounds.hpp"
 #include "rtree.hpp"
+#include "segment.hpp"
 #include <cmath>
 #include <algorithm>
 #include <set>
@@ -42,41 +43,29 @@ class Simplify {
 		}
 
 		auto operator()(RTree const &rtree, double corner_area, bool erode) const {
-			if (cross == 0)
-				return true;
-			if (erode == (cross < 0) || std::abs(cross) > corner_area * 2 || corner.ring_size() <= min_ring_size)
-				return false;
+			if (cross == 0) return true;
+			if (erode == (cross < 0)) return false;
+			if (std::abs(cross) > corner_area * 2) return false;
+			if (corner.ring_size() <= min_ring_size) return false;
 			auto const prev = corner.prev();
 			auto const next = corner.next();
 			auto const &v0 = prev();
 			auto const &v1 = corner();
 			auto const &v2 = next();
+			auto const v0v1 = Segment(v0, v1);
+			auto const v1v2 = Segment(v1, v2);
+			auto const v2v0 = Segment(v2, v0);
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
-				if (other == corner)
-					return false;
+				if (other == corner) return false;
 				auto const &[u0, u1, u2] = other;
-				if (other == prev)
-					return u0 == v2;
-				if (other == next)
-					return u2 == v0;
-				auto const cross01 = (u1 - v0) ^ (u1 - v1);
-				auto const cross12 = (u1 - v1) ^ (u1 - v2);
-				auto const cross20 = (u1 - v2) ^ (u1 - v0);
-				if (cross01 < 0 && cross12 < 0 && cross20 < 0)
-					return true;
-				if (cross01 > 0 && cross12 > 0 && cross20 > 0)
-					return true;
-				if (u1 == v1)
-					for (auto const &u: {u0, u2}) {
-						auto const cross01 = (u - v0) ^ (u - v1);
-						auto const cross12 = (u - v1) ^ (u - v2);
-						if (cross01 < 0 && cross12 < 0 && cross < 0)
-							return true;
-						if (cross01 > 0 && cross12 > 0 && cross > 0)
-							return true;
-					}
-				return false;
+				auto const u0u1 = Segment(u0, u1);
+				auto const u1u2 = Segment(u1, u2);
+				if (v0 == u1) return v0v1 >= u0 && v1v2 >= u0 && v2v0 >= u0;
+				if (v2 == u1) return v0v1 >= u2 && v1v2 >= u2 && v2v0 >= u2;
+				if (v0 == u2) return v2v0 & u0u1;
+				if (v2 == u0) return v2v0 & u1u2;
+				return v2v0 & u0u1 || v2v0 & u0u1;
 			});
 		}
 
