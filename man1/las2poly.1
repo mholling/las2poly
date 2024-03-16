@@ -90,21 +90,21 @@ Show a brief help summary.
 .Sh EXAMPLES
 .Bl -ohang
 .It Process all lidar tiles in current directory:
-.Dl $ las2poly *.las water.shp
+.Dl las2poly *.las water.shp
 .It Extract land areas as GeoJSON:
-.Dl $ las2poly --land *.las land.json
+.Dl las2poly --land *.las land.json
 .It Process tiles at a given width threshold:
-.Dl $ las2poly --width 8 *.las water.shp
+.Dl las2poly --width 8 *.las water.shp
 .It Process tiles from an input file list:
-.Dl $ las2poly --tiles tiles.txt water.shp
+.Dl las2poly --tiles tiles.txt water.shp
 .It Pipe GeoJSON output to another command:
-.Dl $ las2poly *.las - | ogr2ogr water.kml /vsistdin/
+.Dl las2poly *.las - | ogr2ogr water.kml /vsistdin/
 .It Apply line simplification:
-.Dl $ las2poly --simplify *.las water.shp
+.Dl las2poly --simplify *.las water.shp
 .It Add So bridge deck Sc points Po class 17 Pc to water areas:
-.Dl $ las2poly --discard 0,1,7,9,12,17,18 *.las water.shp
+.Dl las2poly --discard 0,1,7,9,12,17,18 *.las water.shp
 .It Examine raw output for artifacts:
-.Dl $ las2poly --area 0 --raw *.las water.shp
+.Dl las2poly --area 0 --raw *.las water.shp
 .El
 .Sh PERFORMANCE
 Processing numerous or high-density tiles can result in significant memory consumption.

@@ -128,35 +128,35 @@ value is not provided, the point density of the tiles is examined to estimate th
 
 Process all lidar tiles in current directory:
 
-	$ las2poly *.las water.shp
+	las2poly *.las water.shp
 
 Extract land areas as GeoJSON:
 
-	$ las2poly --land *.las land.json
+	las2poly --land *.las land.json
 
 Process tiles at a given width threshold:
 
-	$ las2poly --width 8 *.las water.shp
+	las2poly --width 8 *.las water.shp
 
 Process tiles from an input file list:
 
-	$ las2poly --tiles tiles.txt water.shp
+	las2poly --tiles tiles.txt water.shp
 
 Pipe GeoJSON output to another command:
 
-	$ las2poly *.las - | ogr2ogr water.kml /vsistdin/
+	las2poly *.las - | ogr2ogr water.kml /vsistdin/
 
 Apply line simplification:
 
-	$ las2poly --simplify *.las water.shp
+	las2poly --simplify *.las water.shp
 
 Add 'bridge deck' points (class 17) to water areas:
 
-	$ las2poly --discard 0,1,7,9,12,17,18 *.las water.shp
+	las2poly --discard 0,1,7,9,12,17,18 *.las water.shp
 
 Examine raw output for artifacts:
 
-	$ las2poly --area 0 --raw *.las water.shp
+	las2poly --area 0 --raw *.las water.shp
 
 # PERFORMANCE
 
@@ -205,4 +205,4 @@ options can help to expose any problems and artifacts in the lidar data.
 
 Matthew Hollingworth
 
-macOS 13.1 - March 16, 2024
+macOS 13.1 - March 17, 2024
