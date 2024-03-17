@@ -24,8 +24,9 @@ class Tile {
 	auto static from(std::istream &input) {
 		std::array<char, 4> static constexpr las_magic = {'L','A','S','F'};
 		std::array<char, 4> static constexpr ply_magic = {'p','l','y','\n'};
+		std::array<char, 4> magic;
 
-		auto magic = std::array<char, 4>();
+		input.exceptions(std::istream::failbit | std::istream::badbit);
 		input.read(magic.data(), magic.size());
 
 		if (magic == ply_magic)

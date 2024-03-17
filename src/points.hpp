@@ -12,8 +12,8 @@
 #include "srs.hpp"
 #include "app.hpp"
 #include "thin.hpp"
-#include "tile.hpp"
 #include "fill.hpp"
+#include "tile.hpp"
 #include <vector>
 #include <filesystem>
 #include <unordered_set>
@@ -37,13 +37,11 @@ class Points : public std::vector<Point> {
 	std::set<OptionalSRS> distinct_srs;
 
 	void load(App const &app, Path const &path, Thin const &thin) {
-		if (path == "-") {
-			std::cin.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-			thin(app, *this, Tile(std::cin));
-		} else {
+		if (path == "-")
+			thin(app, *this, std::cin);
+		else {
 			auto input = std::ifstream(path, std::ios::binary);
-			input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-			thin(app, *this, Tile(input));
+			thin(app, *this, input);
 		}
 	}
 

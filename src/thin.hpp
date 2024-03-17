@@ -13,6 +13,7 @@
 #include <limits>
 #include <stdexcept>
 #include <utility>
+#include <istream>
 #include <algorithm>
 #include <functional>
 #include <iterator>
@@ -35,7 +36,8 @@ struct Thin {
 	}
 
 	template <typename Points>
-	void operator()(App const &app, Points &points, Tile &&tile) const {
+	void operator()(App const &app, Points &points, std::istream &input) const {
+		auto tile = Tile(input);
 		points.reserve(tile.size());
 
 		for (auto const point: tile)
