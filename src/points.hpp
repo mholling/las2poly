@@ -107,12 +107,7 @@ public:
 
 		if (!app.land && size() > 2) {
 			app.log("synthesising extra points");
-			auto const overall_bounds = std::accumulate(tile_bounds.begin(), tile_bounds.end(), Bounds());
-			auto fill = Fill(overall_bounds, resolution);
-
-			for (auto const &bounds: tile_bounds)
-				fill(bounds);
-
+			auto fill = Fill(tile_bounds, resolution);
 			fill(*this);
 		}
 	}

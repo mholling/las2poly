@@ -25,27 +25,28 @@ class Fill {
 	Empty empty;
 
 public:
-	Fill(Bounds const &bounds, double resolution) : resolution(resolution) {
+	Fill(std::vector<Bounds> const &tile_bounds, double resolution) : resolution(resolution) {
+		auto const bounds = Bounds(tile_bounds);
 		imin = bounds.ymin / resolution;
 		jmin = bounds.xmin / resolution;
-		int imax = bounds.ymax / resolution;
-		int jmax = bounds.xmax / resolution;
-		int height = imax - imin + 1;
-		int width  = jmax - jmin + 1;
-		long long rows = height + 2 * margin;
+		int const imax = bounds.ymax / resolution;
+		int const jmax = bounds.xmax / resolution;
+		int const height = imax - imin + 1;
+		int const width  = jmax - jmin + 1;
+		long long const rows = height + 2 * margin;
 		columns = width + 2 * margin;
 		empty.assign(rows * columns, true);
-	}
 
-	void operator()(Bounds const &bounds) {
-		auto const i0 = static_cast<int>(bounds.ymin / resolution) - imin;
-		auto const i1 = static_cast<int>(bounds.ymax / resolution) - imin;
-		auto const j0 = static_cast<int>(bounds.xmin / resolution) - jmin;
-		auto const j1 = static_cast<int>(bounds.xmax / resolution) - jmin;
-		auto const row_begin = empty.begin() + (i0 + margin) * columns;
-		auto const row_end   = empty.begin() + (i1 + margin) * columns;
-		for (auto row = row_begin; row <= row_end; row += columns)
-			std::fill(row + j0 + margin, row + j1 + margin + 1, false);
+		for (auto const &bounds: tile_bounds) {
+			auto const i0 = static_cast<int>(bounds.ymin / resolution) - imin;
+			auto const i1 = static_cast<int>(bounds.ymax / resolution) - imin;
+			auto const j0 = static_cast<int>(bounds.xmin / resolution) - jmin;
+			auto const j1 = static_cast<int>(bounds.xmax / resolution) - jmin;
+			auto const row_begin = empty.begin() + (i0 + margin) * columns;
+			auto const row_end   = empty.begin() + (i1 + margin) * columns;
+			for (auto row = row_begin; row <= row_end; row += columns)
+				std::fill(row + j0 + margin, row + j1 + margin + 1, false);
+		}
 	}
 
 	template <typename Points>
