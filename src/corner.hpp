@@ -79,6 +79,10 @@ struct Corner {
 		ring->erase(here);
 	}
 
+	void insert(Vertex const &vertex) const {
+		ring->insert(here, vertex);
+	}
+
 	auto update(Vertex const &vertex) const {
 		*here = vertex;
 	}

@@ -83,6 +83,7 @@ class Simplify {
 	using Ordered = std::multiset<Candidate>;
 	using Corners = std::vector<Corner>;
 
+public:
 	void simplify_one_sided(double tolerance, bool erode) {
 		auto corners = Corners();
 		auto ordered = Ordered();
@@ -115,12 +116,6 @@ class Simplify {
 				if (auto const candidate = Candidate(corner); candidate(rtree, tolerance, erode))
 					ordered.insert(candidate);
 		}
-	}
-
-public:
-	void simplify(double tolerance, bool erode_then_dilate) {
-		simplify_one_sided(tolerance, erode_then_dilate);
-		simplify_one_sided(tolerance, !erode_then_dilate);
 	}
 };
 
