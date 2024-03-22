@@ -109,15 +109,11 @@ public:
 		auto delta_count = 0ul;
 		auto delta_summer = Summation(delta_sum);
 
-		for (auto edges: *this) {
-			std::rotate(edges.begin(), std::min_element(edges.begin(), edges.end(), [](auto const &edge1, auto const &edge2) {
-				return (*edge1.second - *edge1.first).sqnorm() < (*edge2.second - *edge2.first).sqnorm();
-			}), edges.end());
-
-			auto const perp = edges[1] ^ edges[2];
-			auto const &p0 = *edges[0].first;
-			auto const &p1 = *edges[1].first;
-			auto const &p2 = *edges[2].first;
+		for (auto const &[edge0, edge1, edge2]: *this) {
+			auto const perp = edge1 ^ edge2;
+			auto const &p0 = *edge0.first;
+			auto const &p1 = *edge1.first;
+			auto const &p2 = *edge2.first;
 
 			if (p0.synthetic() || p1.synthetic() || p2.synthetic()) {
 				perp_sum_z += perp.norm();
