@@ -34,10 +34,6 @@ auto operator^(Edge const &edge, PointIterator const &point) { // 2d cross produ
 	return (*edge.second - *edge.first) ^ (*point - *edge.first);
 }
 
-auto operator>(Edge const &edge, double length) {
-	return (*edge.second - *edge.first).sqnorm() > length * length;
-}
-
 auto operator-(Edge const &edge) {
 	return Edge(edge.second, edge.first);
 }
