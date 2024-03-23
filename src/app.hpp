@@ -28,9 +28,9 @@ class App {
 		scale      (opts.scale),
 		simplify   (opts.simplify),
 		smooth     (!opts.raw && !opts.simplify),
-		discard    (opts.discard->begin(), opts.discard->end()),
 		multi      (opts.multi),
 		lines      (opts.lines),
+		discard    (opts.discard->begin(), opts.discard->end()),
 		overwrite  (opts.overwrite),
 		tile_paths (opts.tile_paths),
 		threads    (opts.threads->front()),
@@ -65,9 +65,9 @@ public:
 	OptionalDouble scale;
 	bool           simplify;
 	bool           smooth;
-	Discard        discard;
 	bool           multi;
 	bool           lines;
+	Discard        discard;
 	bool           overwrite;
 	Paths          tile_paths;
 	OptionalPath   path;

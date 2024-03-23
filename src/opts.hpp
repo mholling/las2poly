@@ -32,9 +32,9 @@ struct Opts {
 	std::optional<double> scale;
 	std::optional<bool>   simplify;
 	std::optional<bool>   raw;
-	std::optional<Ints>   discard;
 	std::optional<bool>   multi;
 	std::optional<bool>   lines;
+	std::optional<Ints>   discard;
 	std::optional<int>    epsg;
 	std::optional<Ints>   threads;
 	std::optional<Path>   tiles_path;
@@ -59,9 +59,9 @@ struct Opts {
 		args.option("",   "--scale",      "<metres>",    "feature scale for smoothing and simplification", scale);
 		args.option("",   "--simplify",                  "simplify output polygons",                       simplify);
 		args.option("",   "--raw",                       "don't smooth output polygons",                   raw);
-		args.option("",   "--discard",    "<class,...>", "discard point classes",                          discard);
 		args.option("",   "--multi",                     "collect polygons into single multipolygon",      multi);
 		args.option("",   "--lines",                     "output polygon boundaries as linestrings",       lines);
+		args.option("",   "--discard",    "<class,...>", "discard point classes",                          discard);
 		args.option("",   "--epsg",       "<number>",    "override missing or incorrect EPSG codes",       epsg);
 		args.option("",   "--threads",    "<number>",    "number of processing threads",                   threads);
 		args.option("",   "--tiles",      "<tiles.txt>", "list of input tiles as a text file",             tiles_path);

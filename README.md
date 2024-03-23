@@ -87,11 +87,6 @@ value is not provided, the point density of the tiles is examined to estimate th
 
 > Don't smooth the output polygons.
 
-**--discard** *class,...*
-
-> Choose a list of lidar point classes to discard.
-> The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
-
 **--multi**
 
 > Collect polygons into a single multipolygon.
@@ -99,6 +94,11 @@ value is not provided, the point density of the tiles is examined to estimate th
 **--lines**
 
 > Extract polygon boundaries as linestrings.
+
+**--discard** *class,...*
+
+> Choose a list of lidar point classes to discard.
+> The default value of 0,1,7,9,12,18 discards unclassified, overlap, water and noise points.
 
 **--epsg** *number*
 
