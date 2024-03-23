@@ -54,11 +54,6 @@ value is not provided, the point density of the tiles is examined to estimate th
 > The value should be comfortably larger than the linear point density of the lidar data.
 > Choose a value according to the scale you're working at.
 
-**--area** *metres&#178;*
-
-> Set a minimum area for waterbodies and islands to be retained.
-> A sensible default value is used according to the minimum waterbody width.
-
 **--delta** *metres*
 
 > Set an allowable average height difference across opposing edges of a watercourse or waterbody.
@@ -72,6 +67,17 @@ value is not provided, the point density of the tiles is examined to estimate th
 **--land**
 
 > Extract polygons for land areas instead of waterbodies.
+
+**--area** *metres&#178;*
+
+> Set a minimum area for waterbodies and islands to be retained.
+> A sensible default value is applied.
+
+**--scale** *metres*
+
+> Set a minimum feature scale.
+> This controls the size of features which are affected by output smoothing or simplification.
+> A sensible default value is applied.
 
 **--simplify**
 
@@ -205,4 +211,4 @@ options can help to expose any problems and artifacts in the lidar data.
 
 Matthew Hollingworth
 
-macOS 13.1 - March 17, 2024
+macOS 13.1 - March 23, 2024

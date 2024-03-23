@@ -2,7 +2,7 @@ _las2poly() {
 	local cur prev arg_opts flag_opts file_opts
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
-	arg_opts=(-w --width --area --delta --slope --discard --epsg --threads)
+	arg_opts=(-w --width --delta --slope --area --scale --discard --epsg --threads)
 	flag_opts=(--land --simplify --raw --multi -o --overwrite -q --quiet -v --version -h --help)
 	file_opts=(--tiles)
 

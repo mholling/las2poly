@@ -21,10 +21,11 @@
 class App {
 	App(Opts const &&opts) :
 		width      (opts.width),
-		area       (opts.area),
 		delta      (*opts.delta),
 		min_cosine (std::cos(*opts.slope * std::numbers::pi / 180)),
 		land       (opts.land),
+		area       (opts.area),
+		scale      (opts.scale),
 		simplify   (opts.simplify),
 		smooth     (!opts.raw && !opts.simplify),
 		discard    (opts.discard->begin(), opts.discard->end()),
@@ -57,10 +58,11 @@ class App {
 
 public:
 	OptionalDouble width;
-	OptionalDouble area;
 	double         delta;
 	double         min_cosine;
 	bool           land;
+	OptionalDouble area;
+	OptionalDouble scale;
 	bool           simplify;
 	bool           smooth;
 	Discard        discard;

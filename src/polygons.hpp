@@ -81,7 +81,7 @@ public:
 	Polygons(App const &app, Edges const &edges) :
 		Polygons(edges, !app.land)
 	{
-		auto const tolerance = 4 * *app.width * *app.width;
+		auto const tolerance = *app.scale * *app.scale;
 		auto const density = *app.width;
 
 		if (app.simplify) {

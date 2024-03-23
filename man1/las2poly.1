@@ -48,9 +48,6 @@ value is not provided, the point density of the tiles is examined to estimate th
 Specify the minimum width of waterbodies to be detected.
 The value should be comfortably larger than the linear point density of the lidar data.
 Choose a value according to the scale you're working at.
-.It Fl -area Ar metres\[u00B2]
-Set a minimum area for waterbodies and islands to be retained.
-A sensible default value is used according to the minimum waterbody width.
 .It Fl -delta Ar metres
 Set an allowable average height difference across opposing edges of a watercourse or waterbody.
 .Pq Some leeway is required to accommodate situations such as steep-sided river banks.
@@ -59,6 +56,13 @@ Set the maximum slope for waterbodies.
 This secondary filter ensures remaining non-horizontal voids are ignored.
 .It Fl -land
 Extract polygons for land areas instead of waterbodies.
+.It Fl -area Ar metres\[u00B2]
+Set a minimum area for waterbodies and islands to be retained.
+A sensible default value is applied.
+.It Fl -scale Ar metres
+Set a minimum feature scale.
+This controls the size of features which are affected by output smoothing or simplification.
+A sensible default value is applied.
 .It Fl -simplify
 Simplify the output polygons using Visvalingam's algorithm.
 .It Fl -raw

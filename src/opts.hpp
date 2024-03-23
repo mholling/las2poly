@@ -25,10 +25,11 @@ struct Opts {
 	using Paths = std::vector<Path>;
 
 	std::optional<double> width;
-	std::optional<double> area;
 	std::optional<double> delta;
 	std::optional<double> slope;
 	std::optional<bool>   land;
+	std::optional<double> area;
+	std::optional<double> scale;
 	std::optional<bool>   simplify;
 	std::optional<bool>   raw;
 	std::optional<Ints>   discard;
@@ -50,21 +51,22 @@ struct Opts {
 		threads{{std::max<int>(1, std::thread::hardware_concurrency())}}
 	{
 		auto args = Args(argc, argv, "extract waterbodies from lidar tiles");
-		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                    width);
-		args.option("",   "--area",       "<metres²>",   "minimum waterbody and island area",          area);
-		args.option("",   "--delta",      "<metres>",    "maximum waterbody height delta",             delta);
-		args.option("",   "--slope",      "<degrees>",   "maximum waterbody slope",                    slope);
-		args.option("",   "--land",                      "extract land areas instead of waterbodies",  land);
-		args.option("",   "--simplify",                  "simplify output polygons",                   simplify);
-		args.option("",   "--raw",                       "don't smooth output polygons",               raw);
-		args.option("",   "--discard",    "<class,...>", "discard point classes",                      discard);
-		args.option("",   "--multi",                     "collect polygons into single multipolygon",  multi);
-		args.option("",   "--lines",                     "output polygon boundaries as linestrings",   lines);
-		args.option("",   "--epsg",       "<number>",    "override missing or incorrect EPSG codes",   epsg);
-		args.option("",   "--threads",    "<number>",    "number of processing threads",               threads);
-		args.option("",   "--tiles",      "<tiles.txt>", "list of input tiles as a text file",         tiles_path);
-		args.option("-o", "--overwrite",                 "overwrite existing output file",             overwrite);
-		args.option("-q", "--quiet",                     "don't show progress information",            quiet);
+		args.option("-w", "--width",      "<metres>",    "minimum waterbody width",                        width);
+		args.option("",   "--delta",      "<metres>",    "maximum waterbody height delta",                 delta);
+		args.option("",   "--slope",      "<degrees>",   "maximum waterbody slope",                        slope);
+		args.option("",   "--land",                      "extract land areas instead of waterbodies",      land);
+		args.option("",   "--area",       "<metres²>",   "minimum waterbody and island area",              area);
+		args.option("",   "--scale",      "<metres>",    "feature scale for smoothing and simplification", scale);
+		args.option("",   "--simplify",                  "simplify output polygons",                       simplify);
+		args.option("",   "--raw",                       "don't smooth output polygons",                   raw);
+		args.option("",   "--discard",    "<class,...>", "discard point classes",                          discard);
+		args.option("",   "--multi",                     "collect polygons into single multipolygon",      multi);
+		args.option("",   "--lines",                     "output polygon boundaries as linestrings",       lines);
+		args.option("",   "--epsg",       "<number>",    "override missing or incorrect EPSG codes",       epsg);
+		args.option("",   "--threads",    "<number>",    "number of processing threads",                   threads);
+		args.option("",   "--tiles",      "<tiles.txt>", "list of input tiles as a text file",             tiles_path);
+		args.option("-o", "--overwrite",                 "overwrite existing output file",                 overwrite);
+		args.option("-q", "--quiet",                     "don't show progress information",                quiet);
 #ifdef VERSION
 		args.version(VERSION);
 #endif
@@ -103,6 +105,8 @@ struct Opts {
 			throw std::runtime_error("slope must be positive");
 		if (*slope >= 90)
 			throw std::runtime_error("slope must be less than 90");
+		if (scale && *scale < 0)
+			throw std::runtime_error("scale can't be negative");
 		for (auto klass: *discard)
 			if (klass < 0 || klass > 255)
 				throw std::runtime_error("invalid lidar point class " + std::to_string(klass));
