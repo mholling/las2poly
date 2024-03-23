@@ -191,8 +191,11 @@ and
 **--slope**
 parameters may help in such situations.
 
-Along riverbanks and shorelines, lidar returns from overhanging vegetation can cause deviations in the water outline.
-Discontinuities may also result in the outlines of narrow waterways.
+In areas such as mangroves and heavily vegetated riverbanks, lidar returns from vegetation over water can cause deviations from the true water outline.
+Increasing the
+**--scale**
+parameter may help mitigate these deviations.
+Heavy vegetation may also cause discontinuities in the outlines of narrow waterways.
 
 Steep terrain features such as cliffs can occlude lidar pulses, producing shadows in the point cloud.
 However, such voids are unlikely to appear horizontal and will likely be eliminated during processing.
