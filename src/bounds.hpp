@@ -7,9 +7,6 @@
 #ifndef BOUNDS_HPP
 #define BOUNDS_HPP
 
-#include "vertex.hpp"
-#include "point.hpp"
-#include "corner.hpp"
 #include <limits>
 #include <vector>
 #include <tuple>
@@ -25,28 +22,6 @@ struct Bounds {
 		xmax(-std::numeric_limits<double>::infinity()),
 		ymax(-std::numeric_limits<double>::infinity())
 	{ }
-
-	Bounds(Vertex const &vertex) {
-		auto const &[x, y] = vertex;
-		xmin = xmax = x, ymin = ymax = y;
-	}
-
-	Bounds(Point const &point) {
-		auto const &[x, y] = point;
-		xmin = xmax = x, ymin = ymax = y;
-	}
-
-	Bounds(std::vector<Point>::iterator const &point) : Bounds(*point) { }
-
-	template <typename Ring>
-	Bounds(Corner<Ring> const &corner) {
-		auto const &[v0, v1, v2] = corner;
-		auto const &[x0, y0] = v0;
-		auto const &[x1, y1] = v1;
-		auto const &[x2, y2] = v2;
-		std::tie(xmin, xmax) = std::minmax({x0, x1, x2});
-		std::tie(ymin, ymax) = std::minmax({y0, y1, y2});
-	}
 
 	auto &operator+=(Bounds const &other) {
 		xmin = std::min(xmin, other.xmin), xmax = std::max(xmax, other.xmax);
@@ -70,20 +45,14 @@ struct Bounds {
 			bounds1.ymax >= bounds2.ymin && bounds1.ymin <= bounds2.ymax;
 	}
 
-	template <typename Element>
-	Bounds(std::pair<Element, Element> const &pair) : Bounds() {
-		*this += Bounds(pair.first);
-		*this += Bounds(pair.second);
-	}
-
-	template <typename Container>
-	Bounds(Container const &container) : Bounds() {
-		for (auto const &element: container)
-			*this += Bounds(element);
-	}
-
 	auto empty() const {
 		return xmin > xmax;
+	}
+
+	template <typename Elements>
+	Bounds(Elements const &elements) : Bounds() {
+		for (auto const &element: elements)
+			*this += Bounds(element);
 	}
 };
 

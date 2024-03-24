@@ -12,6 +12,7 @@
 #include "corner.hpp"
 #include "summation.hpp"
 #include "vertex.hpp"
+#include "bounds.hpp"
 #include <list>
 #include <algorithm>
 #include <compare>
@@ -79,5 +80,15 @@ struct Ring : Linestring {
 		return 0 <=> 0;
 	}
 };
+
+template <>
+Bounds::Bounds(Corner<Ring> const &corner) {
+	auto const &[v0, v1, v2] = corner;
+	auto const &[x0, y0] = v0;
+	auto const &[x1, y1] = v1;
+	auto const &[x2, y2] = v2;
+	std::tie(xmin, xmax) = std::minmax({x0, x1, x2});
+	std::tie(ymin, ymax) = std::minmax({y0, y1, y2});
+}
 
 #endif

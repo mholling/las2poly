@@ -8,9 +8,16 @@
 #define VERTEX_HPP
 
 #include "vector.hpp"
-#include <utility>
+#include "bounds.hpp"
+#include <tuple>
+#include <cstddef>
 
 using Vertex = Vector<2>;
+
+template <>
+Bounds::Bounds(Vertex const &vertex) {
+	std::tie(xmin, ymin) = std::tie(xmax, ymax) = vertex;
+}
 
 template <> struct std::hash<Vertex> {
 	std::size_t operator()(Vertex const &vertex) const {

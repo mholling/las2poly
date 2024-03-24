@@ -131,6 +131,9 @@ public:
 
 using PointIterator = Points::iterator;
 
+template <>
+Bounds::Bounds(PointIterator const &point) : Bounds(*point) { }
+
 template <> struct std::hash<PointIterator> {
 	std::size_t operator()(PointIterator const &point) const { return std::hash<Point *>()(&*point); }
 };

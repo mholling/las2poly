@@ -9,6 +9,7 @@
 
 #include "vertex.hpp"
 #include "vector.hpp"
+#include "bounds.hpp"
 #include <tuple>
 #include <type_traits>
 
@@ -52,6 +53,11 @@ auto operator>(Point const &p1, Point const &p2) {
 	return
 		std::tuple(p1.key_point, p1.ground(), p2.elevation) >
 		std::tuple(p2.key_point, p2.ground(), p1.elevation);
+}
+
+template <>
+Bounds::Bounds(Point const &point) {
+	std::tie(xmin, ymin) = std::tie(xmax, ymax) = point;
 }
 
 template <>

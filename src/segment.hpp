@@ -8,8 +8,8 @@
 #define SEGMENT_HPP
 
 #include "vertex.hpp"
-#include "exact.hpp"
 #include "bounds.hpp"
+#include "exact.hpp"
 #include <utility>
 #include <vector>
 #include <limits>
@@ -21,6 +21,12 @@
 
 using Segment = std::pair<Vertex, Vertex>;
 using Segments = std::vector<Segment>;
+
+template <>
+Bounds::Bounds(Segment const &segment) : Bounds() {
+	*this += Bounds(segment.first);
+	*this += Bounds(segment.second);
+}
 
 // segment <  vertex : segment lies to the left of vertex
 // segment <= vertex : segment lies to the left of vertex or is colinear

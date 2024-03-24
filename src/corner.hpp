@@ -7,13 +7,13 @@
 #ifndef CORNER_HPP
 #define CORNER_HPP
 
+#include "vertex.hpp"
 #include <type_traits>
 #include <cstddef>
 #include <tuple>
 
 template <typename Ring>
 struct Corner {
-	using Vertex = typename Ring::value_type;
 	using VertexIterator = std::conditional_t<std::is_const_v<Ring>, typename Ring::const_iterator, typename Ring::iterator>;
 
 	Ring *ring;
@@ -35,11 +35,11 @@ struct Corner {
 	}
 
 	auto operator!=(Corner const &other) const {
-		return ring != other.ring || here != other.here;
+		return here != other.here;
 	}
 
 	auto operator==(Corner const &other) const {
-		return ring == other.ring && here == other.here;
+		return here == other.here;
 	}
 
 	auto next() const {
@@ -96,6 +96,6 @@ template <typename Ring>
 struct std::tuple_size<Corner<Ring>> : std::integral_constant<std::size_t, 3> { };
 
 template <typename Ring, std::size_t N>
-struct std::tuple_element<N, Corner<Ring>> { using type = typename Corner<Ring>::Vertex; };
+struct std::tuple_element<N, Corner<Ring>> { using type = Vertex; };
 
 #endif
