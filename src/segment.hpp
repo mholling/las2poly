@@ -23,9 +23,12 @@ using Segment = std::pair<Vertex, Vertex>;
 using Segments = std::vector<Segment>;
 
 template <>
-Bounds::Bounds(Segment const &segment) : Bounds() {
-	*this += Bounds(segment.first);
-	*this += Bounds(segment.second);
+Bounds::Bounds(Segment const &segment) {
+	auto const &[v0, v1] = segment;
+	auto const &[x0, y0] = v0;
+	auto const &[x1, y1] = v1;
+	std::tie(xmin, xmax) = std::minmax({x0, x1});
+	std::tie(ymin, ymax) = std::minmax({y0, y1});
 }
 
 // segment <  vertex : segment lies to the left of vertex
