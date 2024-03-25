@@ -168,13 +168,12 @@ class LAS {
 			extra_bytes(las.point_data_record_length - record_length)
 		{
 			std::int64_t chunk_table_offset;
-			las.read_values(chunk_table_offset);
-
-			if (chunk_table_offset < 0)
-				throw std::runtime_error("invalid LAZ file");
-
 			std::uint32_t version;
 			std::uint32_t chunk_count;
+
+			las.read_values(chunk_table_offset);
+			if (chunk_table_offset < 0)
+				throw std::runtime_error("invalid LAZ file");
 			las.read_to(chunk_table_offset);
 			las.read_values(version, chunk_count);
 
