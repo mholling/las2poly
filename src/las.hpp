@@ -137,7 +137,6 @@ class LAS {
 
 	struct LASPointReader {
 		LAS &las;
-		int length;
 
 		LASPointReader(LAS &las) : las(las) { }
 
