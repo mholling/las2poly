@@ -167,9 +167,7 @@ class LAS {
 				this->las.position += length;
 			}),
 			extra_bytes(las.point_data_record_length - record_length)
-		{ }
-
-		void read_chunk_table() {
+		{
 			std::int64_t chunk_table_offset;
 			las.read_values(chunk_table_offset);
 
@@ -222,8 +220,6 @@ class LAS {
 		}
 
 		void operator()(char *buffer) {
-			if (chunk_points.empty())
-				read_chunk_table();
 			if (chunk_points.front() == 0) {
 				decompressor.emplace(callback, extra_bytes);
 				las.read_to(chunk_offsets.front());
@@ -273,21 +269,8 @@ public:
 		read_ahead(68, header_size, offset_to_point_data, number_of_variable_length_records, point_data_record_format, point_data_record_length, legacy_number_of_point_records);
 		read_ahead(20, x_scale, y_scale, z_scale, x_offset, y_offset, z_offset);
 
-		if (point_data_record_format & 0b10000000)
-			switch (point_data_record_format ^= 0b10000000) {
-			case 4:
-			case 5:
-			case 9:
-			case 10:
-				throw std::runtime_error("unsupported LAS point data record format");
-			case 0: point_reader.emplace<LAZPointReader0>(*this); break;
-			case 1: point_reader.emplace<LAZPointReader1>(*this); break;
-			case 2: point_reader.emplace<LAZPointReader2>(*this); break;
-			case 3: point_reader.emplace<LAZPointReader3>(*this); break;
-			case 6: point_reader.emplace<LAZPointReader6>(*this); break;
-			case 7: point_reader.emplace<LAZPointReader7>(*this); break;
-			case 8: point_reader.emplace<LAZPointReader8>(*this); break;
-			}
+		bool const compressed = point_data_record_format & 0b10000000;
+		point_data_record_format &= 0b01111111;
 
 		if (point_data_record_format > 10)
 			throw std::runtime_error("unsupported LAS point data record format");
@@ -316,6 +299,22 @@ public:
 		}
 
 		read_to(offset_to_point_data);
+
+		if (compressed)
+			switch (point_data_record_format) {
+			case 4:
+			case 5:
+			case 9:
+			case 10:
+				throw std::runtime_error("unsupported LAS point data record format");
+			case 0: point_reader.emplace<LAZPointReader0>(*this); break;
+			case 1: point_reader.emplace<LAZPointReader1>(*this); break;
+			case 2: point_reader.emplace<LAZPointReader2>(*this); break;
+			case 3: point_reader.emplace<LAZPointReader3>(*this); break;
+			case 6: point_reader.emplace<LAZPointReader6>(*this); break;
+			case 7: point_reader.emplace<LAZPointReader7>(*this); break;
+			case 8: point_reader.emplace<LAZPointReader8>(*this); break;
+			}
 	}
 
 	auto read() {
