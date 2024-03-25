@@ -70,7 +70,7 @@ class Tile {
 
 	struct GetSRS {
 		auto const &operator()(PLY &ply) const { return ply.srs; }
-		auto const &operator()(LAS &las) const { las.finalise(); return las.srs; }
+		auto const &operator()(LAS &las) const { return las.srs; }
 	};
 
 public:
