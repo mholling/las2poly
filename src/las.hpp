@@ -78,7 +78,7 @@ class LAS {
 		read_values(args...);
 	}
 
-	void read_to(std::size_t position) {
+	void seek_to(std::size_t position) {
 		input.seekg(position);
 	}
 
@@ -147,7 +147,7 @@ class LAS {
 		read_values(chunk_table_offset);
 		if (chunk_table_offset < 0)
 			throw std::runtime_error("invalid LAZ file");
-		read_to(chunk_table_offset);
+		seek_to(chunk_table_offset);
 		read_values(version, chunk_count);
 
 		if (version != 0)
@@ -193,7 +193,7 @@ class LAS {
 	void read_buffer(char *buffer, Decompressor &decompressor) {
 		while (chunk_points.front() == 0) {
 			decompressor.emplace(laz_callback, extra_bytes);
-			read_to(chunk_offsets.front());
+			seek_to(chunk_offsets.front());
 			chunk_offsets.pop_front();
 			chunk_points.pop_front();
 		}
@@ -291,15 +291,15 @@ public:
 			size = number_of_point_records;
 		}
 
-		read_to(header_size);
+		seek_to(header_size);
 		read_vlrs<std::uint16_t>(number_of_variable_length_records);
 
 		if (version_minor == 4) {
-			read_to(start_of_extended_variable_length_records);
+			seek_to(start_of_extended_variable_length_records);
 			read_vlrs<std::uint64_t>(number_of_extended_variable_length_records);
 		}
 
-		read_to(offset_to_point_data);
+		seek_to(offset_to_point_data);
 
 		if (compressed)
 			switch (point_data_record_format) {
