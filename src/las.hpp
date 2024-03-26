@@ -330,10 +330,6 @@ public:
 	}
 
 	auto read() {
-		double x, y, z;
-		unsigned char classification;
-		bool key_point, withheld, overlap;
-
 		auto const buffer = buffer_string.data();
 		read_point_record(buffer);
 
@@ -342,9 +338,12 @@ public:
 			std::reverse(buffer + 4, buffer + 8);
 			std::reverse(buffer + 8, buffer + 12);
 		}
-		x = x_offset + x_scale * *reinterpret_cast<std::int32_t *>(buffer);
-		y = y_offset + y_scale * *reinterpret_cast<std::int32_t *>(buffer + 4);
-		z = z_offset + z_scale * *reinterpret_cast<std::int32_t *>(buffer + 8);
+		double x = x_offset + x_scale * *reinterpret_cast<std::int32_t *>(buffer);
+		double y = y_offset + y_scale * *reinterpret_cast<std::int32_t *>(buffer + 4);
+		double z = z_offset + z_scale * *reinterpret_cast<std::int32_t *>(buffer + 8);
+
+		unsigned char classification;
+		bool key_point, withheld, overlap;
 
 		switch (point_data_record_format) {
 		case 0:
