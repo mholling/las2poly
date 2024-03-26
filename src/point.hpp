@@ -56,14 +56,15 @@ auto operator>(Point const &p1, Point const &p2) {
 }
 
 template <>
-Bounds::Bounds(Point const &point) {
-	std::tie(xmin, ymin) = std::tie(xmax, ymax) = point;
-}
-
-template <>
 struct std::tuple_size<Point> : std::integral_constant<std::size_t, 2> { };
 
 template <std::size_t M>
 struct std::tuple_element<M, Point> { using type = double; };
+
+template <>
+Bounds::Bounds(Point const &point) {
+	auto const &[x, y] = point;
+	xmin = xmax = x, ymin = ymax = y;
+}
 
 #endif

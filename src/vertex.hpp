@@ -9,14 +9,14 @@
 
 #include "vector.hpp"
 #include "bounds.hpp"
-#include <tuple>
 #include <cstddef>
 
 using Vertex = Vector<2>;
 
 template <>
 Bounds::Bounds(Vertex const &vertex) {
-	std::tie(xmin, ymin) = std::tie(xmax, ymax) = vertex;
+	auto const &[x, y] = vertex;
+	xmin = xmax = x, ymin = ymax = y;
 }
 
 template <> struct std::hash<Vertex> {

@@ -35,7 +35,7 @@ end
 
 desc "test build with gcc"
 task :gcc do
-  sh %Q[g++-mp-13 -O3 -std=c++2a -Wfatal-errors -Wall -Wextra -Wpedantic -o /dev/stdout src/main.cpp | wc -c]
+  sh %Q[g++-mp-13 -O3 -std=c++2a -Wfatal-errors -Wall -Wextra -Wpedantic -Ibuild/lazperf/src/lazperf/cpp -S -o /dev/null src/main.cpp]
 end
 
 desc "download WKT strings and generate src/wkts.hpp"
