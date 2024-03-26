@@ -37,12 +37,8 @@ class Points : public std::vector<Point> {
 	std::set<OptionalSRS> distinct_srs;
 
 	void load(App const &app, Path const &path, Thin const &thin) {
-		if (path == "-")
-			thin(app, *this, std::cin);
-		else {
-			auto input = std::ifstream(path, std::ios::binary);
-			thin(app, *this, input);
-		}
+		auto input = std::ifstream(path, std::ios::binary);
+		thin(app, *this, input);
 	}
 
 	void load(App const &app, PathIterator begin, PathIterator end, Thin const &thin, std::mutex &mutex, std::exception_ptr &exception, int threads) {
