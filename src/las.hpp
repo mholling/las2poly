@@ -217,7 +217,7 @@ class LAS {
 		}
 
 		void operator()(char *buffer) {
-			if (chunk_points.front() == 0) {
+			while (chunk_points.front() == 0) {
 				decompressor.emplace(callback, extra_bytes);
 				las.read_to(chunk_offsets.front());
 				chunk_offsets.pop_front();
