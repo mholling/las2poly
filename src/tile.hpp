@@ -30,9 +30,9 @@ class Tile {
 		input.read(magic.data(), magic.size());
 
 		if (magic == ply_magic)
-			return Variant(std::in_place_type_t<PLY>(), input);
+			return Variant(std::in_place_type<PLY>, input);
 		if (magic == las_magic)
-			return Variant(std::in_place_type_t<LAS>(), input);
+			return Variant(std::in_place_type<LAS>, input);
 		throw std::runtime_error("unrecognised file format");
 	}
 

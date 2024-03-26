@@ -260,7 +260,7 @@ public:
 		input(input),
 		position(4),
 		chunk_size(0),
-		point_reader(LASPointReader(*this))
+		point_reader(std::in_place_type<LASPointReader>, *this)
 	{
 		read_ahead(20, version_major, version_minor);
 		read_ahead(68, header_size, offset_to_point_data, number_of_variable_length_records, point_data_record_format, point_data_record_length, legacy_number_of_point_records);

@@ -22,9 +22,9 @@ class Output {
 
 	auto static from(App const &app) {
 		if (app.path && app.path->extension() == ".shp")
-			return Variant(std::in_place_type_t<Shapefile>(), *app.path);
+			return Variant(std::in_place_type<Shapefile>, *app.path);
 		else
-			return Variant(std::in_place_type_t<GeoJSON>(), app.path, app.land ? "land" : "water");
+			return Variant(std::in_place_type<GeoJSON>, app.path, app.land ? "land" : "water");
 	}
 
 	template <typename ...Args>
