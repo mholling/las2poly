@@ -37,8 +37,14 @@ class Points : public std::vector<Point> {
 	std::set<OptionalSRS> distinct_srs;
 
 	void load(App const &app, Path const &path, Thin const &thin) {
-		auto input = std::ifstream(path, std::ios::binary);
-		thin(app, *this, input);
+		try {
+			auto input = std::ifstream(path, std::ios::binary);
+			thin(app, *this, input);
+		} catch (std::ios_base::failure &) {
+			throw std::runtime_error(path.string() + ": problem reading file");
+		} catch (std::runtime_error &error) {
+			throw std::runtime_error(path.string() + ": " + error.what());
+		}
 	}
 
 	void load(App const &app, PathIterator begin, PathIterator end, Thin const &thin, std::mutex &mutex, std::exception_ptr &exception, int threads) {
@@ -47,13 +53,7 @@ class Points : public std::vector<Point> {
 		try {
 			if (begin + 1 == end) {
 				auto const &path = *begin;
-				try {
-					load(app, path, thin);
-				} catch (std::ios_base::failure &) {
-					throw std::runtime_error(path.string() + ": problem reading file");
-				} catch (std::runtime_error &error) {
-					throw std::runtime_error(path.string() + ": " + error.what());
-				}
+				load(app, path, thin);
 			} else {
 				auto const middle = begin + (end - begin) / 2;
 				auto points1 = Points();
