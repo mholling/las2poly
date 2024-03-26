@@ -20,11 +20,11 @@
 #include <cstdint>
 #include <array>
 #include <string>
-#include <stdexcept>
 #include <functional>
-#include <limits>
-#include <optional>
 #include <deque>
+#include <limits>
+#include <stdexcept>
+#include <optional>
 #include <variant>
 #include <algorithm>
 
@@ -47,6 +47,8 @@ class LAS {
 	std::uint64_t start_of_extended_variable_length_records;
 	std::uint32_t number_of_extended_variable_length_records;
 	std::uint64_t number_of_point_records;
+
+	std::size_t extra_bytes;
 	std::uint32_t chunk_size;
 
 	void read_values() { }
@@ -135,106 +137,114 @@ class LAS {
 		}
 	}
 
+	using Callback = std::function<void(unsigned char *, std::size_t)>;
+	Callback laz_callback;
+
+	std::deque<uint64_t> chunk_points;
+	std::deque<uint64_t> chunk_lengths;
+	std::deque<uint64_t> chunk_offsets;
+
+	void read_chunk_table() {
+		auto constexpr max_chunk_size = std::numeric_limits<uint32_t>::max();
+		auto const variable_chunk_size = max_chunk_size == chunk_size;
+
+		std::int64_t chunk_table_offset;
+		std::uint32_t version;
+		std::uint32_t chunk_count;
+
+		read_values(chunk_table_offset);
+		if (chunk_table_offset < 0)
+			throw std::runtime_error("invalid LAZ file");
+		read_to(chunk_table_offset);
+		read_values(version, chunk_count);
+
+		if (version != 0)
+			throw std::runtime_error("invalid LAZ file");
+		if (chunk_size == 0 && size > 0)
+			throw std::runtime_error("invalid LAZ file");
+		if (chunk_count == 0 && size > 0)
+			throw std::runtime_error("invalid LAZ file");
+
+		auto cstream = lazperf::InCbStream(laz_callback);
+		auto decoder = lazperf::decoders::arithmetic(cstream);
+		auto decompressor = lazperf::decompressors::integer(32, 2);
+
+		decoder.readInitBytes();
+		decompressor.init();
+
+		chunk_points.push_back(0);
+		chunk_lengths.push_back(0);
+		chunk_offsets.push_back(sizeof(std::int64_t) + offset_to_point_data);
+
+		for (auto remaining = size; chunk_count > 0; --chunk_count) {
+			if (variable_chunk_size)
+				chunk_points.push_back(decompressor.decompress(decoder, chunk_points.back(), 0));
+			else if (remaining < chunk_size)
+				chunk_points.push_back(remaining);
+			else
+				chunk_points.push_back(chunk_size);
+
+			if (chunk_points.back() > remaining)
+				throw std::runtime_error("invalid LAZ file");
+			else
+				remaining -= chunk_points.back();
+
+			if (chunk_count == 1 && remaining > 0)
+				throw std::runtime_error("invalid LAZ file");
+
+			chunk_lengths.push_back(decompressor.decompress(decoder, chunk_lengths.back(), 1));
+			chunk_offsets.push_back(chunk_offsets.back() + chunk_lengths.back());
+		}
+	}
+
+	template <typename Decompressor>
+	void read_buffer(char *buffer, Decompressor &decompressor) {
+		while (chunk_points.front() == 0) {
+			decompressor.emplace(laz_callback, extra_bytes);
+			read_to(chunk_offsets.front());
+			chunk_offsets.pop_front();
+			chunk_points.pop_front();
+		}
+		decompressor->decompress(buffer);
+		--chunk_points.front();
+	}
+
+	void read_buffer(char *buffer) {
+		input.read(buffer, point_data_record_length);
+		position += point_data_record_length;
+	}
+
+	template <typename Decompressor>
+	struct LAZPointReader {
+		LAS &las;
+		std::optional<Decompressor> decompressor;
+
+		LAZPointReader(LAS &las) : las(las) {
+			las.read_chunk_table();
+		}
+
+		void operator()(char *buffer) {
+			las.read_buffer(buffer, decompressor);
+		}
+	};
+
 	struct LASPointReader {
 		LAS &las;
 
 		LASPointReader(LAS &las) : las(las) { }
 
 		void operator()(char *buffer) {
-			las.input.read(buffer, las.point_data_record_length);
-			las.position += las.point_data_record_length;
+			las.read_buffer(buffer);
 		}
 	};
 
-	template <typename Decompressor, int record_length>
-	struct LAZPointReader {
-		using Callback = std::function<void(unsigned char *, std::size_t)>;
-		auto static constexpr chunk_size_variable = std::numeric_limits<uint32_t>::max();
-
-		LAS &las;
-		Callback callback;
-		std::size_t extra_bytes;
-		std::optional<Decompressor> decompressor;
-		std::deque<uint64_t> chunk_points;
-		std::deque<uint64_t> chunk_lengths;
-		std::deque<uint64_t> chunk_offsets;
-
-		LAZPointReader(LAS &las) :
-			las(las),
-			callback([&](unsigned char *buffer, std::size_t length) {
-				this->las.input.read(reinterpret_cast<char *>(buffer), length);
-				this->las.position += length;
-			}),
-			extra_bytes(las.point_data_record_length - record_length)
-		{
-			std::int64_t chunk_table_offset;
-			std::uint32_t version;
-			std::uint32_t chunk_count;
-
-			las.read_values(chunk_table_offset);
-			if (chunk_table_offset < 0)
-				throw std::runtime_error("invalid LAZ file");
-			las.read_to(chunk_table_offset);
-			las.read_values(version, chunk_count);
-
-			if (version != 0)
-				throw std::runtime_error("invalid LAZ file");
-			if (las.chunk_size == 0 && las.size > 0)
-				throw std::runtime_error("invalid LAZ file");
-			if (chunk_count == 0 && las.size > 0)
-				throw std::runtime_error("invalid LAZ file");
-
-			auto cstream = lazperf::InCbStream(callback);
-			auto decoder = lazperf::decoders::arithmetic(cstream);
-			auto decompressor = lazperf::decompressors::integer(32, 2);
-
-			decoder.readInitBytes();
-			decompressor.init();
-
-			chunk_points.push_back(0);
-			chunk_lengths.push_back(0);
-			chunk_offsets.push_back(sizeof(std::int64_t) + las.offset_to_point_data);
-
-			for (auto remaining = las.size; chunk_count > 0; --chunk_count) {
-				if (las.chunk_size == chunk_size_variable)
-					chunk_points.push_back(decompressor.decompress(decoder, chunk_points.back(), 0));
-				else if (remaining < las.chunk_size)
-					chunk_points.push_back(remaining);
-				else
-					chunk_points.push_back(las.chunk_size);
-
-				if (chunk_points.back() > remaining)
-					throw std::runtime_error("invalid LAZ file");
-				else
-					remaining -= chunk_points.back();
-
-				if (chunk_count == 1 && remaining > 0)
-					throw std::runtime_error("invalid LAZ file");
-
-				chunk_lengths.push_back(decompressor.decompress(decoder, chunk_lengths.back(), 1));
-				chunk_offsets.push_back(chunk_offsets.back() + chunk_lengths.back());
-			}
-		}
-
-		void operator()(char *buffer) {
-			while (chunk_points.front() == 0) {
-				decompressor.emplace(callback, extra_bytes);
-				las.read_to(chunk_offsets.front());
-				chunk_offsets.pop_front();
-				chunk_points.pop_front();
-			}
-			decompressor->decompress(buffer);
-			--chunk_points.front();
-		}
-	};
-
-	using LAZPointReader0 = LAZPointReader<lazperf::point_decompressor_0, 20>;
-	using LAZPointReader1 = LAZPointReader<lazperf::point_decompressor_1, 28>;
-	using LAZPointReader2 = LAZPointReader<lazperf::point_decompressor_2, 26>;
-	using LAZPointReader3 = LAZPointReader<lazperf::point_decompressor_3, 34>;
-	using LAZPointReader6 = LAZPointReader<lazperf::point_decompressor_6, 30>;
-	using LAZPointReader7 = LAZPointReader<lazperf::point_decompressor_7, 36>;
-	using LAZPointReader8 = LAZPointReader<lazperf::point_decompressor_8, 38>;
+	using LAZPointReader0 = LAZPointReader<lazperf::point_decompressor_0>;
+	using LAZPointReader1 = LAZPointReader<lazperf::point_decompressor_1>;
+	using LAZPointReader2 = LAZPointReader<lazperf::point_decompressor_2>;
+	using LAZPointReader3 = LAZPointReader<lazperf::point_decompressor_3>;
+	using LAZPointReader6 = LAZPointReader<lazperf::point_decompressor_6>;
+	using LAZPointReader7 = LAZPointReader<lazperf::point_decompressor_7>;
+	using LAZPointReader8 = LAZPointReader<lazperf::point_decompressor_8>;
 
 	std::variant<
 		LASPointReader,
@@ -260,6 +270,10 @@ public:
 		input(input),
 		position(4),
 		chunk_size(0),
+		laz_callback([&](unsigned char *buffer, std::size_t length) {
+			input.read(reinterpret_cast<char *>(buffer), length);
+			position += length;
+		}),
 		point_reader(std::in_place_type<LASPointReader>, *this)
 	{
 		read_ahead(20, version_major, version_minor);
@@ -274,11 +288,12 @@ public:
 		if (version_major != 1)
 			throw std::runtime_error("unsupported LAS version " + std::to_string(version_major) + "." + std::to_string(version_minor));
 
-		std::array<std::uint16_t, 11> static constexpr minimum_record_length = {{20,28,26,34,57,63,30,36,38,59,67}};
-		if (point_data_record_length < minimum_record_length[point_data_record_format])
+		std::array<std::uint16_t, 11> static constexpr minimum_record_lengths = {{20,28,26,34,57,63,30,36,38,59,67}};
+		if (auto const minimum_length = minimum_record_lengths[point_data_record_format]; point_data_record_length < minimum_length)
 			throw std::runtime_error("invalid LAS file");
 		else
-			buffer_string.resize(point_data_record_length);
+			extra_bytes = point_data_record_length - minimum_length;
+		buffer_string.resize(point_data_record_length);
 
 		if (version_minor < 4)
 			size = legacy_number_of_point_records;
