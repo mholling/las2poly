@@ -21,7 +21,7 @@ These voids are detected by triangulating the lidar point cloud: groups of large
 Slope analysis of each group is performed to reject non-horizontal voids, which can occur in steep terrain.
 Waterbody polygons are formed from the outline of the remaining triangles.
 
-Input to the program is a list of lidar tiles in LAS format.
+Input to the program is a list of lidar tiles in LAS or LAZ format.
 The tiles should share a common projected SRS, typically a UTM projection, and should preferably be contiguous.
 Points are thinned before triangulation, so no pre-processing is required.
 
@@ -136,9 +136,9 @@ Process all lidar tiles in current directory:
 
 	las2poly *.las water.shp
 
-Extract land areas as GeoJSON:
+Extract land areas as GeoJSON from compressed tiles:
 
-	las2poly --land *.las land.json
+	las2poly --land *.laz land.json
 
 Process tiles at a given width threshold:
 
@@ -214,4 +214,4 @@ options can help to expose any problems and artifacts in the lidar data.
 
 Matthew Hollingworth
 
-macOS 13.1 - March 23, 2024
+macOS 13.1 - March 26, 2024
