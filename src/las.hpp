@@ -32,7 +32,6 @@ static_assert(std::endian::native == std::endian::big || std::endian::native == 
 
 class LAS {
 	std::istream &input;
-	std::size_t position;
 	std::string buffer_string;
 
 	std::uint8_t version_major, version_minor;
@@ -56,21 +55,18 @@ class LAS {
 	template <int N, typename ...Args>
 	void read_values(std::array<char, N> &arg, Args &...args) {
 		input.read(arg.data(), N);
-		position += N;
 		read_values(args...);
 	}
 
 	template <typename ...Args>
 	void read_values(std::string &arg, Args &...args) {
 		input.read(arg.data(), arg.size());
-		position += arg.size();
 		read_values(args...);
 	}
 
 	template <typename Arg, typename ...Args>
 	void read_values(Arg &arg, Args &...args) {
 		input.read(reinterpret_cast<char *>(&arg), sizeof(arg));
-		position += sizeof(arg);
 		if constexpr (std::endian::native == std::endian::big && sizeof(arg) > 1)
 			std::reverse(reinterpret_cast<char *>(&arg), reinterpret_cast<char *>(&arg) + sizeof(arg));
 		read_values(args...);
@@ -78,16 +74,12 @@ class LAS {
 
 	template <typename ...Args>
 	void read_ahead(std::size_t offset, Args &...args) {
-		input.ignore(offset);
-		position += offset;
+		input.seekg(offset, std::ios_base::cur);
 		read_values(args...);
 	}
 
-	void read_to(std::size_t absolute_position) {
-		if (absolute_position > position)
-			read_ahead(absolute_position - position);
-		else if (absolute_position < position)
-			input.seekg(position = absolute_position);
+	void read_to(std::size_t position) {
+		input.seekg(position);
 	}
 
 	template <typename LengthType>
@@ -211,7 +203,6 @@ class LAS {
 
 	void read_buffer(char *buffer) {
 		input.read(buffer, point_data_record_length);
-		position += point_data_record_length;
 	}
 
 	template <typename Decompressor>
@@ -268,11 +259,9 @@ public:
 
 	LAS(std::istream &input) :
 		input(input),
-		position(4),
 		chunk_size(0),
 		laz_callback([&](unsigned char *buffer, std::size_t length) {
 			input.read(reinterpret_cast<char *>(buffer), length);
-			position += length;
 		}),
 		point_reader(std::in_place_type<LASPointReader>, *this)
 	{
