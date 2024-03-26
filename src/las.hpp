@@ -195,8 +195,7 @@ class LAS {
 			chunk_lengths.push_back(0);
 			chunk_offsets.push_back(sizeof(std::int64_t) + las.offset_to_point_data);
 
-			auto remaining = las.size;
-			for ( ; chunk_count > 0; --chunk_count) {
+			for (auto remaining = las.size; chunk_count > 0; --chunk_count) {
 				if (las.chunk_size == chunk_size_variable)
 					chunk_points.push_back(decompressor.decompress(decoder, chunk_points.back(), 0));
 				else if (remaining < las.chunk_size)
@@ -209,12 +208,12 @@ class LAS {
 				else
 					remaining -= chunk_points.back();
 
+				if (chunk_count == 1 && remaining > 0)
+					throw std::runtime_error("invalid LAZ file");
+
 				chunk_lengths.push_back(decompressor.decompress(decoder, chunk_lengths.back(), 1));
 				chunk_offsets.push_back(chunk_offsets.back() + chunk_lengths.back());
 			}
-
-			if (remaining > 0)
-				throw std::runtime_error("invalid LAZ file");
 		}
 
 		void operator()(char *buffer) {
