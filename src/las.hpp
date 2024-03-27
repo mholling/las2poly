@@ -85,9 +85,9 @@ class LAS {
 	std::size_t extra_bytes;
 	std::string point_data_record;
 
-	std::deque<uint64_t> chunk_points;
-	std::deque<uint64_t> chunk_lengths;
-	std::deque<uint64_t> chunk_offsets;
+	std::deque<std::uint64_t> chunk_points;
+	std::deque<std::uint64_t> chunk_lengths;
+	std::deque<std::uint64_t> chunk_offsets;
 
 	std::variant<
 		LASPointReader,
