@@ -83,7 +83,7 @@ class LAS {
 	std::uint32_t chunk_size;
 
 	std::size_t extra_bytes;
-	std::string buffer_string;
+	std::string point_data_record;
 
 	std::deque<uint64_t> chunk_points;
 	std::deque<uint64_t> chunk_lengths;
@@ -282,7 +282,7 @@ public:
 			throw std::runtime_error("invalid LAS file");
 		else
 			extra_bytes = point_data_record_length - minimum_length;
-		buffer_string.resize(point_data_record_length);
+		point_data_record.resize(point_data_record_length);
 
 		if (version_minor < 4)
 			size = legacy_number_of_point_records;
@@ -319,7 +319,7 @@ public:
 	}
 
 	auto read() {
-		auto const buffer = buffer_string.data();
+		auto const buffer = point_data_record.data();
 		read_point_record(buffer);
 
 		if constexpr (std::endian::native == std::endian::big) {
