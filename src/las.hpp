@@ -134,12 +134,14 @@ class LAS {
 
 	template <typename LengthType>
 	void read_vlrs(std::uint32_t number_of_variable_length_records) {
-		for (auto record = 0ul; record < number_of_variable_length_records; ++record) {
-			std::array<char, 16> static constexpr  laszip_encoded_user_id = {"laszip encoded"};
-			std::array<char, 16> static constexpr lasf_projection_user_id = {"LASF_Projection"};
+		std::array<char, 16> static constexpr  laszip_encoded_user_id = {"laszip encoded"};
+		std::array<char, 16> static constexpr lasf_projection_user_id = {"LASF_Projection"};
+
+		for ( ; number_of_variable_length_records > 0; --number_of_variable_length_records) {
 			std::array<char, 16> user_id;
 			std::uint16_t record_id;
 			LengthType record_length_after_header;
+
 			read_ahead(2, user_id, record_id, record_length_after_header);
 			read_ahead(32);
 
