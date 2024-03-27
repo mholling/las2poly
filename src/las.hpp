@@ -15,24 +15,58 @@
 #include "srs.hpp"
 #include "point.hpp"
 #include <bit>
-#include <iostream>
-#include <cstddef>
-#include <cstdint>
-#include <array>
-#include <string>
-#include <functional>
-#include <deque>
-#include <limits>
-#include <stdexcept>
 #include <optional>
+#include <functional>
+#include <iostream>
+#include <cstdint>
+#include <cstddef>
+#include <string>
+#include <deque>
 #include <variant>
+#include <array>
 #include <algorithm>
+#include <stdexcept>
+#include <limits>
 
 static_assert(std::endian::native == std::endian::big || std::endian::native == std::endian::little);
 
 class LAS {
+	template <typename Decompressor>
+	struct LAZPointReader {
+		LAS &las;
+		std::optional<Decompressor> decompressor;
+
+		LAZPointReader(LAS &las) : las(las) {
+			las.read_chunk_table();
+		}
+
+		void operator()(char *buffer) {
+			las.read_buffer(buffer, decompressor);
+		}
+	};
+
+	struct LASPointReader {
+		LAS &las;
+
+		LASPointReader(LAS &las) : las(las) { }
+
+		void operator()(char *buffer) {
+			las.read_buffer(buffer);
+		}
+	};
+
+	using LAZPointReader0 = LAZPointReader<lazperf::point_decompressor_0>;
+	using LAZPointReader1 = LAZPointReader<lazperf::point_decompressor_1>;
+	using LAZPointReader2 = LAZPointReader<lazperf::point_decompressor_2>;
+	using LAZPointReader3 = LAZPointReader<lazperf::point_decompressor_3>;
+	using LAZPointReader6 = LAZPointReader<lazperf::point_decompressor_6>;
+	using LAZPointReader7 = LAZPointReader<lazperf::point_decompressor_7>;
+	using LAZPointReader8 = LAZPointReader<lazperf::point_decompressor_8>;
+
+	using LAZperfCallback = std::function<void(unsigned char *, std::size_t)>;
+
 	std::istream &input;
-	std::string buffer_string;
+	LAZperfCallback lazperf_callback;
 
 	std::uint8_t version_major, version_minor;
 	std::uint16_t header_size;
@@ -46,9 +80,25 @@ class LAS {
 	std::uint64_t start_of_extended_variable_length_records;
 	std::uint32_t number_of_extended_variable_length_records;
 	std::uint64_t number_of_point_records;
+	std::uint32_t chunk_size;
 
 	std::size_t extra_bytes;
-	std::uint32_t chunk_size;
+	std::string buffer_string;
+
+	std::deque<uint64_t> chunk_points;
+	std::deque<uint64_t> chunk_lengths;
+	std::deque<uint64_t> chunk_offsets;
+
+	std::variant<
+		LASPointReader,
+		LAZPointReader0,
+		LAZPointReader1,
+		LAZPointReader2,
+		LAZPointReader3,
+		LAZPointReader6,
+		LAZPointReader7,
+		LAZPointReader8
+	> point_reader;
 
 	void read_values() { }
 
@@ -129,13 +179,6 @@ class LAS {
 		}
 	}
 
-	using Callback = std::function<void(unsigned char *, std::size_t)>;
-	Callback laz_callback;
-
-	std::deque<uint64_t> chunk_points;
-	std::deque<uint64_t> chunk_lengths;
-	std::deque<uint64_t> chunk_offsets;
-
 	void read_chunk_table() {
 		auto constexpr max_chunk_size = std::numeric_limits<uint32_t>::max();
 		auto const variable_chunk_size = max_chunk_size == chunk_size;
@@ -157,7 +200,7 @@ class LAS {
 		if (chunk_count == 0 && size > 0)
 			throw std::runtime_error("invalid LAZ file");
 
-		auto cstream = lazperf::InCbStream(laz_callback);
+		auto cstream = lazperf::InCbStream(lazperf_callback);
 		auto decoder = lazperf::decoders::arithmetic(cstream);
 		auto decompressor = lazperf::decompressors::integer(32, 2);
 
@@ -192,7 +235,7 @@ class LAS {
 	template <typename Decompressor>
 	void read_buffer(char *buffer, Decompressor &decompressor) {
 		while (chunk_points.front() == 0) {
-			decompressor.emplace(laz_callback, extra_bytes);
+			decompressor.emplace(lazperf_callback, extra_bytes);
 			seek_to(chunk_offsets.front());
 			chunk_offsets.pop_front();
 			chunk_points.pop_front();
@@ -205,49 +248,6 @@ class LAS {
 		input.read(buffer, point_data_record_length);
 	}
 
-	template <typename Decompressor>
-	struct LAZPointReader {
-		LAS &las;
-		std::optional<Decompressor> decompressor;
-
-		LAZPointReader(LAS &las) : las(las) {
-			las.read_chunk_table();
-		}
-
-		void operator()(char *buffer) {
-			las.read_buffer(buffer, decompressor);
-		}
-	};
-
-	struct LASPointReader {
-		LAS &las;
-
-		LASPointReader(LAS &las) : las(las) { }
-
-		void operator()(char *buffer) {
-			las.read_buffer(buffer);
-		}
-	};
-
-	using LAZPointReader0 = LAZPointReader<lazperf::point_decompressor_0>;
-	using LAZPointReader1 = LAZPointReader<lazperf::point_decompressor_1>;
-	using LAZPointReader2 = LAZPointReader<lazperf::point_decompressor_2>;
-	using LAZPointReader3 = LAZPointReader<lazperf::point_decompressor_3>;
-	using LAZPointReader6 = LAZPointReader<lazperf::point_decompressor_6>;
-	using LAZPointReader7 = LAZPointReader<lazperf::point_decompressor_7>;
-	using LAZPointReader8 = LAZPointReader<lazperf::point_decompressor_8>;
-
-	std::variant<
-		LASPointReader,
-		LAZPointReader0,
-		LAZPointReader1,
-		LAZPointReader2,
-		LAZPointReader3,
-		LAZPointReader6,
-		LAZPointReader7,
-		LAZPointReader8
-	> point_reader;
-
 	void read_point_record(char *buffer) {
 		auto const read = [&](auto &point_reader) { point_reader(buffer); };
 		std::visit(read, point_reader);
@@ -259,10 +259,10 @@ public:
 
 	LAS(std::istream &input) :
 		input(input),
-		chunk_size(0),
-		laz_callback([&](unsigned char *buffer, std::size_t length) {
+		lazperf_callback([&](unsigned char *buffer, std::size_t length) {
 			input.read(reinterpret_cast<char *>(buffer), length);
 		}),
+		chunk_size(0),
 		point_reader(std::in_place_type<LASPointReader>, *this)
 	{
 		read_ahead(20, version_major, version_minor);
