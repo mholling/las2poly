@@ -209,7 +209,7 @@ class LAS {
 
 		chunk_points.push_back(0);
 		chunk_lengths.push_back(0);
-		chunk_offsets.push_back(sizeof(std::int64_t) + offset_to_point_data);
+		chunk_offsets.push_back(sizeof(chunk_table_offset) + offset_to_point_data);
 
 		for (auto remaining = size; chunk_count > 0; --chunk_count) {
 			if (variable_chunk_size)
