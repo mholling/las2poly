@@ -34,14 +34,14 @@ class Polygons : public MultiPolygon, public Simplify<Polygons>, public Densify<
 
 		auto remaining = holes_begin;
 		std::for_each(rings.begin(), holes_begin, [&](auto const &exterior) {
-			auto polygon = Polygon{{exterior}};
+			auto &polygon = emplace_back();
+			polygon.push_back(exterior);
 			auto const old_remaining = remaining;
 			auto const exterior_bounds = Bounds(exterior);
 			remaining = std::partition(remaining, rings.end(), [&](auto const &hole) {
 				return exterior_bounds & Bounds(hole.front()) && exterior <=> hole != 0;
 			});
 			std::copy(old_remaining, remaining, std::back_inserter(polygon));
-			emplace_back(polygon);
 		});
 	}
 
