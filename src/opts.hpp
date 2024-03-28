@@ -116,7 +116,9 @@ struct Opts {
 			if (count < 1)
 				throw std::runtime_error("number of threads must be positive");
 		if (raw && simplify)
-			throw std::runtime_error("either raw or simplify but not both");
+			throw std::runtime_error("can't simplify raw output");
+		if (raw && scale)
+			throw std::runtime_error("can't use scale with raw output");
 	}
 };
 
