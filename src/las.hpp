@@ -152,7 +152,7 @@ class LAS {
 					throw std::runtime_error("invalid LAZ file");
 				read_ahead(10, chunk_size);
 				read_ahead(record_length_after_header - 16);
-			} else if (2112 == record_id && lasf_projection_user_id == user_id) { // OGC coordinate system WKT
+			} else if (2112 == record_id && !srs && lasf_projection_user_id == user_id) { // OGC coordinate system WKT
 				auto compound_wkt = std::string(record_length_after_header, '\0');
 				read_values(compound_wkt);
 				if (auto const projcs = compound_wkt.find("PROJCS["); projcs != std::string::npos) {
