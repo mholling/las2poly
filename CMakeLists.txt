@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(las2poly LANGUAGES CXX VERSION 1.1)
+project(las2poly LANGUAGES CXX VERSION 1.2)
 add_executable(las2poly src/main.cpp)
 include(ExternalProject)
 ExternalProject_Add(
