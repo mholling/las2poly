@@ -28,12 +28,11 @@ class Smooth {
 		Corner corner;
 		Bounds bounds;
 		Vertex vertex;
-		bool second;
 		double cosine;
 		bool increases_rms_curvature;
 		double delta_perimeter;
 
-		Candidate(Corner const &corner, bool erode_then_dilate) :
+		Candidate(Corner const &corner) :
 			corner(corner),
 			bounds(corner)
 		{
@@ -62,7 +61,6 @@ class Smooth {
 			auto const u23 = d23 / n23;
 			auto const u34 = d34 / n34;
 
-			second = ((u12 ^ u23) < 0) == erode_then_dilate;
 			cosine = u12 * u23;
 			delta_perimeter = n1v + nv3 - n12 - n23;
 			increases_rms_curvature = u01 * u12 + u12 * u23 + u23 * u34 - u01 * u1v - u1v * uv3 - uv3 * u34 >= 0;
@@ -73,9 +71,7 @@ class Smooth {
 		}
 
 		friend auto operator<(Candidate const &candidate1, Candidate const &candidate2) {
-			return
-				std::tie(candidate1.second, candidate1.cosine) <
-				std::tie(candidate2.second, candidate2.cosine);
+			return candidate1.cosine < candidate2.cosine;
 		}
 
 		auto operator()(RTree const &rtree) const {
@@ -123,7 +119,7 @@ class Smooth {
 	using Corners = std::vector<Corner>;
 
 public:
-	void smooth(bool erode_then_dilate) {
+	void smooth() {
 		auto corners = Corners();
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
@@ -139,7 +135,7 @@ public:
 			auto delta_perimeter = 0.0;
 			auto delta_summation = Summation(delta_perimeter);
 			for (auto const &corner: corners)
-				if (auto const candidate = Candidate(corner, erode_then_dilate); candidate(rtree))
+				if (auto const candidate = Candidate(corner); candidate(rtree))
 					ordered.insert(candidate);
 			while (!ordered.empty()) {
 				auto const least = ordered.begin();
@@ -147,7 +143,7 @@ public:
 				ordered.erase(least);
 				auto updates = Corners();
 				for (auto const &corner: rtree.search(candidate.bounds)) {
-					auto const candidate = Candidate(corner, erode_then_dilate);
+					auto const candidate = Candidate(corner);
 					auto const [begin, end] = ordered.equal_range(candidate);
 					auto const position = std::find(begin, end, candidate);
 					if (position != end) {
@@ -157,7 +153,7 @@ public:
 				};
 				candidate.update(rtree, delta_summation);
 				for (auto const &corner: updates)
-					if (auto const candidate = Candidate(corner, erode_then_dilate); candidate(rtree))
+					if (auto const candidate = Candidate(corner); candidate(rtree))
 						ordered.insert(candidate);
 			}
 			if (delta_perimeter + perimeter_change_threshold * perimeter > 0)

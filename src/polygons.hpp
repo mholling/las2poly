@@ -9,7 +9,6 @@
 
 #include "ring.hpp"
 #include "simplify.hpp"
-#include "densify.hpp"
 #include "smooth.hpp"
 #include "app.hpp"
 #include "edges.hpp"
@@ -23,7 +22,7 @@
 using Polygon = std::vector<Ring>;
 using MultiPolygon = std::vector<Polygon>;
 
-class Polygons : public MultiPolygon, public Simplify<Polygons>, public Densify<Polygons>, public Smooth<Polygons> {
+class Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<Polygons> {
 	Polygons(Rings &&rings) {
 		auto holes_begin = std::partition(rings.begin(), rings.end(), [](auto const &ring) {
 			return ring.exterior();
@@ -82,18 +81,14 @@ public:
 	Polygons(App const &app, Edges const &edges) :
 		Polygons(edges, !app.land)
 	{
-		auto const tolerance = *app.scale * *app.scale;
-		auto const density = *app.width;
-
 		if (app.simplify) {
 			app.log("simplifying", ring_count(), "ring");
-			simplify_one_sided(tolerance, app.land);
-			simplify_one_sided(tolerance, !app.land);
+			simplify_one_sided(*app.scale, app.land);
+			simplify_one_sided(*app.scale, !app.land);
 		} else if (app.smooth) {
 			app.log("smoothing", ring_count(), "ring");
-			simplify_one_sided(tolerance, app.land);
-			densify(density);
-			smooth(app.land);
+			simplify_one_sided(*app.scale, app.land, false);
+			smooth();
 		}
 
 		if (auto const min_area = *app.area; min_area > 0)

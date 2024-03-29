@@ -26,26 +26,33 @@ class Simplify {
 	struct Candidate {
 		Corner corner;
 		Bounds bounds;
-		double cross;
+		double area;
+		bool removable;
 
-		Candidate(Corner const &corner) :
+		Candidate(Corner const &corner, double scale, bool erode, bool area_only) :
 			corner(corner),
-			bounds(corner),
-			cross(corner.cross())
-		{ }
+			bounds(corner)
+		{
+			auto const &[v0, v1, v2] = corner;
+			auto cross = (v1 - v0) ^ (v2 - v1);
+			auto length = (v2 - v0).norm();
+			area = 0.5 * std::abs(cross);
+			removable =
+				erode == (cross > 0) &&
+				area < scale * scale &&
+				(area_only || length < 2 * scale);
+		}
 
 		friend auto operator==(Candidate const &candidate1, Candidate const &candidate2) {
 			return candidate1.corner == candidate2.corner;
 		}
 
 		friend auto operator<(Candidate const &candidate1, Candidate const &candidate2) {
-			return std::abs(candidate1.cross) < std::abs(candidate2.cross);
+			return candidate1.area < candidate2.area;
 		}
 
-		auto operator()(RTree const &rtree, double corner_area, bool erode) const {
-			if (cross == 0) return true;
-			if (erode == (cross < 0)) return false;
-			if (std::abs(cross) > corner_area * 2) return false;
+		auto operator()(RTree const &rtree) const {
+			if (!removable) return false;
 			if (corner.ring_size() <= min_ring_size) return false;
 			auto const prev = corner.prev();
 			auto const next = corner.next();
@@ -84,7 +91,7 @@ class Simplify {
 	using Corners = std::vector<Corner>;
 
 public:
-	void simplify_one_sided(double tolerance, bool erode) {
+	void simplify_one_sided(double scale, bool erode, bool area_only = true) {
 		auto corners = Corners();
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
@@ -93,7 +100,7 @@ public:
 					corners.push_back(corner);
 		auto rtree = RTree(corners, 1);
 		for (auto const &corner: corners)
-			if (auto const candidate = Candidate(corner); candidate(rtree, tolerance, erode))
+			if (auto const candidate = Candidate(corner, scale, erode, area_only); candidate(rtree))
 				ordered.insert(candidate);
 		while (!ordered.empty()) {
 			auto const least = ordered.begin();
@@ -105,7 +112,7 @@ public:
 			auto search = rtree.search(candidate.bounds);
 			auto const updates = Corners(search.begin(), search.end());
 			for (auto const &corner: updates) {
-				auto const candidate = Candidate(corner);
+				auto const candidate = Candidate(corner, scale, erode, area_only);
 				auto const [begin, end] = ordered.equal_range(candidate);
 				auto const position = std::find(begin, end, candidate);
 				if (position != end)
@@ -113,7 +120,7 @@ public:
 			}
 			candidate.erase(rtree);
 			for (auto const &corner: updates)
-				if (auto const candidate = Candidate(corner); candidate(rtree, tolerance, erode))
+				if (auto const candidate = Candidate(corner, scale, erode, area_only); candidate(rtree))
 					ordered.insert(candidate);
 		}
 	}

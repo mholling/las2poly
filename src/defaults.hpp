@@ -86,7 +86,7 @@ public:
 			app.area = 4 * *app.width * *app.width;
 
 		if (!app.scale)
-			app.scale = 2 * *app.width;
+			app.scale = *app.width;
 	}
 };
 
