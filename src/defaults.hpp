@@ -82,11 +82,11 @@ public:
 			app.log("using ", std::setprecision(1), *app.width, "m minimum width");
 		}
 
-		if (!app.area)
-			app.area = 4 * *app.width * *app.width;
-
 		if (!app.scale)
 			app.scale = *app.width;
+
+		if (!app.area)
+			app.area = 4 * *app.scale * *app.scale;
 	}
 };
 
