@@ -77,7 +77,7 @@ value is not provided, the point density of the tiles is examined to estimate th
 
 > Set a minimum feature scale.
 > This controls the size of features which are affected by output smoothing or simplification.
-> A sensible default value is applied.
+> When not supplied, the minimum width value is used.
 
 **--simplify**
 
@@ -214,4 +214,4 @@ options can help to expose any problems and artifacts in the lidar data.
 
 Matthew Hollingworth
 
-macOS 13.1 - March 26, 2024
+macOS 13.1 - March 29, 2024
