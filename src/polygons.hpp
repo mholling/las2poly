@@ -94,14 +94,14 @@ public:
 		filter_by_area(*app.area);
 		if (app.simplify) {
 			app.log("simplifying", ring_count(), "ring");
-			simplify(*app.scale, app.land);
-			filter_by_area(*app.area);
-		} else if (app.smooth) {
-			app.log("smoothing", ring_count(), "ring");
-			simplify(*app.scale, app.land, false);
-			smooth();
-			filter_by_area(*app.area);
+			simplify(*app.scale, app.land, !app.smooth);
 		}
+		if (app.smooth) {
+			app.log("smoothing", ring_count(), "ring");
+			smooth();
+		}
+		if (app.simplify || app.smooth)
+			filter_by_area(*app.area);
 	}
 
 	auto reassemble(bool allow_self_intersection) const {

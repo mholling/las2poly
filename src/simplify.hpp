@@ -125,7 +125,7 @@ class Simplify {
 	}
 
 public:
-	void simplify(double scale, bool erode_then_dilate, bool area_only = true) {
+	void simplify(double scale, bool erode_then_dilate, bool area_only) {
 		simplify_one_sided(scale, erode_then_dilate, area_only);
 		simplify_one_sided(scale, !erode_then_dilate, area_only);
 	}
