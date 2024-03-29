@@ -232,7 +232,7 @@ public:
 	template <typename Collection>
 	void operator()(Collection const &collection, OptionalSRS const &srs) {
 		if (collection.size() >= int32_max)
-			throw std::runtime_error("too many collection for shapefile format");
+			throw std::runtime_error("too many features for shapefile format");
 		shpx(collection);
 		dbf(collection);
 		if (srs)
