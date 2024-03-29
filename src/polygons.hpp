@@ -44,6 +44,16 @@ class Polygons : public MultiPolygon, public Simplify<Polygons>, public Smooth<P
 		});
 	}
 
+	auto filter_by_area(double min_area) {
+		if (min_area > 0)
+			erase(std::remove_if(begin(), end(), [&](auto &polygon) {
+				polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [&](auto const &ring) {
+					return ring.signed_area() > -min_area;
+				}), polygon.end());
+				return polygon.front().signed_area() < min_area;
+			}), end());
+	}
+
 public:
 	Polygons() = default;
 
@@ -81,23 +91,18 @@ public:
 	Polygons(App const &app, Edges const &edges) :
 		Polygons(edges, !app.land)
 	{
+		filter_by_area(*app.area);
 		if (app.simplify) {
 			app.log("simplifying", ring_count(), "ring");
 			simplify_one_sided(*app.scale, app.land);
 			simplify_one_sided(*app.scale, !app.land);
+			filter_by_area(*app.area);
 		} else if (app.smooth) {
 			app.log("smoothing", ring_count(), "ring");
 			simplify_one_sided(*app.scale, app.land, false);
 			smooth();
+			filter_by_area(*app.area);
 		}
-
-		if (auto const min_area = *app.area; min_area > 0)
-			erase(std::remove_if(begin(), end(), [&](auto &polygon) {
-				polygon.erase(std::remove_if(std::next(polygon.begin()), polygon.end(), [&](auto const &ring) {
-					return ring.signed_area() > -min_area;
-				}), polygon.end());
-				return polygon.front().signed_area() < min_area;
-			}), end());
 	}
 
 	auto reassemble(bool allow_self_intersection) const {
