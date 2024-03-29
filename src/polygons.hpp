@@ -94,12 +94,11 @@ public:
 		filter_by_area(*app.area);
 		if (app.simplify) {
 			app.log("simplifying", ring_count(), "ring");
-			simplify_one_sided(*app.scale, app.land);
-			simplify_one_sided(*app.scale, !app.land);
+			simplify(*app.scale, app.land);
 			filter_by_area(*app.area);
 		} else if (app.smooth) {
 			app.log("smoothing", ring_count(), "ring");
-			simplify_one_sided(*app.scale, app.land, false);
+			simplify(*app.scale, app.land, false);
 			smooth();
 			filter_by_area(*app.area);
 		}

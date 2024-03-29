@@ -90,8 +90,7 @@ class Simplify {
 	using Ordered = std::multiset<Candidate>;
 	using Corners = std::vector<Corner>;
 
-public:
-	void simplify_one_sided(double scale, bool erode, bool area_only = true) {
+	void simplify_one_sided(double scale, bool erode, bool area_only) {
 		auto corners = Corners();
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
@@ -123,6 +122,12 @@ public:
 				if (auto const candidate = Candidate(corner, scale, erode, area_only); candidate(rtree))
 					ordered.insert(candidate);
 		}
+	}
+
+public:
+	void simplify(double scale, bool erode_then_dilate, bool area_only = true) {
+		simplify_one_sided(scale, erode_then_dilate, area_only);
+		simplify_one_sided(scale, !erode_then_dilate, area_only);
 	}
 };
 
