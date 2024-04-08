@@ -26,7 +26,7 @@ class App {
 		land       (opts.land),
 		area       (opts.area),
 		scale      (opts.scale),
-		simplify   (!opts.raw),
+		simplify   (opts.simplify),
 		smooth     (!opts.raw && !opts.simplify),
 		multi      (opts.multi),
 		lines      (opts.lines),

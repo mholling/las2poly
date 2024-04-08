@@ -17,8 +17,8 @@
 #include <set>
 #include <vector>
 
-template <typename Polygons>
-class Simplify {
+template <typename Polygons, bool area_only>
+class SimplifyOneSided {
 	auto static constexpr min_ring_size = 8;
 	using Corner = ::Corner<Ring>;
 	using RTree = ::RTree<Corner>;
@@ -29,7 +29,7 @@ class Simplify {
 		double area;
 		bool removable;
 
-		Candidate(Corner const &corner, double scale, bool erode, bool area_only) :
+		Candidate(Corner const &corner, double scale, bool erode) :
 			corner(corner),
 			bounds(corner)
 		{
@@ -90,7 +90,8 @@ class Simplify {
 	using Ordered = std::multiset<Candidate>;
 	using Corners = std::vector<Corner>;
 
-	void simplify_one_sided(double scale, bool erode, bool area_only) {
+public:
+	void simplify_one_sided(double scale, bool erode) {
 		auto corners = Corners();
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
@@ -99,7 +100,7 @@ class Simplify {
 					corners.push_back(corner);
 		auto rtree = RTree(corners, 1);
 		for (auto const &corner: corners)
-			if (auto const candidate = Candidate(corner, scale, erode, area_only); candidate(rtree))
+			if (auto const candidate = Candidate(corner, scale, erode); candidate(rtree))
 				ordered.insert(candidate);
 		while (!ordered.empty()) {
 			auto const least = ordered.begin();
@@ -111,7 +112,7 @@ class Simplify {
 			auto search = rtree.search(candidate.bounds);
 			auto const updates = Corners(search.begin(), search.end());
 			for (auto const &corner: updates) {
-				auto const candidate = Candidate(corner, scale, erode, area_only);
+				auto const candidate = Candidate(corner, scale, erode);
 				auto const [begin, end] = ordered.equal_range(candidate);
 				auto const position = std::find(begin, end, candidate);
 				if (position != end)
@@ -119,15 +120,17 @@ class Simplify {
 			}
 			candidate.erase(rtree);
 			for (auto const &corner: updates)
-				if (auto const candidate = Candidate(corner, scale, erode, area_only); candidate(rtree))
+				if (auto const candidate = Candidate(corner, scale, erode); candidate(rtree))
 					ordered.insert(candidate);
 		}
 	}
+};
 
-public:
-	void simplify(double scale, bool erode_then_dilate, bool area_only) {
-		simplify_one_sided(scale, erode_then_dilate, area_only);
-		simplify_one_sided(scale, !erode_then_dilate, area_only);
+template <typename Polygons>
+struct Simplify : public SimplifyOneSided<Polygons, true> {
+	void simplify(double scale, bool erode_then_dilate) {
+		this->simplify_one_sided(scale, erode_then_dilate);
+		this->simplify_one_sided(scale, !erode_then_dilate);
 	}
 };
 

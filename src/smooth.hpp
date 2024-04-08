@@ -7,6 +7,7 @@
 #ifndef SMOOTH_HPP
 #define SMOOTH_HPP
 
+#include "simplify.hpp"
 #include "corner.hpp"
 #include "ring.hpp"
 #include "rtree.hpp"
@@ -20,7 +21,7 @@
 #include <vector>
 
 template <typename Polygons>
-class Smooth {
+class Smooth : public SimplifyOneSided<Polygons, false> {
 	using Corner = ::Corner<Ring>;
 	using RTree = ::RTree<Corner>;
 
@@ -119,7 +120,10 @@ class Smooth {
 	using Corners = std::vector<Corner>;
 
 public:
-	void smooth() {
+	void smooth(double scale, bool erode_then_dilate) {
+		this->simplify_one_sided(scale, erode_then_dilate);
+		this->simplify_one_sided(scale, !erode_then_dilate);
+
 		auto corners = Corners();
 		auto ordered = Ordered();
 		for (auto &polygon: static_cast<Polygons &>(*this))
