@@ -8,7 +8,6 @@
 #define RTREE_HPP
 
 #include "bounds.hpp"
-#include <vector>
 #include <memory>
 #include <utility>
 #include <variant>
@@ -19,19 +18,17 @@
 #include <algorithm>
 #include <thread>
 
-template <typename Element>
+template <typename ElementIterator>
 class RTree {
-	using Elements = std::vector<Element>;
-	using ElementIterator = typename Elements::iterator;
 	using RTreePtr = std::unique_ptr<RTree>;
 	using Children = std::pair<RTreePtr, RTreePtr>;
-	using Value = std::variant<Children, Element>;
+	using Value = std::variant<Children, ElementIterator>;
 
 	Bounds bounds;
 	Value value;
 
 	auto leaf() const {
-		return std::holds_alternative<Element>(value);
+		return std::holds_alternative<ElementIterator>(value);
 	}
 
 	auto &children() const {
@@ -42,8 +39,12 @@ class RTree {
 		return std::get<Children>(value);
 	}
 
+	auto &iterator() const {
+		return std::get<ElementIterator>(value);
+	}
+
 	auto &element() const {
-		return std::get<Element>(value);
+		return *iterator();
 	}
 
 	struct Search : std::stack<RTree const *> {
@@ -51,8 +52,8 @@ class RTree {
 
 		struct Iterator {
 			using iterator_category = std::input_iterator_tag;
-			using value_type        = Element const;
-			using reference         = Element const &;
+			using value_type        = ElementIterator const;
+			using reference         = ElementIterator const &;
 			using pointer           = void;
 			using difference_type   = void;
 
@@ -96,7 +97,7 @@ class RTree {
 			}
 
 			auto &operator*() const {
-				return search.top()->element();
+				return search.top()->iterator();
 			}
 		};
 
@@ -109,27 +110,14 @@ class RTree {
 		auto   end() { return Iterator(*this); }
 	};
 
-	auto static elements(Element const &begin, Element const &end) {
-		auto elements = Elements();
-		elements.reserve(end - begin);
-		for (auto element = begin; element != end; ++element)
-			elements.push_back(element);
-		return elements;
-	}
-
 public:
-	RTree(Element const &element) :
-		bounds(element),
-		value(element)
-	{ }
-
-	RTree(ElementIterator begin, ElementIterator end, bool horizontal, int threads) {
+	RTree(ElementIterator const &begin, ElementIterator const &end, int threads, bool horizontal = true) {
 		switch (end - begin) {
 		case 0:
 			break;
 		case 1:
 			bounds = Bounds(*begin);
-			value = *begin;
+			value = begin;
 			break;
 		default:
 			auto const middle = begin + (end - begin) / 2;
@@ -142,13 +130,13 @@ public:
 			auto rtree1 = RTreePtr();
 			auto rtree2 = RTreePtr();
 			if (1 == threads) {
-				rtree1 = std::make_unique<RTree>(begin, middle, !horizontal, 1);
-				rtree2 = std::make_unique<RTree>(middle,   end, !horizontal, 1);
+				rtree1 = std::make_unique<RTree>(begin, middle, 1, !horizontal);
+				rtree2 = std::make_unique<RTree>(middle,   end, 1, !horizontal);
 			} else {
 				auto thread1 = std::thread([&]() {
-					rtree1 = std::make_unique<RTree>(begin, middle, !horizontal, threads/2);
+					rtree1 = std::make_unique<RTree>(begin, middle, threads/2, !horizontal);
 				}), thread2 = std::thread([&]() {
-					rtree2 = std::make_unique<RTree>(middle,   end, !horizontal, threads - threads/2);
+					rtree2 = std::make_unique<RTree>(middle,   end, threads - threads/2, !horizontal);
 				});
 				thread1.join(), thread2.join();
 			}
@@ -157,16 +145,13 @@ public:
 		}
 	}
 
-	RTree(Elements &elements, int threads) : RTree(elements.begin(), elements.end(), true, threads) { }
-	RTree(Elements &&elements, int threads) : RTree(elements.begin(), elements.end(), true, threads) { }
-	RTree(Element const &begin, Element const &end, int threads) : RTree(elements(begin, end), threads) { }
-
 	auto search(Bounds const &bounds) const {
 		return Search(bounds, this);
 	}
 
 	enum { found_none = 0, found_leaf, found_branch };
 
+	template <typename Element>
 	auto erase(Element const &element, Bounds const &element_bounds) {
 		if (leaf())
 			return this->element() == element ? found_leaf : found_none;
@@ -200,6 +185,7 @@ public:
 		return found_none;
 	}
 
+	template <typename Element>
 	auto update(Element const &element, Bounds const &old_bounds) {
 		if (leaf()) {
 			if (this->element() == element) {

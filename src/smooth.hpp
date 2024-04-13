@@ -23,7 +23,6 @@
 template <typename Polygons>
 class Smooth : public SimplifyOneSided<Polygons, false> {
 	using Corner = ::Corner<Ring>;
-	using RTree = ::RTree<Corner>;
 
 	struct Candidate {
 		Corner corner;
@@ -75,6 +74,7 @@ class Smooth : public SimplifyOneSided<Polygons, false> {
 			return candidate1.cosine < candidate2.cosine;
 		}
 
+		template <typename RTree>
 		auto operator()(RTree const &rtree) const {
 			if (increases_rms_curvature) return false;
 			auto const prev = corner.prev();
@@ -86,21 +86,21 @@ class Smooth : public SimplifyOneSided<Polygons, false> {
 			auto const v1v2 = Segment(v1, v2);
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
-				if (other == corner) return false;
-				if (other == prev) return false;
-				if (other == next) return false;
-				auto const &[u0, u1, u2] = other;
+				if (*other == corner) return false;
+				if (*other == prev) return false;
+				if (*other == next) return false;
+				auto const &[u0, u1, u2] = *other;
 				auto const u0u1 = Segment(u0, u1);
 				auto const u1u2 = Segment(u1, u2);
-				if (                        v0v1 & u0u1) return true;
-				if (other.next() != prev && v0v1 & u1u2) return true;
-				if (other.prev() != next && v1v2 & u0u1) return true;
-				if (                        v1v2 & u1u2) return true;
+				if (                         v0v1 & u0u1) return true;
+				if (other->next() != prev && v0v1 & u1u2) return true;
+				if (other->prev() != next && v1v2 & u0u1) return true;
+				if (                         v1v2 & u1u2) return true;
 				return false;
 			});
 		}
 
-		template <typename Summation>
+		template <typename RTree, typename Summation>
 		void update(RTree &rtree, Summation &perimeter_summation) const {
 			auto const next = corner.next();
 			auto const prev = corner.prev();
@@ -134,7 +134,7 @@ public:
 		auto perimeter_summation = Summation(perimeter);
 		for (auto const &[v0, v1, v2]: corners)
 			perimeter_summation += (v0 - v1).norm();
-		auto rtree = RTree(corners, 1);
+		auto rtree = RTree(corners.begin(), corners.end(), 1);
 		for (int iteration = 0; iteration < 100; ++iteration) {
 			auto delta_perimeter = 0.0;
 			auto delta_summation = Summation(delta_perimeter);
@@ -147,12 +147,12 @@ public:
 				ordered.erase(least);
 				auto updates = Corners();
 				for (auto const &corner: rtree.search(candidate.bounds)) {
-					auto const candidate = Candidate(corner);
+					auto const candidate = Candidate(*corner);
 					auto const [begin, end] = ordered.equal_range(candidate);
 					auto const position = std::find(begin, end, candidate);
 					if (position != end) {
 						ordered.erase(position);
-						updates.push_back(corner);
+						updates.push_back(*corner);
 					}
 				};
 				candidate.update(rtree, delta_summation);

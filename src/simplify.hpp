@@ -21,7 +21,6 @@ template <typename Polygons, bool area_only>
 class SimplifyOneSided {
 	auto static constexpr min_ring_size = 8;
 	using Corner = ::Corner<Ring>;
-	using RTree = ::RTree<Corner>;
 
 	struct Candidate {
 		Corner corner;
@@ -51,6 +50,7 @@ class SimplifyOneSided {
 			return candidate1.area < candidate2.area;
 		}
 
+		template <typename RTree>
 		auto operator()(RTree const &rtree) const {
 			if (!removable) return false;
 			if (corner.ring_size() <= min_ring_size) return false;
@@ -64,8 +64,8 @@ class SimplifyOneSided {
 			auto const v2v0 = Segment(v2, v0);
 			auto search = rtree.search(bounds);
 			return std::none_of(search.begin(), search.end(), [&](auto const &other) {
-				if (other == corner) return false;
-				auto const &[u0, u1, u2] = other;
+				if (*other == corner) return false;
+				auto const &[u0, u1, u2] = *other;
 				auto const u0u1 = Segment(u0, u1);
 				auto const u1u2 = Segment(u1, u2);
 				if (v0 == u1) return v0v1 >= u0 && v1v2 >= u0 && v2v0 >= u0;
@@ -76,6 +76,7 @@ class SimplifyOneSided {
 			});
 		}
 
+		template <typename RTree>
 		void erase(RTree &rtree) const {
 			auto const next = corner.next();
 			auto const prev = corner.prev();
@@ -98,7 +99,7 @@ public:
 			for (auto &ring: polygon)
 				for (auto corner: ring.corners())
 					corners.push_back(corner);
-		auto rtree = RTree(corners, 1);
+		auto rtree = RTree(corners.begin(), corners.end(), 1);
 		for (auto const &corner: corners)
 			if (auto const candidate = Candidate(corner, scale, erode); candidate(rtree))
 				ordered.insert(candidate);
@@ -109,10 +110,10 @@ public:
 			if (candidate.corner.ring_size() <= min_ring_size)
 				continue;
 			rtree.erase(candidate.corner, candidate.bounds);
-			auto search = rtree.search(candidate.bounds);
-			auto const updates = Corners(search.begin(), search.end());
-			for (auto const &corner: updates) {
-				auto const candidate = Candidate(corner, scale, erode);
+			auto updates = Corners();
+			for (auto const &corner: rtree.search(candidate.bounds)) {
+				updates.push_back(*corner);
+				auto const candidate = Candidate(*corner, scale, erode);
 				auto const [begin, end] = ordered.equal_range(candidate);
 				auto const position = std::find(begin, end, candidate);
 				if (position != end)
