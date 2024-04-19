@@ -8,11 +8,11 @@
 #define RTREE_HPP
 
 #include "bounds.hpp"
+#include <iterator>
 #include <memory>
 #include <utility>
 #include <variant>
 #include <stack>
-#include <iterator>
 #include <cstddef>
 #include <stdexcept>
 #include <algorithm>
@@ -20,6 +20,7 @@
 
 template <typename ElementIterator>
 class RTree {
+	using Element = typename std::iterator_traits<ElementIterator>::value_type;
 	using RTreePtr = std::unique_ptr<RTree>;
 	using Children = std::pair<RTreePtr, RTreePtr>;
 	using Value = std::variant<Children, ElementIterator>;
@@ -151,7 +152,6 @@ public:
 
 	enum { found_none = 0, found_leaf, found_branch };
 
-	template <typename Element>
 	auto erase(Element const &element, Bounds const &element_bounds) {
 		if (leaf())
 			return this->element() == element ? found_leaf : found_none;
@@ -185,7 +185,6 @@ public:
 		return found_none;
 	}
 
-	template <typename Element>
 	auto update(Element const &element, Bounds const &old_bounds) {
 		if (leaf()) {
 			if (this->element() == element) {
