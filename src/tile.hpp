@@ -68,11 +68,6 @@ class Tile {
 		}
 	};
 
-	struct GetSRS {
-		auto const &operator()(PLY &ply) const { return ply.srs; }
-		auto const &operator()(LAS &las) const { return las.srs; }
-	};
-
 public:
 	Bounds bounds;
 
@@ -84,7 +79,8 @@ public:
 	}
 
 	auto srs() {
-		return std::visit(GetSRS(), variant);
+		auto const srs = [](auto &tile) -> auto const & { return tile.srs; };
+		return std::visit(srs, variant);
 	}
 
 	auto begin() { return Iterator(*this, 0); }

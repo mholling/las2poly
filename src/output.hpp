@@ -29,7 +29,8 @@ class Output {
 
 	template <typename ...Args>
 	void operator()(Args const &...args) {
-		std::visit([&](auto &output) { output(args...); }, variant);
+		auto const store = [&](auto &output) { output(args...); };
+		std::visit(store, variant);
 	}
 
 	operator bool() const {
